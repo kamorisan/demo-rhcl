@@ -11,7 +11,7 @@ metadata:
     argocd.argoproj.io/sync-wave: "20"
 spec:
   hostnames:
-    - REPLACE_ME_DEMO_HOSTNAME
+    - rhcl-workshop.example.com
   parentRefs:
     - group: gateway.networking.k8s.io
       kind: Gateway

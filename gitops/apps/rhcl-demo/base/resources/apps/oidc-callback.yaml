@@ -64,8 +64,8 @@ metadata:
     argocd.argoproj.io/sync-wave: "30"
 spec:
   hostnames:
-    - REPLACE_ME_OIDC_HOSTNAME
-    - oidc-rhcl-workshop.REPLACE_ME_BASE_DOMAIN
+    - oidc-rhcl-workshop.example.com
+    - oidc-rhcl-workshop.example.com
   parentRefs:
     - group: gateway.networking.k8s.io
       kind: Gateway

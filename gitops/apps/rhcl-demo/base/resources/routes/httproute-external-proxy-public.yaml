@@ -11,7 +11,7 @@ metadata:
     argocd.argoproj.io/sync-wave: "20"
 spec:
   hostnames:
-    - external-api.REPLACE_ME_BASE_DOMAIN
+    - external-api.example.com
   parentRefs:
     - group: gateway.networking.k8s.io
       kind: Gateway

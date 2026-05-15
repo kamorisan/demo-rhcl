@@ -13,14 +13,14 @@ spec:
     - name: http-ai
       port: 80
       protocol: HTTP
-      hostname: ai.REPLACE_ME_BASE_DOMAIN
+      hostname: ai.example.com
       allowedRoutes:
         namespaces:
           from: All
     - name: https-ai-sandbox
       port: 443
       protocol: HTTPS
-      hostname: ai.REPLACE_ME_BASE_DOMAIN
+      hostname: ai.example.com
       tls:
         mode: Terminate
         certificateRefs:
