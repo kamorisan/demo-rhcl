@@ -18,6 +18,8 @@ kind: HTTPRoute
 metadata:
   name: rhcl-mcp
   namespace: rhcl-ai-bot
+  annotations:
+    argocd.argoproj.io/sync-wave: "20"
 spec:
   hostnames:
     - mcp.apps.cluster-rjzd5.rjzd5.sandbox921.opentlc.com
@@ -42,6 +44,8 @@ kind: AuthPolicy
 metadata:
   name: rhcl-mcp-allow
   namespace: rhcl-ai-bot
+  annotations:
+    argocd.argoproj.io/sync-wave: "22"
 spec:
   targetRef:
     group: gateway.networking.k8s.io
@@ -60,6 +64,8 @@ kind: DNSPolicy
 metadata:
   name: rhcl-oidc-sandbox-dns
   namespace: openshift-ingress
+  annotations:
+    argocd.argoproj.io/sync-wave: "17"
 spec:
   providerRefs:
     - name: route53-credentials
@@ -74,6 +80,8 @@ kind: DNSPolicy
 metadata:
   name: rhcl-ai-sandbox-dns
   namespace: openshift-ingress
+  annotations:
+    argocd.argoproj.io/sync-wave: "17"
 spec:
   providerRefs:
     - name: route53-credentials
