@@ -12,7 +12,7 @@ metadata:
   annotations:
     argocd.argoproj.io/sync-wave: "0"
 ---
-# OpenShift Service Mesh 3 Operator (provides Istio GatewayClass)
+# OpenShift Service Mesh 3 Operator (provides Istio via Sail Operator)
 apiVersion: operators.coreos.com/v1alpha1
 kind: Subscription
 metadata:
@@ -26,6 +26,27 @@ spec:
   source: redhat-operators
   sourceNamespace: openshift-marketplace
   installPlanApproval: Automatic
+---
+# Istio namespace for control plane
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: istio-system
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+---
+# Istio control plane (creates istio GatewayClass)
+apiVersion: sailoperator.io/v1
+kind: Istio
+metadata:
+  name: default
+  namespace: istio-system
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
+spec:
+  version: v1.24
+  namespace: istio-system
 ---
 # Grant Argo CD application controller necessary permissions
 apiVersion: rbac.authorization.k8s.io/v1
