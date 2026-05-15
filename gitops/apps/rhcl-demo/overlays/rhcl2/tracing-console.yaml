@@ -12,6 +12,8 @@ kind: ObservabilityInstaller
 metadata:
   name: rhcl-tracing
   namespace: openshift-cluster-observability-operator
+  annotations:
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
 spec:
   capabilities:
     tracing:
