@@ -1,6 +1,6 @@
 ---
 - name: Apply kuadrant-observability Application (must exist before rhcl-workshop)
-  ansible.builtin.command: oc apply -f "{{ playbook_dir }}/../gitops/apps/kuadrant-observability-application.yaml"
+  ansible.builtin.command: oc apply -f "{{ playbook_dir }}/../../gitops/apps/kuadrant-observability-application.yaml"
   register: apply_kuadrant_obs
   changed_when: "'configured' in (apply_kuadrant_obs.stdout | lower) or 'created' in (apply_kuadrant_obs.stdout | lower)"
 
