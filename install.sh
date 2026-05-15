@@ -13,6 +13,7 @@ check_env_vars() {
   [[ -z "${AWS_SECRET_ACCESS_KEY:-}" ]] && missing+=("AWS_SECRET_ACCESS_KEY")
   [[ -z "${AWS_REGION:-}" ]] && missing+=("AWS_REGION")
   [[ -z "${EXTERNAL_BASE_DOMAIN:-}" ]] && missing+=("EXTERNAL_BASE_DOMAIN")
+  [[ -z "${RHCL_AI_OPENAI_API_KEY:-}" ]] && missing+=("RHCL_AI_OPENAI_API_KEY")
 
   if [[ ${#missing[@]} -gt 0 ]]; then
     echo "ERROR: Missing required environment variables:" >&2
@@ -23,6 +24,7 @@ check_env_vars() {
     echo "  export AWS_SECRET_ACCESS_KEY=..." >&2
     echo "  export AWS_REGION=us-east-2" >&2
     echo "  export EXTERNAL_BASE_DOMAIN=sandbox5471.opentlc.com" >&2
+    echo "  export RHCL_AI_OPENAI_API_KEY=sk-..." >&2
     exit 1
   fi
 }
