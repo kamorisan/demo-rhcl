@@ -172,8 +172,6 @@ metadata:
   name: rhcl-grafana-thanos-token
   namespace: openshift-gitops
   annotations:
-    argocd.argoproj.io/hook: PostSync
-    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
     argocd.argoproj.io/sync-wave: "20"
 spec:
   backoffLimit: 1
