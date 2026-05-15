@@ -19,8 +19,13 @@ require_context() {
 }
 
 # Context check can be disabled by setting RHCL_REQUIRED_CONTEXT=""
-if [[ -n "${RHCL_REQUIRED_CONTEXT:-rhcl}" ]]; then
-  require_context "${RHCL_REQUIRED_CONTEXT:-rhcl}"
+# Use :- only if variable is unset, not if it's empty
+if [[ "${RHCL_REQUIRED_CONTEXT+set}" != "set" ]]; then
+  RHCL_REQUIRED_CONTEXT="rhcl"
+fi
+
+if [[ -n "${RHCL_REQUIRED_CONTEXT}" ]]; then
+  require_context "${RHCL_REQUIRED_CONTEXT}"
 fi
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
