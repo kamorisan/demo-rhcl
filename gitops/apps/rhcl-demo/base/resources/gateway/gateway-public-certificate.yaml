@@ -4,7 +4,7 @@ metadata:
   name: rhcl-gw-public-tls
   namespace: openshift-ingress
   annotations:
-    argocd.argoproj.io/sync-wave: "16"
+    argocd.argoproj.io/sync-wave: "14"
 spec:
   secretName: rhcl-gw-public-tls
   dnsNames:
