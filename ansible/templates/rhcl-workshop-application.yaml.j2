@@ -627,4 +627,13 @@ spec:
     syncOptions:
       - CreateNamespace=true
       - ServerSideApply=true
+  ignoreDifferences:
+    # Ignore image field changes caused by OpenShift Image Triggers
+    # BuildConfig updates trigger automatic image digest updates (tag -> sha256)
+    - group: apps
+      kind: Deployment
+      name: rhcl-ai-bot
+      namespace: rhcl-ai-bot
+      jsonPointers:
+        - /spec/template/spec/containers/0/image
 
