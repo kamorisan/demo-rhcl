@@ -304,6 +304,23 @@ spec:
         - target:
             group: cert-manager.io
             version: v1
+            kind: ClusterIssuer
+            name: {{ cluster_issuer }}
+          patch: |-
+            apiVersion: cert-manager.io/v1
+            kind: ClusterIssuer
+            metadata:
+              name: {{ cluster_issuer }}
+            spec:
+              acme:
+                solvers:
+                  - dns01:
+                      route53:
+                        hostedZoneID: {{ route53_hosted_zone_id }}
+
+        - target:
+            group: cert-manager.io
+            version: v1
             kind: Certificate
             name: rhcl-gw-public-tls
             namespace: openshift-ingress

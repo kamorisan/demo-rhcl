@@ -23,7 +23,7 @@
 - name: Ensure namespaces exist for Route53 credentials
   ansible.builtin.shell: |
     set -euo pipefail
-    for ns in demo openshift-ingress; do
+    for ns in demo openshift-ingress cert-manager; do
       oc create namespace "$ns" --dry-run=client -o yaml | oc apply -f -
     done
   args:
@@ -41,6 +41,17 @@
         --from-literal=AWS_REGION="{{ aws_region }}" \
         --dry-run=client -o yaml | oc apply -f -
     done
+  args:
+    executable: /bin/bash
+  when: route53_enabled
+
+- name: Create/update cert-manager AWS credentials secret
+  ansible.builtin.shell: |
+    set -euo pipefail
+    oc -n cert-manager create secret generic cert-manager-aws-creds \
+      --from-literal=aws_access_key_id="{{ aws_access_key_id }}" \
+      --from-literal=aws_secret_access_key="{{ aws_secret_access_key }}" \
+      --dry-run=client -o yaml | oc apply -f -
   args:
     executable: /bin/bash
   when: route53_enabled
