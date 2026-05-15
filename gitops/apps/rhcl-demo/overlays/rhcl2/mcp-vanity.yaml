@@ -3,6 +3,8 @@ kind: Route
 metadata:
   name: rhcl-gw-mcp
   namespace: openshift-ingress
+  annotations:
+    argocd.argoproj.io/sync-wave: "18"
 spec:
   host: mcp.apps.cluster-rjzd5.rjzd5.sandbox921.opentlc.com
   to:
