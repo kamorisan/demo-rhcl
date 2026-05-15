@@ -154,11 +154,44 @@ spec:
             spec:
               listeners:
                 - name: https-external-public
+                  port: 443
+                  protocol: HTTPS
                   hostname: {{ external_api_hostname }}
+                  tls:
+                    mode: Terminate
+                    certificateRefs:
+                      - group: ""
+                        kind: Secret
+                        name: rhcl-gw-public-tls
+                  allowedRoutes:
+                    namespaces:
+                      from: All
                 - name: https-main-public
+                  port: 443
+                  protocol: HTTPS
                   hostname: {{ demo_public_hostname }}
+                  tls:
+                    mode: Terminate
+                    certificateRefs:
+                      - group: ""
+                        kind: Secret
+                        name: rhcl-gw-public-tls
+                  allowedRoutes:
+                    namespaces:
+                      from: All
                 - name: https-oidc-public
+                  port: 443
+                  protocol: HTTPS
                   hostname: {{ oidc_public_hostname }}
+                  tls:
+                    mode: Terminate
+                    certificateRefs:
+                      - group: ""
+                        kind: Secret
+                        name: rhcl-gw-public-tls
+                  allowedRoutes:
+                    namespaces:
+                      from: All
 
         - target:
             group: gateway.networking.k8s.io
