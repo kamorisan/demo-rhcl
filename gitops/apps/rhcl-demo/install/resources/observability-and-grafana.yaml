@@ -45,7 +45,7 @@ metadata:
     argocd.argoproj.io/sync-wave: "2"
     argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
 spec:
-  version: v1.24
+  version: v1.28-latest
   namespace: istio-system
 ---
 # Grant Argo CD application controller necessary permissions
