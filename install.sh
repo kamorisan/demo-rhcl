@@ -6,6 +6,29 @@ need() { command -v "$1" >/dev/null 2>&1 || { echo "Missing required command: $1
 need python3
 need oc
 
+check_env_vars() {
+  local missing=()
+
+  [[ -z "${AWS_ACCESS_KEY_ID:-}" ]] && missing+=("AWS_ACCESS_KEY_ID")
+  [[ -z "${AWS_SECRET_ACCESS_KEY:-}" ]] && missing+=("AWS_SECRET_ACCESS_KEY")
+  [[ -z "${AWS_REGION:-}" ]] && missing+=("AWS_REGION")
+  [[ -z "${EXTERNAL_BASE_DOMAIN:-}" ]] && missing+=("EXTERNAL_BASE_DOMAIN")
+
+  if [[ ${#missing[@]} -gt 0 ]]; then
+    echo "ERROR: Missing required environment variables:" >&2
+    printf '  - %s\n' "${missing[@]}" >&2
+    echo >&2
+    echo "Please set all required variables before running install.sh:" >&2
+    echo "  export AWS_ACCESS_KEY_ID=..." >&2
+    echo "  export AWS_SECRET_ACCESS_KEY=..." >&2
+    echo "  export AWS_REGION=us-east-2" >&2
+    echo "  export EXTERNAL_BASE_DOMAIN=sandbox5471.opentlc.com" >&2
+    exit 1
+  fi
+}
+
+check_env_vars
+
 require_context() {
   local expected="${1:-}"
   [[ -n "${expected}" ]] || return 0
