@@ -7,9 +7,9 @@ resources:
   - mcp-vanity.yaml
   - tracing-console.yaml
   - tls-policies.yaml
-  - istio-tracing.yaml
   - istio-telemetry-gateways.yaml
 
-patchesStrategicMerge:
-  - patch-rhcl2-values.yaml
+patches:
+  - path: patch-rhcl2-values.yaml
+  - path: istio-tracing.yaml
 

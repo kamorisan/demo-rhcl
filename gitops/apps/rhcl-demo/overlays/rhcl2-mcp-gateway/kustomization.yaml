@@ -4,10 +4,8 @@ kind: Kustomization
 resources:
   - ../../appsets/mcp
 
-patchesStrategicMerge:
-  - patch-rhcl2-mcp-gateway-values.yaml
-
 patches:
+  - path: patch-rhcl2-mcp-gateway-values.yaml
   - target:
       group: gateway.networking.k8s.io
       version: v1
