@@ -3,7 +3,7 @@ kind: Kustomization
 
 resources:
   - resources/namespace-gateway-system.yaml
-  - resources/namespace-monitoring.yaml
+  # namespace-monitoring.yaml removed - managed by kuadrant-observability Application
   - ../../base/resources/apps/console-banner.yaml
   - ../../base/resources/gateway/gateway.yaml
   - ../../base/resources/routes/httproute-http-to-https.yaml
