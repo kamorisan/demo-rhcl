@@ -147,7 +147,7 @@ spec:
                 oc create namespace "$ns" --dry-run=client -o yaml | oc apply -f -
               done
               # Apply observability config (includes Grafana Operator)
-              oc apply -k "https://github.com/Kuadrant/kuadrant-operator/config/install/configure/observability?ref=v1.2.0" || true
+              oc apply -k "https://github.com/Kuadrant/kuadrant-operator/config/install/configure/observability?ref=v1.3.0" || true
               # Wait for Grafana Operator subscription to be created
               sleep 5
               # Ensure automatic approval

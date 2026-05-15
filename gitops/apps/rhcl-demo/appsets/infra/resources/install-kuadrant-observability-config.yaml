@@ -24,7 +24,7 @@ spec:
               if oc -n monitoring get servicemonitor kuadrant-operator-metrics >/dev/null 2>&1; then
                 echo "Kuadrant observability config already present."
               else
-                if ! oc apply -k "https://github.com/Kuadrant/kuadrant-operator/config/install/configure/observability?ref=v1.2.0"; then
+                if ! oc apply -k "https://github.com/Kuadrant/kuadrant-operator/config/install/configure/observability?ref=v1.3.0"; then
                   echo "WARN: failed to apply Kuadrant observability config (egress to GitHub may be blocked). Continuing without failing the sync."
                 fi
               fi
