@@ -17,6 +17,8 @@ metadata:
   namespace: rhcl-keycloak
   annotations:
     argocd.argoproj.io/sync-wave: "11"
+    # Skip health check because WaitForFirstConsumer StorageClass stays Pending until Pod is created
+    argocd.argoproj.io/sync-options: "SkipHealthCheck=true"
 spec:
   accessModes:
     - ReadWriteOnce
