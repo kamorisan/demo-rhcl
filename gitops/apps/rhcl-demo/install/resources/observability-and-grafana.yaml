@@ -37,11 +37,12 @@ metadata:
   annotations:
     argocd.argoproj.io/sync-wave: "0"
 spec:
-  channel: development
+  channel: stable
   name: cluster-observability-operator
   source: redhat-operators
   sourceNamespace: openshift-marketplace
   installPlanApproval: Automatic
+  startingCSV: cluster-observability-operator.v1.4.0
 ---
 # Istio namespace for control plane
 apiVersion: v1
