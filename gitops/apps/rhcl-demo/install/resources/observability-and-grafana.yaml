@@ -35,27 +35,6 @@ metadata:
   annotations:
     argocd.argoproj.io/sync-wave: "1"
 ---
-# Istio CNI namespace
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: istio-cni
-  annotations:
-    argocd.argoproj.io/sync-wave: "1"
----
-# Istio CNI (required for OpenShift Service Mesh 3)
-apiVersion: sailoperator.io/v1
-kind: IstioCNI
-metadata:
-  name: default
-  namespace: istio-cni
-  annotations:
-    argocd.argoproj.io/sync-wave: "2"
-    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
-spec:
-  version: v1.28-latest
-  namespace: istio-cni
----
 # Istio control plane (creates istio GatewayClass)
 apiVersion: sailoperator.io/v1
 kind: Istio
@@ -63,11 +42,13 @@ metadata:
   name: default
   namespace: istio-system
   annotations:
-    argocd.argoproj.io/sync-wave: "3"
+    argocd.argoproj.io/sync-wave: "2"
     argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
 spec:
   version: v1.28-latest
   namespace: istio-system
+  updateStrategy:
+    type: InPlace
 ---
 # Grant Argo CD application controller necessary permissions
 apiVersion: rbac.authorization.k8s.io/v1
