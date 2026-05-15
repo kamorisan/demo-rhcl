@@ -30,6 +30,42 @@ spec:
             group: gateway.networking.k8s.io
             version: v1
             kind: Gateway
+            name: rhcl-ai-gw
+            namespace: openshift-ingress
+          patch: |-
+            apiVersion: gateway.networking.k8s.io/v1
+            kind: Gateway
+            metadata:
+              name: rhcl-ai-gw
+              namespace: openshift-ingress
+            spec:
+              gatewayClassName: {{ gateway_class }}
+              listeners:
+                - name: http-ai
+                  port: 80
+                  protocol: HTTP
+                  hostname: ai.{{ external_base_domain }}
+                  allowedRoutes:
+                    namespaces:
+                      from: All
+                - name: https-ai-sandbox
+                  port: 443
+                  protocol: HTTPS
+                  hostname: ai.{{ external_base_domain }}
+                  tls:
+                    mode: Terminate
+                    certificateRefs:
+                      - group: ""
+                        kind: Secret
+                        name: {{ default_ingress_cert_secret }}
+                  allowedRoutes:
+                    namespaces:
+                      from: All
+
+        - target:
+            group: gateway.networking.k8s.io
+            version: v1
+            kind: Gateway
             name: rhcl-mcp-gw
             namespace: openshift-ingress
           patch: |-

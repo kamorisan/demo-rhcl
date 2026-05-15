@@ -157,10 +157,7 @@
 
 - name: Derive oidc_hostname
   ansible.builtin.set_fact:
-    oidc_hostname: >-
-      {{ (oidc_hostname_override | trim)
-         if (oidc_hostname_override | trim != '')
-         else ('oidc-' ~ (demo_hostname.split('.')[0]) ~ '.' ~ apps_domain) }}
+    oidc_hostname: "{{ (oidc_hostname_override | trim) if (oidc_hostname_override | trim != '') else ('oidc-' ~ (demo_hostname.split('.')[0]) ~ '.' ~ apps_domain) }}"
 
 - name: Derive grafana_hostname
   ansible.builtin.set_fact:
@@ -168,28 +165,11 @@
 
 - name: Derive external_base_domain (for external-api.<base-domain>)
   ansible.builtin.set_fact:
-    external_base_domain: >-
-      {% set override = external_base_domain_override | trim %}
-      {% if override != '' %}
-      {{ override }}
-      {% else %}
-      {% set parts = (apps_domain | trim).split('.') %}
-      {% if parts | length >= 3 %}
-      {{ parts[-3:] | join('.') }}
-      {% else %}
-      {{ parts[-2:] | join('.') }}
-      {% endif %}
-      {% endif %}
+    external_base_domain: "{% set override = external_base_domain_override | trim %}{% if override != '' %}{{ override }}{% else %}{% set parts = (apps_domain | trim).split('.') %}{% if parts | length >= 3 %}{{ parts[-3:] | join('.') }}{% else %}{{ parts[-2:] | join('.') }}{% endif %}{% endif %}"
 
 - name: Derive external_api_hostname
   ansible.builtin.set_fact:
-    external_api_hostname: >-
-      {% set override = external_api_hostname_override | trim %}
-      {% if override != '' %}
-      {{ override }}
-      {% else %}
-      external-api.{{ external_base_domain }}
-      {% endif %}
+    external_api_hostname: "{% set override = external_api_hostname_override | trim %}{% if override != '' %}{{ override }}{% else %}external-api.{{ external_base_domain }}{% endif %}"
 
 - name: Derive public hostnames (Route53 / dedicated hostnames)
   ansible.builtin.set_fact:
