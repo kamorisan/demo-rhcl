@@ -6,7 +6,7 @@
 
   vars:
     # Allow environment overrides (keep naming aligned with existing bash installer)
-    repo_url: "{{ lookup('env', 'REPO_URL') | default('https://github.com/panchoraposo/demo-rhcl.git', true) }}"
+    repo_url: "{{ lookup('env', 'REPO_URL') | default('https://github.com/kamorisan/demo-rhcl.git', true) }}"
     revision: "{{ lookup('env', 'REVISION') | default('main', true) }}"
     app_path: "{{ lookup('env', 'APP_PATH') | default('gitops/apps/rhcl-demo/overlays/full-install', true) }}"
 

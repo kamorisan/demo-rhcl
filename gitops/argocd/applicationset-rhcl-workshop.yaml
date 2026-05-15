@@ -63,7 +63,7 @@ spec:
     spec:
       project: default
       source:
-        repoURL: https://github.com/panchoraposo/demo-rhcl.git
+        repoURL: https://github.com/kamorisan/demo-rhcl.git
         targetRevision: main
         path: "{{.path}}"
       destination:

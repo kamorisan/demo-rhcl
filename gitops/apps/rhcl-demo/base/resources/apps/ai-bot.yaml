@@ -20,7 +20,7 @@ spec:
   source:
     type: Git
     git:
-      uri: https://github.com/panchoraposo/demo-rhcl.git
+      uri: https://github.com/kamorisan/demo-rhcl.git
     contextDir: apps/rhcl-ai-bot
   strategy:
     type: Docker
