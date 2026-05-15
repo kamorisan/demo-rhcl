@@ -7,7 +7,7 @@ metadata:
     app: demo-api
   annotations:
     secret.kuadrant.io/user-id: alice
-    argocd.argoproj.io/sync-wave: "31"
+    argocd.argoproj.io/sync-wave: "30"
 type: Opaque
 stringData:
   api_key: IAMALICE
@@ -21,7 +21,7 @@ metadata:
     app: demo-api
   annotations:
     secret.kuadrant.io/user-id: bob
-    argocd.argoproj.io/sync-wave: "31"
+    argocd.argoproj.io/sync-wave: "30"
 type: Opaque
 stringData:
   api_key: IAMBOB

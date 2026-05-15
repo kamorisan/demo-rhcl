@@ -8,7 +8,7 @@ metadata:
     service: external-proxy
     deployment: external-proxy
   annotations:
-    argocd.argoproj.io/sync-wave: "30"
+    argocd.argoproj.io/sync-wave: "20"
 spec:
   hostnames:
     - external-api.REPLACE_ME_BASE_DOMAIN

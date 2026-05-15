@@ -8,7 +8,7 @@ metadata:
     service: keycloak-service
     deployment: keycloak
   annotations:
-    argocd.argoproj.io/sync-wave: "30"
+    argocd.argoproj.io/sync-wave: "20"
 spec:
   parentRefs:
     - group: gateway.networking.k8s.io

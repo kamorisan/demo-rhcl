@@ -4,7 +4,7 @@ metadata:
   name: rhcl-ui-allow
   namespace: demo
   annotations:
-    argocd.argoproj.io/sync-wave: "32"
+    argocd.argoproj.io/sync-wave: "30"
     argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
 spec:
   targetRef:
