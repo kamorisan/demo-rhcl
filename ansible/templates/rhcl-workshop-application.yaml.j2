@@ -456,13 +456,13 @@ spec:
             version: v1
             kind: HTTPRoute
             name: jwt-demo
-            namespace: demo
+            namespace: demo-jwt
           patch: |-
             apiVersion: gateway.networking.k8s.io/v1
             kind: HTTPRoute
             metadata:
               name: jwt-demo
-              namespace: demo
+              namespace: demo-jwt
             spec:
               hostnames:
                 - {{ demo_hostname }}
@@ -472,13 +472,13 @@ spec:
             version: v1
             kind: HTTPRoute
             name: ab-demo
-            namespace: demo
+            namespace: demo-ab
           patch: |-
             apiVersion: gateway.networking.k8s.io/v1
             kind: HTTPRoute
             metadata:
               name: ab-demo
-              namespace: demo
+              namespace: demo-ab
             spec:
               hostnames:
                 - {{ demo_hostname }}
@@ -617,13 +617,13 @@ spec:
             version: v1
             kind: AuthPolicy
             name: jwt-demo-jwt
-            namespace: demo
+            namespace: demo-jwt
           patch: |-
             apiVersion: kuadrant.io/v1
             kind: AuthPolicy
             metadata:
               name: jwt-demo-jwt
-              namespace: demo
+              namespace: demo-jwt
             spec:
               defaults:
                 rules:
