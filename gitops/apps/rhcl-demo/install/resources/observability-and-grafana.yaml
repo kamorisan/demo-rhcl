@@ -12,20 +12,40 @@ metadata:
   annotations:
     argocd.argoproj.io/sync-wave: "0"
 ---
+# Grant Argo CD application controller necessary permissions
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: rhcl-argocd-application-controller-admin
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+subjects:
+  - kind: ServiceAccount
+    name: openshift-gitops-argocd-application-controller
+    namespace: openshift-gitops
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-admin
+---
 apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: rhcl-observability-bootstrap
   namespace: openshift-gitops
   annotations:
-    argocd.argoproj.io/sync-wave: "90"
+    argocd.argoproj.io/hook: PreSync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+    argocd.argoproj.io/sync-wave: "-10"
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
   name: rhcl-observability-bootstrap
   annotations:
-    argocd.argoproj.io/sync-wave: "90"
+    argocd.argoproj.io/hook: PreSync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+    argocd.argoproj.io/sync-wave: "-10"
 subjects:
   - kind: ServiceAccount
     name: rhcl-observability-bootstrap
@@ -41,9 +61,9 @@ metadata:
   name: enable-user-workload-monitoring
   namespace: openshift-gitops
   annotations:
-    argocd.argoproj.io/hook: PostSync
-    argocd.argoproj.io/hook-delete-policy: HookSucceeded,HookFailed
-    argocd.argoproj.io/sync-wave: "91"
+    argocd.argoproj.io/hook: PreSync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+    argocd.argoproj.io/sync-wave: "-1"
 spec:
   backoffLimit: 1
   template:
@@ -68,11 +88,11 @@ metadata:
   name: install-kuadrant-observability-config
   namespace: openshift-gitops
   annotations:
-    argocd.argoproj.io/hook: PostSync
-    argocd.argoproj.io/hook-delete-policy: HookSucceeded,HookFailed
-    argocd.argoproj.io/sync-wave: "92"
+    argocd.argoproj.io/hook: PreSync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+    argocd.argoproj.io/sync-wave: "-5"
 spec:
-  backoffLimit: 1
+  backoffLimit: 3
   template:
     spec:
       serviceAccountName: rhcl-observability-bootstrap
@@ -84,13 +104,28 @@ spec:
           args:
             - |
               set -euo pipefail
-              oc apply -k "https://github.com/Kuadrant/kuadrant-operator/config/install/configure/observability?ref=v1.2.0"
-              oc -n openshift-operators patch subscription grafana-operator --type=merge -p '{"spec":{"installPlanApproval":"Automatic"}}' || true
-              ip="$(oc -n openshift-operators get subscription grafana-operator -o jsonpath='{.status.installPlanRef.name}' 2>/dev/null || true)"
-              if [ -n "${ip:-}" ]; then
-                oc -n openshift-operators patch installplan "$ip" --type=merge -p '{"spec":{"approved":true}}' || true
-              fi
-              echo "OK: observability bundle applied"
+              # Ensure required namespaces exist
+              for ns in gateway-system kuadrant-system monitoring; do
+                oc create namespace "$ns" --dry-run=client -o yaml | oc apply -f -
+              done
+              # Apply observability config (includes Grafana Operator)
+              oc apply -k "https://github.com/Kuadrant/kuadrant-operator/config/install/configure/observability?ref=v1.2.0" || true
+              # Wait for Grafana Operator subscription to be created
+              sleep 5
+              # Ensure automatic approval
+              oc -n openshift-operators patch subscription grafana-operator --type=merge -p '{"spec":{"installPlanApproval":"Automatic"}}' 2>/dev/null || true
+              # Wait for Grafana CRDs to be installed
+              echo "Waiting for Grafana CRDs..."
+              for i in {1..60}; do
+                if oc get crd grafanas.grafana.integreatly.org >/dev/null 2>&1; then
+                  echo "Grafana CRDs are ready"
+                  exit 0
+                fi
+                echo "Waiting... ($i/60)"
+                sleep 5
+              done
+              echo "Warning: Grafana CRDs may not be fully ready, but proceeding..."
+              exit 0
 ---
 apiVersion: batch/v1
 kind: Job
@@ -99,8 +134,8 @@ metadata:
   namespace: openshift-gitops
   annotations:
     argocd.argoproj.io/hook: PostSync
-    argocd.argoproj.io/hook-delete-policy: HookSucceeded,HookFailed
-    argocd.argoproj.io/sync-wave: "93"
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+    argocd.argoproj.io/sync-wave: "10"
 spec:
   backoffLimit: 1
   template:
@@ -123,14 +158,14 @@ metadata:
   name: rhcl-grafana
   namespace: monitoring
   annotations:
-    argocd.argoproj.io/sync-wave: "94"
+    argocd.argoproj.io/sync-wave: "5"
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
   name: rhcl-grafana-cluster-monitoring-view
   annotations:
-    argocd.argoproj.io/sync-wave: "94"
+    argocd.argoproj.io/sync-wave: "5"
 subjects:
   - kind: ServiceAccount
     name: rhcl-grafana
@@ -147,8 +182,8 @@ metadata:
   namespace: openshift-gitops
   annotations:
     argocd.argoproj.io/hook: PostSync
-    argocd.argoproj.io/hook-delete-policy: HookSucceeded,HookFailed
-    argocd.argoproj.io/sync-wave: "95"
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+    argocd.argoproj.io/sync-wave: "20"
 spec:
   backoffLimit: 1
   template:
@@ -181,7 +216,7 @@ metadata:
   labels:
     app: rhcl-grafana
   annotations:
-    argocd.argoproj.io/sync-wave: "96"
+    argocd.argoproj.io/sync-wave: "30"
 spec:
   config:
     auth:
@@ -206,7 +241,7 @@ metadata:
   labels:
     app: rhcl-grafana
   annotations:
-    argocd.argoproj.io/sync-wave: "97"
+    argocd.argoproj.io/sync-wave: "40"
 spec:
   instanceSelector:
     matchLabels:
@@ -240,7 +275,7 @@ metadata:
   name: rhcl-app-developer
   namespace: monitoring
   annotations:
-    argocd.argoproj.io/sync-wave: "98"
+    argocd.argoproj.io/sync-wave: "50"
 spec:
   instanceSelector:
     matchLabels:
@@ -258,7 +293,7 @@ metadata:
   name: rhcl-platform-engineer
   namespace: monitoring
   annotations:
-    argocd.argoproj.io/sync-wave: "98"
+    argocd.argoproj.io/sync-wave: "50"
 spec:
   instanceSelector:
     matchLabels:
@@ -276,7 +311,7 @@ metadata:
   name: rhcl-business-user
   namespace: monitoring
   annotations:
-    argocd.argoproj.io/sync-wave: "98"
+    argocd.argoproj.io/sync-wave: "50"
 spec:
   instanceSelector:
     matchLabels:

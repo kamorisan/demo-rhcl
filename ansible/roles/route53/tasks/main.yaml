@@ -20,6 +20,16 @@
   changed_when: false
   when: route53_enabled
 
+- name: Ensure namespaces exist for Route53 credentials
+  ansible.builtin.shell: |
+    set -euo pipefail
+    for ns in demo openshift-ingress; do
+      oc create namespace "$ns" --dry-run=client -o yaml | oc apply -f -
+    done
+  args:
+    executable: /bin/bash
+  when: route53_enabled
+
 - name: Create/update route53-credentials secret (demo + openshift-ingress)
   ansible.builtin.shell: |
     set -euo pipefail

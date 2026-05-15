@@ -18,7 +18,10 @@ require_context() {
   fi
 }
 
-require_context "${RHCL_REQUIRED_CONTEXT:-rhcl}"
+# Context check can be disabled by setting RHCL_REQUIRED_CONTEXT=""
+if [[ -n "${RHCL_REQUIRED_CONTEXT:-rhcl}" ]]; then
+  require_context "${RHCL_REQUIRED_CONTEXT:-rhcl}"
+fi
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 VENV_DIR="${VENV_DIR:-${ROOT_DIR}/.venv}"
