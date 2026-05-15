@@ -14,7 +14,7 @@ resources:
   - resources/workshop-users-rbac.yaml
   - resources/enable-kuadrant-console-plugin.yaml
   - resources/enable-user-workload-monitoring.yaml
-  - resources/install-kuadrant-observability-config.yaml
+  # install-kuadrant-observability-config.yaml is now managed by separate Application
   - resources/grafana-rbac.yaml
   - resources/grafana-thanos-token.yaml
   - resources/grafana.yaml

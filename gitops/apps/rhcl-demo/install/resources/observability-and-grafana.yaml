@@ -120,50 +120,9 @@ spec:
                 --dry-run=client -o yaml | oc apply -f -
               echo "OK: user workload monitoring enabled"
 ---
-apiVersion: batch/v1
-kind: Job
-metadata:
-  name: install-kuadrant-observability-config
-  namespace: openshift-gitops
-  annotations:
-    argocd.argoproj.io/hook: PreSync
-    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
-    argocd.argoproj.io/sync-wave: "-5"
-spec:
-  backoffLimit: 3
-  template:
-    spec:
-      serviceAccountName: rhcl-observability-bootstrap
-      restartPolicy: Never
-      containers:
-        - name: oc
-          image: registry.redhat.io/openshift4/ose-cli:latest
-          command: ["/bin/bash","-lc"]
-          args:
-            - |
-              set -euo pipefail
-              # Ensure required namespaces exist
-              for ns in gateway-system kuadrant-system monitoring; do
-                oc create namespace "$ns" --dry-run=client -o yaml | oc apply -f -
-              done
-              # Apply observability config (includes Grafana Operator)
-              oc apply -k "https://github.com/Kuadrant/kuadrant-operator/config/install/configure/observability?ref=v1.3.0" || true
-              # Wait for Grafana Operator subscription to be created
-              sleep 5
-              # Ensure automatic approval
-              oc -n openshift-operators patch subscription grafana-operator --type=merge -p '{"spec":{"installPlanApproval":"Automatic"}}' 2>/dev/null || true
-              # Wait for Grafana CRDs to be installed
-              echo "Waiting for Grafana CRDs..."
-              for i in {1..60}; do
-                if oc get crd grafanas.grafana.integreatly.org >/dev/null 2>&1; then
-                  echo "Grafana CRDs are ready"
-                  exit 0
-                fi
-                echo "Waiting... ($i/60)"
-                sleep 5
-              done
-              echo "Warning: Grafana CRDs may not be fully ready, but proceeding..."
-              exit 0
+# NOTE: Kuadrant observability configuration (including Grafana Operator)
+# is now managed by a separate ArgoCD Application: kuadrant-observability
+# See: gitops/apps/kuadrant-observability-application.yaml
 ---
 apiVersion: batch/v1
 kind: Job
