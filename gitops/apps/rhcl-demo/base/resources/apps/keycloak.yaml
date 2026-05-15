@@ -34,7 +34,7 @@ metadata:
   labels:
     app: keycloak-db
   annotations:
-    argocd.argoproj.io/sync-wave: "12"
+    argocd.argoproj.io/sync-wave: "11"
 spec:
   replicas: 1
   selector:
