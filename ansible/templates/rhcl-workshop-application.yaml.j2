@@ -76,6 +76,27 @@ spec:
               namespace: openshift-ingress
             spec:
               gatewayClassName: {{ gateway_class }}
+              listeners:
+                - name: http-mcp
+                  port: 80
+                  protocol: HTTP
+                  hostname: {{ mcp_public_hostname }}
+                  allowedRoutes:
+                    namespaces:
+                      from: All
+                - name: https-mcp-public
+                  port: 443
+                  protocol: HTTPS
+                  hostname: {{ mcp_public_hostname }}
+                  tls:
+                    mode: Terminate
+                    certificateRefs:
+                      - group: ""
+                        kind: Secret
+                        name: {{ default_ingress_cert_secret }}
+                  allowedRoutes:
+                    namespaces:
+                      from: All
 
         - target:
             group: ""
