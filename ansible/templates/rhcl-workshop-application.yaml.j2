@@ -627,6 +627,7 @@ spec:
     syncOptions:
       - CreateNamespace=true
       - ServerSideApply=true
+      - SkipDryRunOnMissingResource=true
   ignoreDifferences:
     # Ignore image field changes caused by OpenShift Image Triggers
     # BuildConfig updates trigger automatic image digest updates (tag -> sha256)
