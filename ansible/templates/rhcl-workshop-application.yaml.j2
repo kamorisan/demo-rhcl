@@ -202,25 +202,6 @@ spec:
         - target:
             group: gateway.networking.k8s.io
             version: v1
-            kind: Gateway
-            name: rhcl-mcp-gw
-            namespace: openshift-ingress
-          patch: |-
-            apiVersion: gateway.networking.k8s.io/v1
-            kind: Gateway
-            metadata:
-              name: rhcl-mcp-gw
-              namespace: openshift-ingress
-            spec:
-              listeners:
-                - name: http-mcp
-                  hostname: {{ mcp_public_hostname }}
-                - name: https-mcp-public
-                  hostname: {{ mcp_public_hostname }}
-
-        - target:
-            group: gateway.networking.k8s.io
-            version: v1
             kind: HTTPRoute
             name: rhcl-mcp-gateway
             namespace: mcp-system
