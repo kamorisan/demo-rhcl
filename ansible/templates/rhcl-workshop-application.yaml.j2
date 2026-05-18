@@ -301,7 +301,14 @@ spec:
                 solvers:
                   - dns01:
                       route53:
+                        region: {{ aws_region }}
                         hostedZoneID: {{ route53_hosted_zone_id }}
+                        accessKeyIDSecretRef:
+                          name: cert-manager-aws-creds
+                          key: aws_access_key_id
+                        secretAccessKeySecretRef:
+                          name: cert-manager-aws-creds
+                          key: aws_secret_access_key
 
         - target:
             group: cert-manager.io
