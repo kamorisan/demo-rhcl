@@ -1,17 +1,4 @@
 ---
-- name: Apply kuadrant-observability Application (must exist before rhcl-workshop)
-  ansible.builtin.command: oc apply -f "{{ playbook_dir }}/../../gitops/apps/kuadrant-observability-application.yaml"
-  register: apply_kuadrant_obs
-  changed_when: "'configured' in (apply_kuadrant_obs.stdout | lower) or 'created' in (apply_kuadrant_obs.stdout | lower)"
-
-- name: Wait for kuadrant-observability to create monitoring namespace
-  ansible.builtin.command: oc get namespace monitoring
-  register: monitoring_ns
-  until: monitoring_ns.rc == 0
-  retries: 30
-  delay: 2
-  changed_when: false
-
 - name: Render Argo CD Application manifest
   ansible.builtin.template:
     src: "{{ playbook_dir }}/../templates/rhcl-workshop-application.yaml.j2"
@@ -58,6 +45,29 @@
   ansible.builtin.command: oc -n openshift-gitops get application rhcl-workshop
   register: get_app
   changed_when: false
+
+- name: Wait for Istio CRD to be available (required by kuadrant-observability)
+  ansible.builtin.command: oc get crd telemetries.telemetry.istio.io
+  register: istio_crd
+  until: istio_crd.rc == 0
+  retries: 60
+  delay: 5
+  changed_when: false
+  failed_when: false
+
+- name: Apply kuadrant-observability Application (after Istio is ready)
+  ansible.builtin.command: oc apply -f "{{ playbook_dir }}/../../gitops/apps/kuadrant-observability-application.yaml"
+  register: apply_kuadrant_obs
+  changed_when: "'configured' in (apply_kuadrant_obs.stdout | lower) or 'created' in (apply_kuadrant_obs.stdout | lower)"
+
+- name: Wait for kuadrant-observability to create monitoring namespace
+  ansible.builtin.command: oc get namespace monitoring
+  register: monitoring_ns
+  until: monitoring_ns.rc == 0
+  retries: 30
+  delay: 2
+  changed_when: false
+  failed_when: false
 
 - name: Print URLs
   ansible.builtin.debug:

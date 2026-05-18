@@ -4,7 +4,7 @@ metadata:
   name: kuadrant-observability
   namespace: openshift-gitops
   annotations:
-    argocd.argoproj.io/sync-wave: "3"
+    argocd.argoproj.io/sync-wave: "10"
 spec:
   project: default
   source:
