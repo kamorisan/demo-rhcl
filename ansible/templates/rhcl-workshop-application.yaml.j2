@@ -258,6 +258,51 @@ spec:
                     url: http://rhcl-mcp-tools.mcp-system.svc.cluster.local:8080
 
         - target:
+            group: ""
+            version: v1
+            kind: ConfigMap
+            name: rhcl-mcp-tools-bridge
+            namespace: mcp-system
+          patch: |-
+            apiVersion: v1
+            kind: ConfigMap
+            metadata:
+              name: rhcl-mcp-tools-bridge
+              namespace: mcp-system
+              annotations:
+                argocd.argoproj.io/sync-wave: "29"
+
+        - target:
+            group: apps
+            version: v1
+            kind: Deployment
+            name: rhcl-mcp-tools-bridge
+            namespace: mcp-system
+          patch: |-
+            apiVersion: apps/v1
+            kind: Deployment
+            metadata:
+              name: rhcl-mcp-tools-bridge
+              namespace: mcp-system
+              annotations:
+                argocd.argoproj.io/sync-wave: "30"
+
+        - target:
+            group: ""
+            version: v1
+            kind: Service
+            name: rhcl-mcp-tools-bridge
+            namespace: mcp-system
+          patch: |-
+            apiVersion: v1
+            kind: Service
+            metadata:
+              name: rhcl-mcp-tools-bridge
+              namespace: mcp-system
+              annotations:
+                argocd.argoproj.io/sync-wave: "31"
+
+        - target:
             group: gateway.networking.k8s.io
             version: v1
             kind: HTTPRoute
