@@ -3783,9 +3783,9 @@ spec:
         if (!url){
           const h = String((location && location.host) ? location.host : "").trim();
           const parts = h ? h.split(".").filter(Boolean) : [];
-          // Default: grafana.<base-domain> (drop only the first label from current host)
-          // rhcl-workshop.apps.cluster-xxxx.yyyy.example.com -> grafana.apps.cluster-xxxx.yyyy.example.com
-          if (parts.length >= 2) url = `https://grafana.${parts.slice(1).join(".")}`;
+          // Default: grafana-<first-label>.<base-domain>
+          // rhcl-workshop.apps.cluster-xxxx.yyyy.example.com -> grafana-rhcl-workshop.apps.cluster-xxxx.yyyy.example.com
+          if (parts.length >= 2) url = `https://grafana-${parts[0]}.${parts.slice(1).join(".")}`;
           else url = `https://grafana-${h || "example.com"}`;
         }
         if (!/^https?:\/\//i.test(url)) url = `https://${url}`;
