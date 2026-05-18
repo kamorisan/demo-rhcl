@@ -99,6 +99,26 @@ spec:
                       from: All
 
         - target:
+            group: gateway.networking.k8s.io
+            version: v1
+            kind: HTTPRoute
+            name: rhcl-mcp
+            namespace: rhcl-ai-bot
+          patch: |-
+            apiVersion: gateway.networking.k8s.io/v1
+            kind: HTTPRoute
+            metadata:
+              name: rhcl-mcp
+              namespace: rhcl-ai-bot
+            spec:
+              parentRefs:
+                - group: gateway.networking.k8s.io
+                  kind: Gateway
+                  name: rhcl-mcp-gw
+                  namespace: openshift-ingress
+                  sectionName: https-mcp-public
+
+        - target:
             group: ""
             version: v1
             kind: PersistentVolumeClaim
