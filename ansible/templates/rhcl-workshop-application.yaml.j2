@@ -99,6 +99,21 @@ spec:
                       from: All
 
         - target:
+            group: route.openshift.io
+            version: v1
+            kind: Route
+            name: rhcl-gw-mcp
+            namespace: openshift-ingress
+          patch: |-
+            apiVersion: route.openshift.io/v1
+            kind: Route
+            metadata:
+              name: rhcl-gw-mcp
+              namespace: openshift-ingress
+            spec:
+              host: mcp.{{ apps_domain }}
+
+        - target:
             group: gateway.networking.k8s.io
             version: v1
             kind: HTTPRoute
@@ -111,6 +126,8 @@ spec:
               name: rhcl-mcp
               namespace: rhcl-ai-bot
             spec:
+              hostnames:
+                - {{ mcp_public_hostname }}
               parentRefs:
                 - group: gateway.networking.k8s.io
                   kind: Gateway
