@@ -8,7 +8,7 @@
     # Allow environment overrides (keep naming aligned with existing bash installer)
     repo_url: "{{ lookup('env', 'REPO_URL') | default('https://github.com/kamorisan/demo-rhcl.git', true) }}"
     revision: "{{ lookup('env', 'REVISION') | default('main', true) }}"
-    app_path: "{{ lookup('env', 'APP_PATH') | default('gitops/apps/rhcl-demo/overlays/full-install', true) }}"
+    app_path: "{{ lookup('env', 'APP_PATH') | default('gitops/apps/rhcl-demo/overlays/rhcl2', true) }}"
 
     apps_domain_override: "{{ lookup('env', 'APPS_DOMAIN') | default('', true) }}"
     demo_hostname_override: "{{ lookup('env', 'DEMO_HOSTNAME') | default('', true) }}"
