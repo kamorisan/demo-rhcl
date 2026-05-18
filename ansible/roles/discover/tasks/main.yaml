@@ -144,12 +144,7 @@
 
 - name: Set cluster_issuer
   ansible.builtin.set_fact:
-    cluster_issuer: "{{ (cluster_issuer_override | trim) if (cluster_issuer_override | trim != '') else (detected_cluster_issuer.stdout | trim) }}"
-
-- name: Fail if cluster_issuer is empty
-  ansible.builtin.fail:
-    msg: "No ClusterIssuer found. Set CLUSTER_ISSUER to an existing ClusterIssuer name."
-  when: cluster_issuer | trim == ''
+    cluster_issuer: "{{ (cluster_issuer_override | trim) if (cluster_issuer_override | trim != '') else ((detected_cluster_issuer.stdout | trim) if (detected_cluster_issuer.stdout | default('') | trim != '') else 'letsencrypt-production-ec2') }}"
 
 - name: Derive demo_hostname
   ansible.builtin.set_fact:
