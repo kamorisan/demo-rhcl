@@ -637,3 +637,15 @@ spec:
       jsonPointers:
         - /spec/template/spec/containers/0/image
 
+    # Ignore Route managedFields to avoid structured merge diff errors
+    - group: route.openshift.io
+      kind: Route
+      jqPathExpressions:
+        - .metadata.managedFields
+
+    # Ignore BuildConfig managedFields to avoid structured merge diff errors
+    - group: build.openshift.io
+      kind: BuildConfig
+      jqPathExpressions:
+        - .metadata.managedFields
+
