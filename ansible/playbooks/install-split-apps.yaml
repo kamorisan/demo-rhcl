@@ -414,6 +414,21 @@
                     - op: replace
                       path: /spec/parentRefs/0/name
                       value: rhcl-workshop-gw
+
+                # httproute-secure-demo: hostname and gateway
+                - target:
+                    group: gateway.networking.k8s.io
+                    version: v1
+                    kind: HTTPRoute
+                    name: secure-demo
+                    namespace: rhcl-oidc-portal
+                  patch: |-
+                    - op: replace
+                      path: /spec/hostnames/0
+                      value: oidc-rhcl-workshop.{{ apps_cluster_domain }}
+                    - op: replace
+                      path: /spec/parentRefs/0/name
+                      value: rhcl-workshop-gw
           destination:
             server: https://kubernetes.default.svc
             namespace: demo
