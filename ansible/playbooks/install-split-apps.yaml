@@ -575,6 +575,27 @@
                     - op: replace
                       path: /spec/targetRef/name
                       value: rhcl-workshop-gw
+
+                # secure-demo OIDCPolicy: replace URLs
+                - target:
+                    group: extensions.kuadrant.io
+                    version: v1alpha1
+                    kind: OIDCPolicy
+                    name: secure-demo-oidc
+                    namespace: rhcl-oidc-portal
+                  patch: |-
+                    - op: replace
+                      path: /spec/provider/issuerURL
+                      value: https://oidc-rhcl-workshop.{{ apps_cluster_domain }}/auth/realms/rhcl
+                    - op: replace
+                      path: /spec/provider/authorizationEndpoint
+                      value: https://oidc-rhcl-workshop.{{ apps_cluster_domain }}/auth/realms/rhcl/protocol/openid-connect/auth
+                    - op: replace
+                      path: /spec/provider/tokenEndpoint
+                      value: https://oidc-rhcl-workshop.{{ apps_cluster_domain }}/auth/realms/rhcl/protocol/openid-connect/token
+                    - op: replace
+                      path: /spec/provider/redirectURI
+                      value: https://oidc-rhcl-workshop.{{ apps_cluster_domain }}/oidc/callback
           destination:
             server: https://kubernetes.default.svc
             namespace: demo
