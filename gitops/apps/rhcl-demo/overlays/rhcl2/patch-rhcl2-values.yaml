@@ -53,7 +53,7 @@ spec:
     - name: https-external-public
       port: 443
       protocol: HTTPS
-      hostname: external-api.apps.cluster-cftzv.cftzv.sandbox589.opentlc.com
+      hostname: external-api.sandbox589.opentlc.com
       tls:
         mode: Terminate
         certificateRefs:
