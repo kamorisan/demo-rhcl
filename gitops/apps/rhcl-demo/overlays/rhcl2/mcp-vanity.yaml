@@ -6,7 +6,7 @@ metadata:
   annotations:
     argocd.argoproj.io/sync-wave: "18"
 spec:
-  host: mcp.apps.cluster-rjzd5.rjzd5.sandbox921.opentlc.com
+  host: REPLACE_ME_MCP_ROUTE_HOSTNAME
   to:
     kind: Service
     name: rhcl-gw-istio
@@ -24,11 +24,11 @@ metadata:
     argocd.argoproj.io/sync-wave: "20"
 spec:
   hostnames:
-    - mcp.apps.cluster-rjzd5.rjzd5.sandbox921.opentlc.com
+    - REPLACE_ME_MCP_HOSTNAME
   parentRefs:
     - group: gateway.networking.k8s.io
       kind: Gateway
-      name: rhcl-gw
+      name: REPLACE_ME_GATEWAY_NAME
       namespace: openshift-ingress
       sectionName: https-mcp-public
   rules:
