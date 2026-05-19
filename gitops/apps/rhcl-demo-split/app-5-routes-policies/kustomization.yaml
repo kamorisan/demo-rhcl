@@ -23,5 +23,26 @@ resources:
   - resources/ai-bot-main-tokenratelimitpolicy.yaml
   - resources/ai-bot-ai-tokenratelimitpolicy.yaml
 
-# Hostname and Gateway name replacements will be handled via ArgoCD Application patches
-# Phase 4+: Additional routes will be added incrementally to avoid overwhelming deployment
+  # Phase 4: External Proxy
+  - resources/httproute-external-proxy.yaml
+  - resources/httproute-external-proxy-public.yaml
+  - resources/external-proxy-authpolicy.yaml
+
+  # Phase 5: A/B Canary and JWT Demo
+  - resources/httproute-ab-canary-external.yaml
+  - resources/httproute-jwt-demo.yaml
+  - resources/ab-authpolicy.yaml
+  - resources/jwt-demo-authpolicy.yaml
+  - resources/secure-jwt-authpolicy.yaml
+  - resources/secure-oidcpolicy.yaml
+
+  # Phase 6: HTTP-to-HTTPS redirect, Gateway/Route policies, ReferenceGrants
+  - resources/httproute-http-to-https.yaml
+  - resources/gateway-authpolicy.yaml
+  - resources/route-authpolicy.yaml
+  - resources/route-ratelimitpolicy.yaml
+  - resources/api-keys.yaml
+  - resources/referencegrant-jwt-to-external-proxy.yaml
+
+# All 28 resources now included
+# Hostname and Gateway name replacements handled via ArgoCD Application patches

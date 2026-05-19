@@ -471,6 +471,78 @@
                     - op: replace
                       path: /spec/parentRefs/0/name
                       value: rhcl-ai-gw
+
+                # Phase 4: External Proxy
+                # httproute-external-proxy: gateway only (no hostname)
+                - target:
+                    group: gateway.networking.k8s.io
+                    version: v1
+                    kind: HTTPRoute
+                    name: external-proxy
+                    namespace: demo
+                  patch: |-
+                    - op: replace
+                      path: /spec/parentRefs/0/name
+                      value: rhcl-workshop-gw
+
+                # httproute-external-proxy-public: hostname and gateway
+                - target:
+                    group: gateway.networking.k8s.io
+                    version: v1
+                    kind: HTTPRoute
+                    name: external-proxy-public
+                    namespace: demo
+                  patch: |-
+                    - op: replace
+                      path: /spec/hostnames/0
+                      value: external-api.{{ external_base_domain }}
+                    - op: replace
+                      path: /spec/parentRefs/0/name
+                      value: rhcl-external-gw
+
+                # Phase 5: A/B Canary and JWT Demo
+                # httproute-ab-canary-external: hostname and gateway
+                - target:
+                    group: gateway.networking.k8s.io
+                    version: v1
+                    kind: HTTPRoute
+                    name: ab-canary-external
+                    namespace: demo-ab
+                  patch: |-
+                    - op: replace
+                      path: /spec/hostnames/0
+                      value: rhcl-workshop.{{ apps_cluster_domain }}
+                    - op: replace
+                      path: /spec/parentRefs/0/name
+                      value: rhcl-workshop-gw
+
+                # httproute-jwt-demo: hostname and gateway
+                - target:
+                    group: gateway.networking.k8s.io
+                    version: v1
+                    kind: HTTPRoute
+                    name: jwt-demo
+                    namespace: demo-jwt
+                  patch: |-
+                    - op: replace
+                      path: /spec/hostnames/0
+                      value: rhcl-workshop.{{ apps_cluster_domain }}
+                    - op: replace
+                      path: /spec/parentRefs/0/name
+                      value: rhcl-workshop-gw
+
+                # Phase 6: HTTP-to-HTTPS redirect
+                # httproute-http-to-https: gateway only (no hostname)
+                - target:
+                    group: gateway.networking.k8s.io
+                    version: v1
+                    kind: HTTPRoute
+                    name: http-to-https
+                    namespace: openshift-ingress
+                  patch: |-
+                    - op: replace
+                      path: /spec/parentRefs/0/name
+                      value: rhcl-workshop-gw
           destination:
             server: https://kubernetes.default.svc
             namespace: demo
@@ -511,7 +583,7 @@
           - "Application 2 (platform-crs): deployed"
           - "Application 3 (gateways): deployed"
           - "Application 4 (demo-apps): deployed"
-          - "Application 5 (routes-policies): deployed - Phase 1 (core routes)"
+          - "Application 5 (routes-policies): deployed - All 28 resources"
           - "Workshop URL: https://rhcl-workshop.{{ apps_cluster_domain }}/"
           - "OIDC URL: https://oidc-rhcl-workshop.{{ apps_cluster_domain }}/"
           - "External API: https://external-api.{{ external_base_domain }}/"
