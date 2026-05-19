@@ -225,7 +225,7 @@
                   patch: |-
                     - op: replace
                       path: /spec/listeners/1/hostname
-                      value: external-api.{{ external_base_domain }}
+                      value: external-api.{{ apps_cluster_domain }}
 
                 # Gateway rhcl-ai-gw patches
                 - target:
@@ -515,7 +515,7 @@
                   patch: |-
                     - op: replace
                       path: /spec/hostnames/0
-                      value: external-api.{{ external_base_domain }}
+                      value: external-api.{{ apps_cluster_domain }}
                     - op: replace
                       path: /spec/parentRefs/0/name
                       value: rhcl-external-gw
