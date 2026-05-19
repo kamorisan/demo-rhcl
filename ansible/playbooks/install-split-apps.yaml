@@ -609,7 +609,7 @@
                   patch: |-
                     - op: replace
                       path: /spec/defaults/rules/authentication/jwt/jwt/issuerUrl
-                      value: https://oidc-rhcl-workshop.{{ apps_cluster_domain }}/auth/realms/rhcl
+                      value: https://rhcl-workshop.{{ apps_cluster_domain }}/auth/realms/rhcl
 
                 # secure-demo-jwt AuthPolicy: replace issuerUrl
                 - target:
@@ -621,7 +621,7 @@
                   patch: |-
                     - op: replace
                       path: /spec/defaults/rules/authentication/jwt/jwt/issuerUrl
-                      value: https://oidc-rhcl-workshop.{{ apps_cluster_domain }}/auth/realms/rhcl
+                      value: https://rhcl-workshop.{{ apps_cluster_domain }}/auth/realms/rhcl
           destination:
             server: https://kubernetes.default.svc
             namespace: demo
