@@ -20,7 +20,7 @@ spec:
         certificateRefs:
           - group: ""
             kind: Secret
-            name: rhcl-gw-public-tls
+            name: cert-manager-ingress-cert
       allowedRoutes:
         namespaces:
           from: All
@@ -33,7 +33,7 @@ spec:
         certificateRefs:
           - group: ""
             kind: Secret
-            name: rhcl-gw-public-tls
+            name: cert-manager-ingress-cert
       allowedRoutes:
         namespaces:
           from: All
@@ -72,7 +72,7 @@ spec:
         certificateRefs:
           - group: ""
             kind: Secret
-            name: rhcl-gw-public-tls
+            name: cert-manager-ingress-cert
       allowedRoutes:
         namespaces:
           from: All
@@ -243,7 +243,7 @@ spec:
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
-  name: rhcl-gw-public-tls
+  name: cert-manager-ingress-cert
   namespace: openshift-ingress
 spec:
   dnsNames:

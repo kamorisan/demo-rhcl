@@ -11,6 +11,7 @@ resources:
   - istio-telemetry-gateways.yaml
   - otel-collector.yaml
   - certificate-external-sandbox.yaml
+  - gateway-public-certificate.yaml
 
 patches:
   - path: patch-rhcl2-values.yaml
