@@ -114,17 +114,7 @@
             repoURL: https://github.com/kamorisan/demo-rhcl.git
             targetRevision: feature/split-applications
             path: gitops/apps/rhcl-demo-split/app-2-platform-crs
-            kustomize:
-              patches:
-                - target:
-                    group: cert-manager.io
-                    version: v1
-                    kind: ClusterIssuer
-                    name: letsencrypt-production-ec2
-                  patch: |-
-                    - op: replace
-                      path: /spec/acme/solvers/0/dns01/route53/hostedZoneID
-                      value: {{ route53_hosted_zone_id }}
+            # No kustomize patches needed - cert-manager auto-detects hostedZoneID
           destination:
             server: https://kubernetes.default.svc
             namespace: demo
