@@ -23,7 +23,9 @@ spec:
       hostname: rhcl-workshop.REPLACE_ME_APPS_CLUSTER_DOMAIN
       tls:
         mode: Terminate
-        certificateRefs: []
+        certificateRefs:
+          - name: rhcl-workshop-main-tls
+            kind: Secret
       allowedRoutes:
         namespaces:
           from: All
@@ -33,7 +35,9 @@ spec:
       hostname: oidc-rhcl-workshop.REPLACE_ME_APPS_CLUSTER_DOMAIN
       tls:
         mode: Terminate
-        certificateRefs: []
+        certificateRefs:
+          - name: rhcl-workshop-oidc-public-tls
+            kind: Secret
       allowedRoutes:
         namespaces:
           from: All
@@ -43,7 +47,9 @@ spec:
       hostname: oidc-rhcl-workshop.REPLACE_ME_EXTERNAL_BASE_DOMAIN
       tls:
         mode: Terminate
-        certificateRefs: []
+        certificateRefs:
+          - name: rhcl-workshop-oidc-sandbox-tls
+            kind: Secret
       allowedRoutes:
         namespaces:
           from: All
@@ -73,7 +79,9 @@ spec:
       hostname: external-api.REPLACE_ME_EXTERNAL_BASE_DOMAIN
       tls:
         mode: Terminate
-        certificateRefs: []
+        certificateRefs:
+          - name: rhcl-external-tls
+            kind: Secret
       allowedRoutes:
         namespaces:
           from: All
@@ -104,7 +112,9 @@ spec:
       hostname: ai.REPLACE_ME_EXTERNAL_BASE_DOMAIN
       tls:
         mode: Terminate
-        certificateRefs: []
+        certificateRefs:
+          - name: rhcl-ai-tls
+            kind: Secret
       allowedRoutes:
         namespaces:
           from: All
@@ -135,7 +145,9 @@ spec:
       hostname: mcp.REPLACE_ME_EXTERNAL_BASE_DOMAIN
       tls:
         mode: Terminate
-        certificateRefs: []
+        certificateRefs:
+          - name: rhcl-mcp-tls
+            kind: Secret
       allowedRoutes:
         namespaces:
           from: All
