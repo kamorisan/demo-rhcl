@@ -1,0 +1,154 @@
+# Gateway for Workshop (main + OIDC)
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: rhcl-workshop-gw
+  namespace: openshift-ingress
+  labels:
+    kuadrant.io/gateway: "true"
+  annotations:
+    argocd.argoproj.io/sync-wave: "15"
+spec:
+  gatewayClassName: istio
+  listeners:
+    - name: http
+      port: 80
+      protocol: HTTP
+      allowedRoutes:
+        namespaces:
+          from: All
+    - name: https-main-public
+      port: 443
+      protocol: HTTPS
+      hostname: rhcl-workshop.REPLACE_ME_APPS_CLUSTER_DOMAIN
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - name: rhcl-workshop-main-tls
+            kind: Secret
+      allowedRoutes:
+        namespaces:
+          from: All
+    - name: https-oidc-public
+      port: 443
+      protocol: HTTPS
+      hostname: oidc-rhcl-workshop.REPLACE_ME_APPS_CLUSTER_DOMAIN
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - name: rhcl-workshop-oidc-public-tls
+            kind: Secret
+      allowedRoutes:
+        namespaces:
+          from: All
+    - name: https-oidc-sandbox
+      port: 443
+      protocol: HTTPS
+      hostname: oidc-rhcl-workshop.REPLACE_ME_EXTERNAL_BASE_DOMAIN
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - name: rhcl-workshop-oidc-sandbox-tls
+            kind: Secret
+      allowedRoutes:
+        namespaces:
+          from: All
+---
+# Gateway for External API
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: rhcl-external-gw
+  namespace: openshift-ingress
+  labels:
+    kuadrant.io/gateway: "true"
+  annotations:
+    argocd.argoproj.io/sync-wave: "15"
+spec:
+  gatewayClassName: istio
+  listeners:
+    - name: http
+      port: 80
+      protocol: HTTP
+      allowedRoutes:
+        namespaces:
+          from: All
+    - name: https-external-public
+      port: 443
+      protocol: HTTPS
+      hostname: external-api.REPLACE_ME_EXTERNAL_BASE_DOMAIN
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - name: rhcl-external-tls
+            kind: Secret
+      allowedRoutes:
+        namespaces:
+          from: All
+---
+# Gateway for AI Bot
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: rhcl-ai-gw
+  namespace: openshift-ingress
+  labels:
+    kuadrant.io/gateway: "true"
+  annotations:
+    argocd.argoproj.io/sync-wave: "15"
+spec:
+  gatewayClassName: istio
+  listeners:
+    - name: http-ai
+      port: 80
+      protocol: HTTP
+      hostname: ai.REPLACE_ME_EXTERNAL_BASE_DOMAIN
+      allowedRoutes:
+        namespaces:
+          from: All
+    - name: https-ai-sandbox
+      port: 443
+      protocol: HTTPS
+      hostname: ai.REPLACE_ME_EXTERNAL_BASE_DOMAIN
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - name: rhcl-ai-tls
+            kind: Secret
+      allowedRoutes:
+        namespaces:
+          from: All
+---
+# Gateway for MCP
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: rhcl-mcp-gw
+  namespace: openshift-ingress
+  labels:
+    kuadrant.io/gateway: "true"
+  annotations:
+    argocd.argoproj.io/sync-wave: "20"
+    argocd.argoproj.io/sync-options: Prune=false
+spec:
+  gatewayClassName: istio
+  listeners:
+    - name: http-mcp
+      port: 80
+      protocol: HTTP
+      hostname: mcp.REPLACE_ME_EXTERNAL_BASE_DOMAIN
+      allowedRoutes:
+        namespaces:
+          from: All
+    - name: https-mcp-public
+      port: 443
+      protocol: HTTPS
+      hostname: mcp.REPLACE_ME_EXTERNAL_BASE_DOMAIN
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - name: rhcl-mcp-tls
+            kind: Secret
+      allowedRoutes:
+        namespaces:
+          from: All

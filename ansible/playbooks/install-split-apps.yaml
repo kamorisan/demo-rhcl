@@ -1,0 +1,305 @@
+---
+- name: Install RHCL split applications (app-1, app-2, app-3)
+  hosts: localhost
+  gather_facts: no
+  vars:
+    apps_cluster_domain: "apps.cluster-{{ cluster_id }}.{{ cluster_id }}.{{ external_base_domain }}"
+
+  tasks:
+    - name: Validate required parameters
+      ansible.builtin.fail:
+        msg: "Missing required parameter: {{ item }}"
+      when: vars[item] is not defined or vars[item] | trim == ''
+      loop:
+        - env_name
+        - cluster_id
+        - external_base_domain
+      loop_control:
+        label: "{{ item }}"
+
+    - name: Detect Route53 Hosted Zone ID for external_base_domain
+      ansible.builtin.shell: |
+        set -euo pipefail
+        aws route53 list-hosted-zones --query "HostedZones[?Name=='{{ external_base_domain }}.'].Id" --output text | sed 's|/hostedzone/||'
+      register: detected_hosted_zone_id
+      changed_when: false
+      when: (aws_access_key_id | default('') | trim != '') and (aws_secret_access_key | default('') | trim != '')
+
+    - name: Set route53_hosted_zone_id
+      ansible.builtin.set_fact:
+        route53_hosted_zone_id: "{{ detected_hosted_zone_id.stdout | default('') | trim }}"
+      when: detected_hosted_zone_id is defined
+
+    - name: Create AWS credentials Secret for cert-manager (if AWS credentials provided)
+      ansible.builtin.shell: |
+        set -euo pipefail
+        oc -n cert-manager apply -f - <<'EOF'
+        apiVersion: v1
+        kind: Secret
+        metadata:
+          name: cert-manager-aws-creds
+          namespace: cert-manager
+        type: Opaque
+        stringData:
+          aws_access_key_id: "{{ aws_access_key_id }}"
+          aws_secret_access_key: "{{ aws_secret_access_key }}"
+        EOF
+      args:
+        executable: /bin/bash
+      when: (aws_access_key_id | default('') | trim != '') and (aws_secret_access_key | default('') | trim != '')
+      register: aws_secret
+      changed_when: "'configured' in (aws_secret.stdout | lower) or 'created' in (aws_secret.stdout | lower)"
+
+    - name: Apply Application 1 (operators) - no patches needed
+      ansible.builtin.shell: |
+        set -euo pipefail
+        oc apply -f - <<'EOF'
+        apiVersion: argoproj.io/v1alpha1
+        kind: Application
+        metadata:
+          name: rhcl-app-1-operators
+          namespace: openshift-gitops
+          finalizers:
+            - resources-finalizer.argocd.argoproj.io
+          annotations:
+            argocd.argoproj.io/sync-wave: "1"
+        spec:
+          project: default
+          source:
+            repoURL: https://github.com/kamorisan/demo-rhcl.git
+            targetRevision: feature/split-applications
+            path: gitops/apps/rhcl-demo-split/app-1-operators
+          destination:
+            server: https://kubernetes.default.svc
+            namespace: kuadrant-system
+          syncPolicy:
+            automated:
+              prune: true
+              selfHeal: true
+            syncOptions:
+              - CreateNamespace=true
+              - RespectIgnoreDifferences=true
+            retry:
+              limit: 10
+              backoff:
+                duration: 30s
+                factor: 2
+                maxDuration: 10m
+        EOF
+      args:
+        executable: /bin/bash
+      register: app1_result
+      changed_when: "'configured' in (app1_result.stdout | lower) or 'created' in (app1_result.stdout | lower)"
+
+    - name: Wait for Application 1 to be Healthy
+      ansible.builtin.command: oc get application rhcl-app-1-operators -n openshift-gitops -o jsonpath='{.status.health.status}'
+      register: app1_health
+      until: app1_health.stdout == "Healthy"
+      retries: 60
+      delay: 10
+      changed_when: false
+
+    - name: Apply Application 2 (platform-crs) with ClusterIssuer patch
+      ansible.builtin.shell: |
+        set -euo pipefail
+        cat <<'EOF' | oc apply -f -
+        apiVersion: argoproj.io/v1alpha1
+        kind: Application
+        metadata:
+          name: rhcl-app-2-platform-crs
+          namespace: openshift-gitops
+          finalizers:
+            - resources-finalizer.argocd.argoproj.io
+          annotations:
+            argocd.argoproj.io/sync-wave: "2"
+        spec:
+          project: default
+          source:
+            repoURL: https://github.com/kamorisan/demo-rhcl.git
+            targetRevision: feature/split-applications
+            path: gitops/apps/rhcl-demo-split/app-2-platform-crs
+            # No kustomize patches needed - cert-manager auto-detects hostedZoneID
+          destination:
+            server: https://kubernetes.default.svc
+            namespace: demo
+          syncPolicy:
+            syncOptions:
+              - CreateNamespace=true
+              - RespectIgnoreDifferences=true
+            retry:
+              limit: 10
+              backoff:
+                duration: 30s
+                factor: 2
+                maxDuration: 10m
+        EOF
+      args:
+        executable: /bin/bash
+      register: app2_result
+      changed_when: "'configured' in (app2_result.stdout | lower) or 'created' in (app2_result.stdout | lower)"
+
+    - name: Manually sync Application 2
+      ansible.builtin.command: oc patch application rhcl-app-2-platform-crs -n openshift-gitops --type merge -p '{"operation":{"initiatedBy":{"username":"ansible"},"sync":{}}}'
+      register: app2_sync
+      changed_when: true
+
+    - name: Wait for Application 2 to be Healthy
+      ansible.builtin.command: oc get application rhcl-app-2-platform-crs -n openshift-gitops -o jsonpath='{.status.health.status}'
+      register: app2_health
+      until: app2_health.stdout == "Healthy"
+      retries: 30
+      delay: 10
+      changed_when: false
+
+    - name: Apply Application 3 (gateways) with hostname patches
+      ansible.builtin.shell: |
+        set -euo pipefail
+        cat <<'EOF' | oc apply -f -
+        apiVersion: argoproj.io/v1alpha1
+        kind: Application
+        metadata:
+          name: rhcl-app-3-gateways
+          namespace: openshift-gitops
+          finalizers:
+            - resources-finalizer.argocd.argoproj.io
+          annotations:
+            argocd.argoproj.io/sync-wave: "3"
+        spec:
+          project: default
+          ignoreDifferences:
+          - group: gateway.networking.k8s.io
+            kind: Gateway
+            jqPathExpressions:
+            - .status
+          source:
+            repoURL: https://github.com/kamorisan/demo-rhcl.git
+            targetRevision: feature/split-applications
+            path: gitops/apps/rhcl-demo-split/app-3-gateways
+            kustomize:
+              patches:
+                # Gateway rhcl-workshop-gw patches
+                - target:
+                    group: gateway.networking.k8s.io
+                    version: v1
+                    kind: Gateway
+                    name: rhcl-workshop-gw
+                    namespace: openshift-ingress
+                  patch: |-
+                    - op: replace
+                      path: /spec/listeners/1/hostname
+                      value: rhcl-workshop.{{ apps_cluster_domain }}
+                    - op: replace
+                      path: /spec/listeners/2/hostname
+                      value: oidc-rhcl-workshop.{{ apps_cluster_domain }}
+                    - op: replace
+                      path: /spec/listeners/3/hostname
+                      value: oidc-rhcl-workshop.{{ external_base_domain }}
+
+                # Gateway rhcl-external-gw patches
+                - target:
+                    group: gateway.networking.k8s.io
+                    version: v1
+                    kind: Gateway
+                    name: rhcl-external-gw
+                    namespace: openshift-ingress
+                  patch: |-
+                    - op: replace
+                      path: /spec/listeners/1/hostname
+                      value: external-api.{{ external_base_domain }}
+
+                # Gateway rhcl-ai-gw patches
+                - target:
+                    group: gateway.networking.k8s.io
+                    version: v1
+                    kind: Gateway
+                    name: rhcl-ai-gw
+                    namespace: openshift-ingress
+                  patch: |-
+                    - op: replace
+                      path: /spec/listeners/0/hostname
+                      value: ai.{{ external_base_domain }}
+                    - op: replace
+                      path: /spec/listeners/1/hostname
+                      value: ai.{{ external_base_domain }}
+
+                # Gateway rhcl-mcp-gw patches
+                - target:
+                    group: gateway.networking.k8s.io
+                    version: v1
+                    kind: Gateway
+                    name: rhcl-mcp-gw
+                    namespace: openshift-ingress
+                  patch: |-
+                    - op: replace
+                      path: /spec/listeners/0/hostname
+                      value: mcp.{{ external_base_domain }}
+                    - op: replace
+                      path: /spec/listeners/1/hostname
+                      value: mcp.{{ external_base_domain }}
+
+                # Route patches
+                - target:
+                    group: route.openshift.io
+                    version: v1
+                    kind: Route
+                    name: rhcl-workshop-gw
+                    namespace: openshift-ingress
+                  patch: |-
+                    - op: replace
+                      path: /spec/host
+                      value: rhcl-workshop.{{ apps_cluster_domain }}
+
+                - target:
+                    group: route.openshift.io
+                    version: v1
+                    kind: Route
+                    name: rhcl-workshop-gw-oidc
+                    namespace: openshift-ingress
+                  patch: |-
+                    - op: replace
+                      path: /spec/host
+                      value: oidc-rhcl-workshop.{{ apps_cluster_domain }}
+          destination:
+            server: https://kubernetes.default.svc
+            namespace: openshift-ingress
+          syncPolicy:
+            syncOptions:
+              - CreateNamespace=true
+              - RespectIgnoreDifferences=true
+            retry:
+              limit: 10
+              backoff:
+                duration: 30s
+                factor: 2
+                maxDuration: 10m
+        EOF
+      args:
+        executable: /bin/bash
+      register: app3_result
+      changed_when: "'configured' in (app3_result.stdout | lower) or 'created' in (app3_result.stdout | lower)"
+
+    - name: Manually sync Application 3
+      ansible.builtin.command: oc patch application rhcl-app-3-gateways -n openshift-gitops --type merge -p '{"operation":{"initiatedBy":{"username":"ansible"},"sync":{}}}'
+      register: app3_sync
+      changed_when: true
+
+    - name: Wait for Application 3 to be Healthy
+      ansible.builtin.command: oc get application rhcl-app-3-gateways -n openshift-gitops -o jsonpath='{.status.health.status}'
+      register: app3_health
+      until: app3_health.stdout == "Healthy"
+      retries: 60
+      delay: 10
+      changed_when: false
+
+    - name: Print application URLs
+      ansible.builtin.debug:
+        msg:
+          - "Environment: {{ env_name }}"
+          - "Application 1 (operators): deployed"
+          - "Application 2 (platform-crs): deployed"
+          - "Application 3 (gateways): deployed"
+          - "Workshop URL: https://rhcl-workshop.{{ apps_cluster_domain }}/"
+          - "OIDC URL: https://oidc-rhcl-workshop.{{ apps_cluster_domain }}/"
+          - "External API: https://external-api.{{ external_base_domain }}/"
+          - "AI Bot: https://ai.{{ external_base_domain }}/"
+          - "MCP: https://mcp.{{ external_base_domain }}/"

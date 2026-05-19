@@ -1,0 +1,10 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - resources/02-gateways.yaml
+  - resources/03-dnspolicy.yaml
+  - resources/04-tls-policies.yaml
+  - resources/05-routes.yaml
+  - resources/06-referencegrants.yaml
+  - resources/07-telemetry.yaml
