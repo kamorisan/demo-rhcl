@@ -306,6 +306,11 @@
             argocd.argoproj.io/sync-wave: "4"
         spec:
           project: default
+          ignoreDifferences:
+          - group: apps
+            kind: Deployment
+            jqPathExpressions:
+            - .spec.template.spec.containers[].image
           source:
             repoURL: https://github.com/kamorisan/demo-rhcl.git
             targetRevision: feature/split-applications
