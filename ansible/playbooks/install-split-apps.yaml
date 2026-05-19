@@ -597,7 +597,7 @@
                       value: https://oidc-rhcl-workshop.{{ apps_cluster_domain }}/auth/realms/rhcl/protocol/openid-connect/token
                     - op: replace
                       path: /spec/provider/redirectURI
-                      value: https://oidc-rhcl-workshop.{{ apps_cluster_domain }}/oidc/callback
+                      value: https://oidc-rhcl-workshop.{{ apps_cluster_domain }}/auth/callback
 
                 # jwt-demo-jwt AuthPolicy: replace issuerUrl
                 - target:
