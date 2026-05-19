@@ -441,6 +441,36 @@
                     - op: replace
                       path: /spec/parentRefs/0/name
                       value: rhcl-workshop-gw
+
+                # httproute-ai-bot-main: hostname and gateway
+                - target:
+                    group: gateway.networking.k8s.io
+                    version: v1
+                    kind: HTTPRoute
+                    name: ai-bot-main
+                    namespace: rhcl-ai-bot
+                  patch: |-
+                    - op: replace
+                      path: /spec/hostnames/0
+                      value: rhcl-workshop.{{ apps_cluster_domain }}
+                    - op: replace
+                      path: /spec/parentRefs/0/name
+                      value: rhcl-workshop-gw
+
+                # httproute-ai-bot-ai: hostname and gateway (uses external_base_domain)
+                - target:
+                    group: gateway.networking.k8s.io
+                    version: v1
+                    kind: HTTPRoute
+                    name: ai-bot-ai
+                    namespace: rhcl-ai-bot
+                  patch: |-
+                    - op: replace
+                      path: /spec/hostnames/0
+                      value: ai.{{ external_base_domain }}
+                    - op: replace
+                      path: /spec/parentRefs/0/name
+                      value: rhcl-ai-gw
           destination:
             server: https://kubernetes.default.svc
             namespace: demo

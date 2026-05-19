@@ -16,5 +16,12 @@ resources:
   - resources/httproute-keycloak.yaml
   - resources/keycloak-authpolicy.yaml
 
+  # Phase 3: AI Bot
+  - resources/httproute-ai-bot-main.yaml
+  - resources/httproute-ai-bot-ai.yaml
+  - resources/ai-bot-main-authpolicy.yaml
+  - resources/ai-bot-main-tokenratelimitpolicy.yaml
+  - resources/ai-bot-ai-tokenratelimitpolicy.yaml
+
 # Hostname and Gateway name replacements will be handled via ArgoCD Application patches
-# Phase 3+: Additional routes will be added incrementally to avoid overwhelming deployment
+# Phase 4+: Additional routes will be added incrementally to avoid overwhelming deployment
