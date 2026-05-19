@@ -123,9 +123,6 @@
             server: https://kubernetes.default.svc
             namespace: demo
           syncPolicy:
-            automated:
-              prune: true
-              selfHeal: true
             syncOptions:
               - CreateNamespace=true
               - RespectIgnoreDifferences=true
@@ -140,6 +137,11 @@
         executable: /bin/bash
       register: app2_result
       changed_when: "'configured' in (app2_result.stdout | lower) or 'created' in (app2_result.stdout | lower)"
+
+    - name: Manually sync Application 2
+      ansible.builtin.command: oc patch application rhcl-app-2-platform-crs -n openshift-gitops --type merge -p '{"operation":{"initiatedBy":{"username":"ansible"},"sync":{}}}'
+      register: app2_sync
+      changed_when: true
 
     - name: Wait for Application 2 to be Healthy
       ansible.builtin.command: oc get application rhcl-app-2-platform-crs -n openshift-gitops -o jsonpath='{.status.health.status}'
@@ -261,9 +263,6 @@
             server: https://kubernetes.default.svc
             namespace: openshift-ingress
           syncPolicy:
-            automated:
-              prune: true
-              selfHeal: true
             syncOptions:
               - CreateNamespace=true
               - RespectIgnoreDifferences=true
@@ -278,6 +277,11 @@
         executable: /bin/bash
       register: app3_result
       changed_when: "'configured' in (app3_result.stdout | lower) or 'created' in (app3_result.stdout | lower)"
+
+    - name: Manually sync Application 3
+      ansible.builtin.command: oc patch application rhcl-app-3-gateways -n openshift-gitops --type merge -p '{"operation":{"initiatedBy":{"username":"ansible"},"sync":{}}}'
+      register: app3_sync
+      changed_when: true
 
     - name: Wait for Application 3 to be Healthy
       ansible.builtin.command: oc get application rhcl-app-3-gateways -n openshift-gitops -o jsonpath='{.status.health.status}'
