@@ -98,6 +98,9 @@ spec:
       containers:
         - name: create-bucket
           image: quay.io/minio/mc:latest
+          env:
+            - name: MC_CONFIG_DIR
+              value: /tmp/.mc
           command:
             - /bin/sh
             - -c
