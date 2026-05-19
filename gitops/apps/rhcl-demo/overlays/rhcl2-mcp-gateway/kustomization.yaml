@@ -22,7 +22,4 @@ patches:
       - op: replace
         path: /spec/listeners/1/hostname
         value: mcp.sandbox589.opentlc.com
-      - op: replace
-        path: /spec/listeners/1/tls/certificateRefs/0/name
-        value: rhcl-gw-mcp-sandbox-tls
 
