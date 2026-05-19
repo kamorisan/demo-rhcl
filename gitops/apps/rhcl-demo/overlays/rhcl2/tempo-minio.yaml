@@ -45,6 +45,20 @@ spec:
           volumeMounts:
             - name: data
               mountPath: /data
+          readinessProbe:
+            httpGet:
+              path: /minio/health/ready
+              port: 9000
+              scheme: HTTP
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /minio/health/live
+              port: 9000
+              scheme: HTTP
+            initialDelaySeconds: 10
+            periodSeconds: 10
       volumes:
         - name: data
           emptyDir: {}
@@ -66,3 +80,43 @@ spec:
     - name: console
       port: 9001
       targetPort: 9001
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: tempo-minio-create-bucket
+  namespace: rhcl-observability
+  annotations:
+    argocd.argoproj.io/sync-wave: "25"
+    argocd.argoproj.io/hook: Sync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+spec:
+  backoffLimit: 10
+  template:
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: create-bucket
+          image: quay.io/minio/mc:RELEASE.2024-09-13T17-47-56Z
+          command:
+            - /bin/sh
+            - -c
+            - |
+              set -e
+              echo "Waiting for MinIO to be ready..."
+              for i in $(seq 1 30); do
+                if mc alias set myminio http://tempo-minio.rhcl-observability.svc.cluster.local:9000 tempo tempo-tempo-tempo 2>/dev/null; then
+                  echo "MinIO is ready"
+                  break
+                fi
+                echo "Waiting... ($i/30)"
+                sleep 2
+              done
+
+              if mc ls myminio/tempo-traces > /dev/null 2>&1; then
+                echo "Bucket tempo-traces already exists"
+              else
+                echo "Creating bucket tempo-traces..."
+                mc mb myminio/tempo-traces
+                echo "Bucket created successfully"
+              fi
