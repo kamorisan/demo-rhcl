@@ -59,6 +59,8 @@
         metadata:
           name: rhcl-app-1-operators
           namespace: openshift-gitops
+          finalizers:
+            - resources-finalizer.argocd.argoproj.io
           annotations:
             argocd.argoproj.io/sync-wave: "1"
         spec:
@@ -106,6 +108,8 @@
         metadata:
           name: rhcl-app-2-platform-crs
           namespace: openshift-gitops
+          finalizers:
+            - resources-finalizer.argocd.argoproj.io
           annotations:
             argocd.argoproj.io/sync-wave: "2"
         spec:
@@ -154,6 +158,8 @@
         metadata:
           name: rhcl-app-3-gateways
           namespace: openshift-gitops
+          finalizers:
+            - resources-finalizer.argocd.argoproj.io
           annotations:
             argocd.argoproj.io/sync-wave: "3"
         spec:
