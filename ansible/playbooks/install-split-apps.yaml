@@ -349,6 +349,103 @@
       delay: 10
       changed_when: false
 
+    - name: Apply Application 5 (routes-policies) - Phase 1
+      ansible.builtin.shell: |
+        set -euo pipefail
+        cat <<'EOF' | oc apply -f -
+        apiVersion: argoproj.io/v1alpha1
+        kind: Application
+        metadata:
+          name: rhcl-app-5-routes-policies
+          namespace: openshift-gitops
+          finalizers:
+            - resources-finalizer.argocd.argoproj.io
+          annotations:
+            argocd.argoproj.io/sync-wave: "5"
+        spec:
+          project: default
+          source:
+            repoURL: https://github.com/kamorisan/demo-rhcl.git
+            targetRevision: feature/split-applications
+            path: gitops/apps/rhcl-demo-split/app-5-routes-policies
+            kustomize:
+              patches:
+                # httproute-ui: hostname and gateway
+                - target:
+                    group: gateway.networking.k8s.io
+                    version: v1
+                    kind: HTTPRoute
+                    name: rhcl-ui
+                    namespace: demo
+                  patch: |-
+                    - op: replace
+                      path: /spec/hostnames/0
+                      value: rhcl-workshop.{{ apps_cluster_domain }}
+                    - op: replace
+                      path: /spec/parentRefs/0/name
+                      value: rhcl-workshop-gw
+
+                # httproute-oidc-portal: hostname and gateway (multiple parentRefs)
+                - target:
+                    group: gateway.networking.k8s.io
+                    version: v1
+                    kind: HTTPRoute
+                    name: oidc-portal
+                    namespace: rhcl-oidc-portal
+                  patch: |-
+                    - op: replace
+                      path: /spec/hostnames/0
+                      value: oidc-rhcl-workshop.{{ apps_cluster_domain }}
+                    - op: replace
+                      path: /spec/parentRefs/0/name
+                      value: rhcl-workshop-gw
+
+                # httproute-api: hostname and gateway
+                - target:
+                    group: gateway.networking.k8s.io
+                    version: v1
+                    kind: HTTPRoute
+                    name: demo-api
+                    namespace: demo
+                  patch: |-
+                    - op: replace
+                      path: /spec/hostnames/0
+                      value: rhcl-workshop.{{ apps_cluster_domain }}
+                    - op: replace
+                      path: /spec/parentRefs/0/name
+                      value: rhcl-workshop-gw
+          destination:
+            server: https://kubernetes.default.svc
+            namespace: demo
+          syncPolicy:
+            syncOptions:
+              - CreateNamespace=true
+              - RespectIgnoreDifferences=true
+            retry:
+              limit: 10
+              backoff:
+                duration: 30s
+                factor: 2
+                maxDuration: 10m
+        EOF
+      args:
+        executable: /bin/bash
+      register: app5_result
+      changed_when: "'configured' in (app5_result.stdout | lower) or 'created' in (app5_result.stdout | lower)"
+
+    - name: Manually sync Application 5
+      ansible.builtin.command: oc patch application rhcl-app-5-routes-policies -n openshift-gitops --type merge -p '{"operation":{"initiatedBy":{"username":"ansible"},"sync":{}}}'
+      register: app5_sync
+      changed_when: true
+
+    - name: Wait for Application 5 to be Healthy
+      ansible.builtin.command: oc get application rhcl-app-5-routes-policies -n openshift-gitops -o jsonpath='{.status.health.status}'
+      register: app5_health
+      until: app5_health.stdout == "Healthy"
+      retries: 30
+      delay: 10
+      changed_when: false
+
     - name: Print application URLs
       ansible.builtin.debug:
         msg:
@@ -357,6 +454,7 @@
           - "Application 2 (platform-crs): deployed"
           - "Application 3 (gateways): deployed"
           - "Application 4 (demo-apps): deployed"
+          - "Application 5 (routes-policies): deployed - Phase 1 (core routes)"
           - "Workshop URL: https://rhcl-workshop.{{ apps_cluster_domain }}/"
           - "OIDC URL: https://oidc-rhcl-workshop.{{ apps_cluster_domain }}/"
           - "External API: https://external-api.{{ external_base_domain }}/"

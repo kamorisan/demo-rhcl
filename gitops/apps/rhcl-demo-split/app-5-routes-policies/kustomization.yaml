@@ -1,0 +1,13 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  # Phase 1: Core HTTPRoutes and AuthPolicies
+  - resources/httproute-ui.yaml
+  - resources/httproute-oidc-portal.yaml
+  - resources/httproute-api.yaml
+  - resources/ui-authpolicy.yaml
+  - resources/oidc-portal-authpolicy.yaml
+
+# Hostname and Gateway name replacements will be handled via ArgoCD Application patches
+# Phase 2+: Additional routes will be added incrementally to avoid overwhelming deployment
