@@ -26,7 +26,7 @@ spec:
         certificateRefs:
           - group: ""
             kind: Secret
-            name: rhcl-gw-public-tls
+            name: rhcl-gw-mcp-sandbox-tls
       allowedRoutes:
         namespaces:
           from: All
