@@ -129,6 +129,7 @@ metadata:
     kuadrant.io/gateway: "true"
   annotations:
     argocd.argoproj.io/sync-wave: "20"
+    argocd.argoproj.io/sync-options: Prune=false
 spec:
   gatewayClassName: istio
   listeners:
