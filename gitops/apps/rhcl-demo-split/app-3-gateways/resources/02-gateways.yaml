@@ -41,18 +41,6 @@ spec:
       allowedRoutes:
         namespaces:
           from: All
-    - name: https-oidc-sandbox
-      port: 443
-      protocol: HTTPS
-      hostname: oidc-rhcl-workshop.REPLACE_ME_EXTERNAL_BASE_DOMAIN
-      tls:
-        mode: Terminate
-        certificateRefs:
-          - name: rhcl-workshop-oidc-sandbox-tls
-            kind: Secret
-      allowedRoutes:
-        namespaces:
-          from: All
 ---
 # Gateway for External API
 apiVersion: gateway.networking.k8s.io/v1

@@ -1,7 +1,7 @@
 apiVersion: kuadrant.io/v1
 kind: DNSPolicy
 metadata:
-  name: rhcl-oidc-sandbox-dns
+  name: rhcl-oidc-public-dns
   namespace: openshift-ingress
   annotations:
     argocd.argoproj.io/sync-wave: "17"
@@ -11,7 +11,7 @@ spec:
     group: gateway.networking.k8s.io
     kind: Gateway
     name: rhcl-workshop-gw
-    sectionName: https-oidc-sandbox
+    sectionName: https-oidc-public
   providerRefs:
     - name: aws-credentials
 ---
