@@ -1,0 +1,53 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: rhcl-split-apps
+  namespace: openshift-gitops
+spec:
+  generators:
+  - list:
+      elements:
+      - app: app-1-operators
+        path: gitops/apps/rhcl-demo-split/app-1-operators
+        namespace: kuadrant-system
+        syncWave: "1"
+        needsPatches: "false"
+      - app: app-2-platform-crs
+        path: gitops/apps/rhcl-demo-split/app-2-platform-crs
+        namespace: demo
+        syncWave: "2"
+        needsPatches: "true"
+      - app: app-3-gateways
+        path: gitops/apps/rhcl-demo-split/app-3-gateways
+        namespace: openshift-ingress
+        syncWave: "3"
+        needsPatches: "true"
+  template:
+    metadata:
+      name: 'rhcl-{{app}}'
+      annotations:
+        argocd.argoproj.io/sync-wave: '{{syncWave}}'
+    spec:
+      project: default
+      source:
+        repoURL: https://github.com/kamorisan/demo-rhcl.git
+        targetRevision: feature/split-applications
+        path: '{{path}}'
+        kustomize:
+          patches: []
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: '{{namespace}}'
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
+          - RespectIgnoreDifferences=true
+        retry:
+          limit: 10
+          backoff:
+            duration: 30s
+            factor: 2
+            maxDuration: 10m
