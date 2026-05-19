@@ -9,7 +9,7 @@ resources:
   - tracing-console.yaml
   - tls-policies.yaml
   - istio-telemetry-gateways.yaml
-  - ../../appsets/tracing/resources/otel-collector.yaml
+  - otel-collector.yaml
 
 patches:
   - path: patch-rhcl2-values.yaml
