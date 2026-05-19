@@ -530,7 +530,7 @@
                   selfHeal: true
                 syncOptions:
                   - CreateNamespace=true
-                  - ApplyOutOfSyncOnly=true
+                  - RespectIgnoreDifferences=true
                 retry:
                   limit: 10
                   backoff:
