@@ -596,6 +596,30 @@
                     - op: replace
                       path: /spec/provider/redirectURI
                       value: https://oidc-rhcl-workshop.{{ apps_cluster_domain }}/oidc/callback
+
+                # jwt-demo-jwt AuthPolicy: replace issuerUrl
+                - target:
+                    group: kuadrant.io
+                    version: v1
+                    kind: AuthPolicy
+                    name: jwt-demo-jwt
+                    namespace: demo-jwt
+                  patch: |-
+                    - op: replace
+                      path: /spec/defaults/rules/authentication/jwt/jwt/issuerUrl
+                      value: https://oidc-rhcl-workshop.{{ apps_cluster_domain }}/auth/realms/rhcl
+
+                # secure-demo-jwt AuthPolicy: replace issuerUrl
+                - target:
+                    group: kuadrant.io
+                    version: v1
+                    kind: AuthPolicy
+                    name: secure-demo-jwt
+                    namespace: rhcl-oidc-portal
+                  patch: |-
+                    - op: replace
+                      path: /spec/defaults/rules/authentication/jwt/jwt/issuerUrl
+                      value: https://oidc-rhcl-workshop.{{ apps_cluster_domain }}/auth/realms/rhcl
           destination:
             server: https://kubernetes.default.svc
             namespace: demo
