@@ -291,6 +291,57 @@
       delay: 10
       changed_when: false
 
+    - name: Apply Application 4 (demo-apps)
+      ansible.builtin.shell: |
+        set -euo pipefail
+        cat <<'EOF' | oc apply -f -
+        apiVersion: argoproj.io/v1alpha1
+        kind: Application
+        metadata:
+          name: rhcl-app-4-demo-apps
+          namespace: openshift-gitops
+          finalizers:
+            - resources-finalizer.argocd.argoproj.io
+          annotations:
+            argocd.argoproj.io/sync-wave: "4"
+        spec:
+          project: default
+          source:
+            repoURL: https://github.com/kamorisan/demo-rhcl.git
+            targetRevision: feature/split-applications
+            path: gitops/apps/rhcl-demo-split/app-4-demo-apps
+          destination:
+            server: https://kubernetes.default.svc
+            namespace: demo
+          syncPolicy:
+            syncOptions:
+              - CreateNamespace=true
+              - RespectIgnoreDifferences=true
+            retry:
+              limit: 10
+              backoff:
+                duration: 30s
+                factor: 2
+                maxDuration: 10m
+        EOF
+      args:
+        executable: /bin/bash
+      register: app4_result
+      changed_when: "'configured' in (app4_result.stdout | lower) or 'created' in (app4_result.stdout | lower)"
+
+    - name: Manually sync Application 4
+      ansible.builtin.command: oc patch application rhcl-app-4-demo-apps -n openshift-gitops --type merge -p '{"operation":{"initiatedBy":{"username":"ansible"},"sync":{}}}'
+      register: app4_sync
+      changed_when: true
+
+    - name: Wait for Application 4 to be Healthy
+      ansible.builtin.command: oc get application rhcl-app-4-demo-apps -n openshift-gitops -o jsonpath='{.status.health.status}'
+      register: app4_health
+      until: app4_health.stdout == "Healthy"
+      retries: 30
+      delay: 10
+      changed_when: false
+
     - name: Print application URLs
       ansible.builtin.debug:
         msg:
@@ -298,6 +349,7 @@
           - "Application 1 (operators): deployed"
           - "Application 2 (platform-crs): deployed"
           - "Application 3 (gateways): deployed"
+          - "Application 4 (demo-apps): deployed"
           - "Workshop URL: https://rhcl-workshop.{{ apps_cluster_domain }}/"
           - "OIDC URL: https://oidc-rhcl-workshop.{{ apps_cluster_domain }}/"
           - "External API: https://external-api.{{ external_base_domain }}/"

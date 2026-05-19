@@ -1,0 +1,154 @@
+apiVersion: image.openshift.io/v1
+kind: ImageStream
+metadata:
+  name: rhcl-ai-bot
+  namespace: rhcl-ai-bot
+  annotations:
+    argocd.argoproj.io/sync-wave: "12"
+spec: {}
+---
+apiVersion: build.openshift.io/v1
+kind: BuildConfig
+metadata:
+  name: rhcl-ai-bot
+  namespace: rhcl-ai-bot
+  annotations:
+    argocd.argoproj.io/sync-wave: "12"
+spec:
+  triggers:
+    - type: ConfigChange
+  source:
+    type: Git
+    git:
+      uri: https://github.com/kamorisan/demo-rhcl.git
+    contextDir: apps/rhcl-ai-bot
+  strategy:
+    type: Docker
+    dockerStrategy:
+      dockerfilePath: Dockerfile
+  output:
+    to:
+      kind: ImageStreamTag
+      name: rhcl-ai-bot:latest
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rhcl-ai-bot
+  namespace: rhcl-ai-bot
+  labels:
+    app: rhcl-ai-bot
+    version: v1
+  annotations:
+    argocd.argoproj.io/sync-wave: "13"
+    argocd.argoproj.io/sync-options: Replace=true
+    image.openshift.io/triggers: |
+      [{"from":{"kind":"ImageStreamTag","name":"rhcl-ai-bot:latest","namespace":"rhcl-ai-bot"},"fieldPath":"spec.template.spec.containers[?(@.name==\"app\")].image"}]
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: rhcl-ai-bot
+  template:
+    metadata:
+      labels:
+        app: rhcl-ai-bot
+        version: v1
+    spec:
+      containers:
+        - name: app
+          image: image-registry.openshift-image-registry.svc:5000/rhcl-ai-bot/rhcl-ai-bot:latest
+          imagePullPolicy: Always
+          ports:
+            - name: http
+              containerPort: 8080
+          resources:
+            requests:
+              cpu: 50m
+              memory: 256Mi
+            limits:
+              cpu: 500m
+              memory: 1Gi
+          env:
+            # Allow the workshop UI (different hostname) to call this API directly
+            - name: QUARKUS_HTTP_CORS
+              value: "true"
+            - name: QUARKUS_HTTP_CORS_ORIGINS
+              value: "/.*/"
+            - name: QUARKUS_HTTP_CORS_METHODS
+              value: "GET,POST,OPTIONS"
+            - name: QUARKUS_HTTP_CORS_HEADERS
+              value: "accept,authorization,content-type,origin,x-requested-with"
+            - name: QUARKUS_HTTP_CORS_EXPOSED_HEADERS
+              value: "mcp-session-id"
+            # Optional: enable real LLM calls (OpenAI-compatible)
+            - name: RHCL_AI_OPENAI_BASE_URL
+              value: https://litellm-prod.apps.maas.redhatworkshops.io/v1
+            - name: RHCL_AI_OPENAI_MODEL
+              value: deepseek-r1-distill-qwen-14b
+            - name: RHCL_AI_OPENAI_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: rhcl-ai-bot-llm
+                  key: apiKey
+                  optional: true
+            # ESPN is consumed via the Gateway-published external API hostname.
+            - name: RHCL_AI_ESPN_BASE_URL
+              value: https://external-api.example.com
+            # Tool calls go through the dedicated MCP Gateway hostname.
+            - name: RHCL_AI_MCP_BASE_URL
+              value: https://mcp.example.com
+            - name: RHCL_AI_MCP_PATH
+              value: /mcp
+            - name: RHCL_AI_MCP_TOOL_SCOREBOARD
+              value: nba_scoreboard
+            # Traces (OTLP) - exported to the workshop collector (Tempo).
+            # Use Quarkus OpenTelemetry config keys to avoid OTEL_* ambiguity.
+            - name: QUARKUS_OTEL_ENABLED
+              value: "true"
+            - name: QUARKUS_OTEL_SERVICE_NAME
+              value: rhcl-ai-bot
+            - name: QUARKUS_OTEL_EXPORTER_OTLP_ENDPOINT
+              value: http://otel-collector.rhcl-observability.svc.cluster.local:4317
+            - name: QUARKUS_OTEL_EXPORTER_OTLP_PROTOCOL
+              value: grpc
+            - name: QUARKUS_OTEL_TRACES_SAMPLER
+              value: always_on
+          readinessProbe:
+            httpGet:
+              path: /q/health/ready
+              port: 8080
+            initialDelaySeconds: 3
+            timeoutSeconds: 2
+            periodSeconds: 5
+          startupProbe:
+            httpGet:
+              path: /q/health/started
+              port: 8080
+            failureThreshold: 60
+            timeoutSeconds: 2
+            periodSeconds: 2
+          livenessProbe:
+            httpGet:
+              path: /q/health/live
+              port: 8080
+            initialDelaySeconds: 30
+            timeoutSeconds: 2
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: rhcl-ai-bot
+  namespace: rhcl-ai-bot
+  annotations:
+    argocd.argoproj.io/sync-wave: "13"
+spec:
+  selector:
+    app: rhcl-ai-bot
+  ports:
+    - name: http
+      port: 80
+      protocol: TCP
+      targetPort: 8080
+

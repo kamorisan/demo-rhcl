@@ -1,0 +1,88 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rhcl-ui
+  namespace: demo
+  labels:
+    app: rhcl-ui
+    version: v1
+  annotations:
+    argocd.argoproj.io/sync-wave: "12"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: rhcl-ui
+  template:
+    metadata:
+      labels:
+        app: rhcl-ui
+        version: v1
+    spec:
+      containers:
+        - name: nginx
+          image: registry.redhat.io/ubi10/nginx-126:10.1
+          command: ["nginx"]
+          args: ["-g", "daemon off;"]
+          ports:
+            - containerPort: 8080
+              name: http
+          volumeMounts:
+            - name: html
+              mountPath: /opt/app-root/src
+              readOnly: true
+            - name: nginx-conf
+              mountPath: /opt/app-root/etc/nginx.default.d
+              readOnly: true
+      volumes:
+        - name: html
+          configMap:
+            name: rhcl-ui
+        - name: nginx-conf
+          configMap:
+            name: rhcl-ui-nginx
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: rhcl-ui-nginx
+  namespace: demo
+  annotations:
+    argocd.argoproj.io/sync-wave: "11"
+data:
+  ui.conf: |
+    # Included in the default server block by the UBI nginx image.
+    etag off;
+    add_header Cache-Control "no-store" always;
+
+    location = /logout {
+      add_header Content-Type "text/plain" always;
+      add_header Cache-Control "no-store" always;
+      add_header Set-Cookie "rhcl_token=; Max-Age=0; Path=/; SameSite=Lax" always;
+      add_header Set-Cookie "target=; Max-Age=0; Path=/; SameSite=Lax" always;
+      return 200 "logged out\n";
+    }
+
+    location / {
+      try_files $uri /index.html =404;
+    }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: rhcl-ui
+  namespace: demo
+  labels:
+    app: rhcl-ui
+    istio.io/use-waypoint: demo-waypoint
+  annotations:
+    argocd.argoproj.io/sync-wave: "12"
+spec:
+  selector:
+    app: rhcl-ui
+  ports:
+    - name: http
+      port: 80
+      protocol: TCP
+      targetPort: 8080
+
