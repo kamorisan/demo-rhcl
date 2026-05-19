@@ -447,6 +447,21 @@
                       path: /spec/parentRefs/0/name
                       value: rhcl-workshop-gw
 
+                # httproute-oidc-portal: hostname and gateway
+                - target:
+                    group: gateway.networking.k8s.io
+                    version: v1
+                    kind: HTTPRoute
+                    name: oidc-portal
+                    namespace: rhcl-oidc-portal
+                  patch: |-
+                    - op: replace
+                      path: /spec/hostnames/0
+                      value: oidc-rhcl-workshop.{{ apps_cluster_domain }}
+                    - op: replace
+                      path: /spec/parentRefs/0/name
+                      value: rhcl-workshop-gw
+
                 # httproute-keycloak: hostnames and gateway
                 - target:
                     group: gateway.networking.k8s.io
@@ -455,11 +470,41 @@
                     name: keycloak
                     namespace: rhcl-keycloak
                   patch: |-
-                    - op: add
+                    - op: replace
                       path: /spec/hostnames
                       value:
                         - rhcl-workshop.{{ apps_cluster_domain }}
                         - oidc-rhcl-workshop.{{ apps_cluster_domain }}
+                    - op: replace
+                      path: /spec/parentRefs/0/name
+                      value: rhcl-workshop-gw
+
+                # httproute-oidc-portal-callback: hostname and gateway
+                - target:
+                    group: gateway.networking.k8s.io
+                    version: v1
+                    kind: HTTPRoute
+                    name: oidc-portal-callback
+                    namespace: rhcl-oidc-portal
+                  patch: |-
+                    - op: replace
+                      path: /spec/hostnames/0
+                      value: oidc-rhcl-workshop.{{ apps_cluster_domain }}
+                    - op: replace
+                      path: /spec/parentRefs/0/name
+                      value: rhcl-workshop-gw
+
+                # httproute-oidc-portal-whoami: hostname and gateway
+                - target:
+                    group: gateway.networking.k8s.io
+                    version: v1
+                    kind: HTTPRoute
+                    name: oidc-portal-whoami
+                    namespace: rhcl-oidc-portal
+                  patch: |-
+                    - op: replace
+                      path: /spec/hostnames/0
+                      value: oidc-rhcl-workshop.{{ apps_cluster_domain }}
                     - op: replace
                       path: /spec/parentRefs/0/name
                       value: rhcl-workshop-gw
