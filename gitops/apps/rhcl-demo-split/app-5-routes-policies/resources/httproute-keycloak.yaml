@@ -10,6 +10,9 @@ metadata:
   annotations:
     argocd.argoproj.io/sync-wave: "20"
 spec:
+  hostnames:
+    - rhcl-workshop.example.com
+    - oidc-rhcl-workshop.example.com
   parentRefs:
     - group: gateway.networking.k8s.io
       kind: Gateway
