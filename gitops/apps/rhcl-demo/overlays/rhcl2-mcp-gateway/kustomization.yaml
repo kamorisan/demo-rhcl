@@ -18,8 +18,8 @@ patches:
         value: istio
       - op: replace
         path: /spec/listeners/0/hostname
-        value: REPLACE_ME_MCP_HOSTNAME
+        value: mcp.sandbox589.opentlc.com
       - op: replace
         path: /spec/listeners/1/hostname
-        value: REPLACE_ME_MCP_HOSTNAME
+        value: mcp.sandbox589.opentlc.com
 
