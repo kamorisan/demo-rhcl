@@ -450,7 +450,7 @@
                       path: /spec/parentRefs/0/name
                       value: rhcl-workshop-gw
 
-                # httproute-keycloak: gateway only (no hostname)
+                # httproute-keycloak: hostname and gateway
                 - target:
                     group: gateway.networking.k8s.io
                     version: v1
@@ -458,6 +458,10 @@
                     name: keycloak
                     namespace: rhcl-keycloak
                   patch: |-
+                    - op: add
+                      path: /spec/hostnames
+                      value:
+                        - oidc-rhcl-workshop.{{ apps_cluster_domain }}
                     - op: replace
                       path: /spec/parentRefs/0/name
                       value: rhcl-workshop-gw
