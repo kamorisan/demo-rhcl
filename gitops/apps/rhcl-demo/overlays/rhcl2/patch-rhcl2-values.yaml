@@ -240,22 +240,6 @@ spec:
     tokenEndpoint: https://oidc-rhcl-workshop.REPLACE_ME_EXTERNAL_BASE_DOMAIN/auth/realms/rhcl/protocol/openid-connect/token
     redirectURI: https://oidc-rhcl-workshop.REPLACE_ME_EXTERNAL_BASE_DOMAIN/oidc/callback
 ---
-apiVersion: cert-manager.io/v1
-kind: Certificate
-metadata:
-  name: cert-manager-ingress-cert
-  namespace: openshift-ingress
-spec:
-  dnsNames:
-    - rhcl-workshop.REPLACE_ME_APPS_CLUSTER_DOMAIN
-    - oidc-rhcl-workshop.REPLACE_ME_APPS_CLUSTER_DOMAIN
-    - mcp.REPLACE_ME_APPS_CLUSTER_DOMAIN
-    - external.REPLACE_ME_APPS_CLUSTER_DOMAIN
-    - external-api.REPLACE_ME_APPS_CLUSTER_DOMAIN
-  issuerRef:
-    name: letsencrypt-production-ec2
-
----
 apiVersion: route.openshift.io/v1
 kind: Route
 metadata:
