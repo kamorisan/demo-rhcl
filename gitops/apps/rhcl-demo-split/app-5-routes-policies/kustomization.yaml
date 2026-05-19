@@ -17,6 +17,8 @@ resources:
   - resources/keycloak-authpolicy.yaml
   - resources/httproute-oidc-portal-callback.yaml
   - resources/oidc-portal-callback-authpolicy.yaml
+  - resources/httproute-oidc-portal-whoami.yaml
+  - resources/oidc-portal-whoami-authpolicy.yaml
 
   # Phase 3: AI Bot
   - resources/httproute-ai-bot-main.yaml
