@@ -9,5 +9,8 @@ resources:
   - resources/ui-authpolicy.yaml
   - resources/oidc-portal-authpolicy.yaml
 
+  # ReferenceGrant for secure-demo HTTPRoute (oidc-portal → demo/external-proxy)
+  - resources/referencegrant-oidc-to-external-proxy.yaml
+
 # Hostname and Gateway name replacements will be handled via ArgoCD Application patches
 # Phase 2+: Additional routes will be added incrementally to avoid overwhelming deployment
