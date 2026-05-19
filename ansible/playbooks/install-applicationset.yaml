@@ -171,7 +171,7 @@
                           - oidc-rhcl-workshop.apps.cluster-{{ '{{clusterId}}' }}.{{ '{{clusterId}}' }}.{{ '{{externalBaseDomain}}' }}
                           - mcp.apps.cluster-{{ '{{clusterId}}' }}.{{ '{{clusterId}}' }}.{{ '{{externalBaseDomain}}' }}
                           - external.apps.cluster-{{ '{{clusterId}}' }}.{{ '{{clusterId}}' }}.{{ '{{externalBaseDomain}}' }}
-                          - external-api.apps.cluster-{{ '{{clusterId}}' }}.{{ '{{clusterId}}' }}.{{ '{{externalBaseDomain}}' }}
+                          - external-api.{{ '{{externalBaseDomain}}' }}
 
                   # Gateway rhcl-gw (6 listeners)
                   - target:
@@ -285,7 +285,7 @@
                     patch: |-
                       - op: replace
                         path: /spec/hostnames/0
-                        value: external-api.apps.cluster-{{ '{{clusterId}}' }}.{{ '{{clusterId}}' }}.{{ '{{externalBaseDomain}}' }}
+                        value: external-api.{{ '{{externalBaseDomain}}' }}
 
                   # HTTPRoutes - demo-ab namespace
                   - target:
@@ -453,9 +453,9 @@
                         path: /spec/template/spec/containers/0/env
                         value:
                           - name: RHCL_AI_ESPN_BASE_URL
-                            value: https://external-api.apps.cluster-{{ '{{clusterId}}' }}.{{ '{{clusterId}}' }}.{{ '{{externalBaseDomain}}' }}
+                            value: https://external-api.{{ '{{externalBaseDomain}}' }}
                           - name: RHCL_AI_MCP_BASE_URL
-                            value: https://mcp.apps.cluster-{{ '{{clusterId}}' }}.{{ '{{clusterId}}' }}.{{ '{{externalBaseDomain}}' }}
+                            value: https://mcp.{{ '{{externalBaseDomain}}' }}
                           - name: RHCL_AI_MCP_PATH
                             value: /mcp
 
@@ -513,6 +513,17 @@
                       - op: replace
                         path: /spec/route/spec/host
                         value: grafana.apps.cluster-{{ '{{clusterId}}' }}.{{ '{{clusterId}}' }}.{{ '{{externalBaseDomain}}' }}
+
+                  # ClusterIssuer
+                  - target:
+                      group: cert-manager.io
+                      version: v1
+                      kind: ClusterIssuer
+                      name: letsencrypt-production-ec2
+                    patch: |-
+                      - op: replace
+                        path: /spec/acme/solvers/0/dns01/route53/hostedZoneID
+                        value: {{ route53_hosted_zone_id }}
 
               destination:
                 server: https://kubernetes.default.svc
