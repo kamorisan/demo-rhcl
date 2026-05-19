@@ -4,7 +4,7 @@ metadata:
   name: rhcl-mcp
   namespace: mcp-system
 spec:
-  publicHost: mcp.sandbox589.opentlc.com
+  publicHost: mcp.REPLACE_ME_EXTERNAL_BASE_DOMAIN
   privateHost: rhcl-mcp-gw-istio.openshift-ingress.svc.cluster.local:80
 ---
 apiVersion: gateway.networking.k8s.io/v1
@@ -14,7 +14,7 @@ metadata:
   namespace: mcp-system
 spec:
   hostnames:
-    - mcp.sandbox589.opentlc.com
+    - mcp.REPLACE_ME_EXTERNAL_BASE_DOMAIN
 ---
 apiVersion: v1
 kind: Secret
@@ -25,7 +25,7 @@ stringData:
   config.yaml: |
     servers:
       - enabled: true
-        hostname: mcp.sandbox589.opentlc.com
+        hostname: mcp.REPLACE_ME_EXTERNAL_BASE_DOMAIN
         name: mcp-system/rhcl-mcp-tools
         toolPrefix: tools_
         url: http://rhcl-mcp-tools-bridge.mcp-system.svc.cluster.local:8080
@@ -37,7 +37,7 @@ metadata:
   namespace: mcp-system
 spec:
   hostnames:
-    - mcp.sandbox589.opentlc.com
+    - mcp.REPLACE_ME_EXTERNAL_BASE_DOMAIN
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -51,5 +51,5 @@ spec:
         - name: app
           env:
             - name: RHCL_AI_ESPN_BASE_URL
-              value: https://external-api.sandbox589.opentlc.com
+              value: https://external-api.REPLACE_ME_EXTERNAL_BASE_DOMAIN
 

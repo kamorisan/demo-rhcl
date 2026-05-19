@@ -14,7 +14,7 @@ spec:
     - name: https-main-public
       port: 443
       protocol: HTTPS
-      hostname: rhcl-workshop.apps.cluster-cftzv.cftzv.sandbox589.opentlc.com
+      hostname: rhcl-workshop.REPLACE_ME_APPS_CLUSTER_DOMAIN
       tls:
         mode: Terminate
         certificateRefs:
@@ -27,7 +27,7 @@ spec:
     - name: https-oidc-public
       port: 443
       protocol: HTTPS
-      hostname: oidc-rhcl-workshop.apps.cluster-cftzv.cftzv.sandbox589.opentlc.com
+      hostname: oidc-rhcl-workshop.REPLACE_ME_APPS_CLUSTER_DOMAIN
       tls:
         mode: Terminate
         certificateRefs:
@@ -40,7 +40,7 @@ spec:
     - name: https-oidc-sandbox
       port: 443
       protocol: HTTPS
-      hostname: oidc-rhcl-workshop.sandbox589.opentlc.com
+      hostname: oidc-rhcl-workshop.REPLACE_ME_EXTERNAL_BASE_DOMAIN
       tls:
         mode: Terminate
         certificateRefs:
@@ -53,7 +53,7 @@ spec:
     - name: https-external-public
       port: 443
       protocol: HTTPS
-      hostname: external-api.sandbox589.opentlc.com
+      hostname: external-api.REPLACE_ME_EXTERNAL_BASE_DOMAIN
       tls:
         mode: Terminate
         certificateRefs:
@@ -66,7 +66,7 @@ spec:
     - name: https-mcp-public
       port: 443
       protocol: HTTPS
-      hostname: mcp.apps.cluster-cftzv.cftzv.sandbox589.opentlc.com
+      hostname: mcp.REPLACE_ME_APPS_CLUSTER_DOMAIN
       tls:
         mode: Terminate
         certificateRefs:
@@ -79,7 +79,7 @@ spec:
     - name: https-mcp-sandbox
       port: 443
       protocol: HTTPS
-      hostname: mcp.sandbox589.opentlc.com
+      hostname: mcp.REPLACE_ME_EXTERNAL_BASE_DOMAIN
       tls:
         mode: Terminate
         certificateRefs:
@@ -100,14 +100,14 @@ spec:
     - name: http-ai
       port: 80
       protocol: HTTP
-      hostname: ai.sandbox589.opentlc.com
+      hostname: ai.REPLACE_ME_EXTERNAL_BASE_DOMAIN
       allowedRoutes:
         namespaces:
           from: All
     - name: https-ai-sandbox
       port: 443
       protocol: HTTPS
-      hostname: ai.sandbox589.opentlc.com
+      hostname: ai.REPLACE_ME_EXTERNAL_BASE_DOMAIN
       tls:
         mode: Terminate
         certificateRefs:
@@ -125,7 +125,7 @@ metadata:
   name: rhcl-gw
   namespace: openshift-ingress
 spec:
-  host: rhcl-workshop.apps.cluster-cftzv.cftzv.sandbox589.opentlc.com
+  host: rhcl-workshop.REPLACE_ME_APPS_CLUSTER_DOMAIN
 ---
 apiVersion: route.openshift.io/v1
 kind: Route
@@ -133,7 +133,7 @@ metadata:
   name: rhcl-gw-oidc
   namespace: openshift-ingress
 spec:
-  host: oidc-rhcl-workshop.apps.cluster-cftzv.cftzv.sandbox589.opentlc.com
+  host: oidc-rhcl-workshop.REPLACE_ME_APPS_CLUSTER_DOMAIN
 ---
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
@@ -142,7 +142,7 @@ metadata:
   namespace: demo
 spec:
   hostnames:
-    - rhcl-workshop.apps.cluster-cftzv.cftzv.sandbox589.opentlc.com
+    - rhcl-workshop.REPLACE_ME_APPS_CLUSTER_DOMAIN
 ---
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
@@ -151,7 +151,7 @@ metadata:
   namespace: demo
 spec:
   hostnames:
-    - rhcl-workshop.apps.cluster-cftzv.cftzv.sandbox589.opentlc.com
+    - rhcl-workshop.REPLACE_ME_APPS_CLUSTER_DOMAIN
 ---
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
@@ -160,7 +160,7 @@ metadata:
   namespace: demo-ab
 spec:
   hostnames:
-    - rhcl-workshop.apps.cluster-cftzv.cftzv.sandbox589.opentlc.com
+    - rhcl-workshop.REPLACE_ME_APPS_CLUSTER_DOMAIN
 ---
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
@@ -169,7 +169,7 @@ metadata:
   namespace: demo-jwt
 spec:
   hostnames:
-    - rhcl-workshop.apps.cluster-cftzv.cftzv.sandbox589.opentlc.com
+    - rhcl-workshop.REPLACE_ME_APPS_CLUSTER_DOMAIN
 ---
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
@@ -178,7 +178,7 @@ metadata:
   namespace: rhcl-ai-bot
 spec:
   hostnames:
-    - rhcl-workshop.apps.cluster-cftzv.cftzv.sandbox589.opentlc.com
+    - rhcl-workshop.REPLACE_ME_APPS_CLUSTER_DOMAIN
 ---
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
@@ -187,7 +187,7 @@ metadata:
   namespace: rhcl-ai-bot
 spec:
   hostnames:
-    - ai.sandbox589.opentlc.com
+    - ai.REPLACE_ME_EXTERNAL_BASE_DOMAIN
 ---
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
@@ -196,7 +196,7 @@ metadata:
   namespace: demo
 spec:
   hostnames:
-    - external-api.apps.cluster-cftzv.cftzv.sandbox589.opentlc.com
+    - external-api.REPLACE_ME_APPS_CLUSTER_DOMAIN
 ---
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
@@ -205,8 +205,8 @@ metadata:
   namespace: rhcl-oidc-portal
 spec:
   hostnames:
-    - oidc-rhcl-workshop.apps.cluster-cftzv.cftzv.sandbox589.opentlc.com
-    - oidc-rhcl-workshop.sandbox589.opentlc.com
+    - oidc-rhcl-workshop.REPLACE_ME_APPS_CLUSTER_DOMAIN
+    - oidc-rhcl-workshop.REPLACE_ME_EXTERNAL_BASE_DOMAIN
 ---
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
@@ -215,8 +215,8 @@ metadata:
   namespace: rhcl-oidc-portal
 spec:
   hostnames:
-    - oidc-rhcl-workshop.apps.cluster-cftzv.cftzv.sandbox589.opentlc.com
-    - oidc-rhcl-workshop.sandbox589.opentlc.com
+    - oidc-rhcl-workshop.REPLACE_ME_APPS_CLUSTER_DOMAIN
+    - oidc-rhcl-workshop.REPLACE_ME_EXTERNAL_BASE_DOMAIN
 ---
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
@@ -225,8 +225,8 @@ metadata:
   namespace: rhcl-oidc-portal
 spec:
   hostnames:
-    - oidc-rhcl-workshop.apps.cluster-cftzv.cftzv.sandbox589.opentlc.com
-    - oidc-rhcl-workshop.sandbox589.opentlc.com
+    - oidc-rhcl-workshop.REPLACE_ME_APPS_CLUSTER_DOMAIN
+    - oidc-rhcl-workshop.REPLACE_ME_EXTERNAL_BASE_DOMAIN
 ---
 apiVersion: extensions.kuadrant.io/v1alpha1
 kind: OIDCPolicy
@@ -235,10 +235,10 @@ metadata:
   namespace: rhcl-oidc-portal
 spec:
   provider:
-    issuerURL: https://oidc-rhcl-workshop.sandbox589.opentlc.com/auth/realms/rhcl
-    authorizationEndpoint: https://oidc-rhcl-workshop.sandbox589.opentlc.com/auth/realms/rhcl/protocol/openid-connect/auth
-    tokenEndpoint: https://oidc-rhcl-workshop.sandbox589.opentlc.com/auth/realms/rhcl/protocol/openid-connect/token
-    redirectURI: https://oidc-rhcl-workshop.sandbox589.opentlc.com/oidc/callback
+    issuerURL: https://oidc-rhcl-workshop.REPLACE_ME_EXTERNAL_BASE_DOMAIN/auth/realms/rhcl
+    authorizationEndpoint: https://oidc-rhcl-workshop.REPLACE_ME_EXTERNAL_BASE_DOMAIN/auth/realms/rhcl/protocol/openid-connect/auth
+    tokenEndpoint: https://oidc-rhcl-workshop.REPLACE_ME_EXTERNAL_BASE_DOMAIN/auth/realms/rhcl/protocol/openid-connect/token
+    redirectURI: https://oidc-rhcl-workshop.REPLACE_ME_EXTERNAL_BASE_DOMAIN/oidc/callback
 ---
 apiVersion: cert-manager.io/v1
 kind: Certificate
@@ -247,11 +247,11 @@ metadata:
   namespace: openshift-ingress
 spec:
   dnsNames:
-    - rhcl-workshop.apps.cluster-cftzv.cftzv.sandbox589.opentlc.com
-    - oidc-rhcl-workshop.apps.cluster-cftzv.cftzv.sandbox589.opentlc.com
-    - mcp.apps.cluster-cftzv.cftzv.sandbox589.opentlc.com
-    - external.apps.cluster-cftzv.cftzv.sandbox589.opentlc.com
-    - external-api.apps.cluster-cftzv.cftzv.sandbox589.opentlc.com
+    - rhcl-workshop.REPLACE_ME_APPS_CLUSTER_DOMAIN
+    - oidc-rhcl-workshop.REPLACE_ME_APPS_CLUSTER_DOMAIN
+    - mcp.REPLACE_ME_APPS_CLUSTER_DOMAIN
+    - external.REPLACE_ME_APPS_CLUSTER_DOMAIN
+    - external-api.REPLACE_ME_APPS_CLUSTER_DOMAIN
   issuerRef:
     name: letsencrypt-production-ec2
 
@@ -286,7 +286,7 @@ spec:
       authentication:
         jwt:
           jwt:
-            issuerUrl: https://oidc-rhcl-workshop.sandbox589.opentlc.com/auth/realms/rhcl
+            issuerUrl: https://oidc-rhcl-workshop.REPLACE_ME_EXTERNAL_BASE_DOMAIN/auth/realms/rhcl
 ---
 apiVersion: kuadrant.io/v1
 kind: AuthPolicy
@@ -299,7 +299,7 @@ spec:
       authentication:
         jwt:
           jwt:
-            issuerUrl: https://oidc-rhcl-workshop.sandbox589.opentlc.com/auth/realms/rhcl
+            issuerUrl: https://oidc-rhcl-workshop.REPLACE_ME_EXTERNAL_BASE_DOMAIN/auth/realms/rhcl
 
 ---
 apiVersion: apps/v1
@@ -314,9 +314,9 @@ spec:
         - name: app
           env:
             - name: RHCL_AI_ESPN_BASE_URL
-              value: https://external-api.apps.cluster-cftzv.cftzv.sandbox589.opentlc.com
+              value: https://external-api.REPLACE_ME_APPS_CLUSTER_DOMAIN
             - name: RHCL_AI_MCP_BASE_URL
-              value: https://mcp.apps.cluster-cftzv.cftzv.sandbox589.opentlc.com
+              value: https://mcp.REPLACE_ME_APPS_CLUSTER_DOMAIN
 ---
 apiVersion: grafana.integreatly.org/v1beta1
 kind: Grafana
@@ -326,5 +326,5 @@ metadata:
 spec:
   route:
     spec:
-      host: grafana.apps.cluster-cftzv.cftzv.sandbox589.opentlc.com
+      host: grafana.REPLACE_ME_APPS_CLUSTER_DOMAIN
 
