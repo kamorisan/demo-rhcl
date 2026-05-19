@@ -5,6 +5,7 @@ resources:
   - ../full-install
   - ../rhcl2-mcp-gateway
   - mcp-vanity.yaml
+  - tempo-minio.yaml
   - tracing-console.yaml
   - tls-policies.yaml
   - istio-telemetry-gateways.yaml

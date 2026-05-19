@@ -1,0 +1,68 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: rhcl-observability
+  annotations:
+    argocd.argoproj.io/sync-wave: "23"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tempo-minio
+  namespace: rhcl-observability
+  labels:
+    app: tempo-minio
+  annotations:
+    argocd.argoproj.io/sync-wave: "24"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: tempo-minio
+  template:
+    metadata:
+      labels:
+        app: tempo-minio
+    spec:
+      containers:
+        - name: minio
+          image: quay.io/minio/minio:RELEASE.2024-09-13T20-26-02Z
+          args:
+            - server
+            - /data
+            - --console-address
+            - ":9001"
+          env:
+            - name: MINIO_ROOT_USER
+              value: tempo
+            - name: MINIO_ROOT_PASSWORD
+              value: tempo-tempo-tempo
+          ports:
+            - name: s3
+              containerPort: 9000
+            - name: console
+              containerPort: 9001
+          volumeMounts:
+            - name: data
+              mountPath: /data
+      volumes:
+        - name: data
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: tempo-minio
+  namespace: rhcl-observability
+  annotations:
+    argocd.argoproj.io/sync-wave: "24"
+spec:
+  selector:
+    app: tempo-minio
+  ports:
+    - name: s3
+      port: 9000
+      targetPort: 9000
+    - name: console
+      port: 9001
+      targetPort: 9001
