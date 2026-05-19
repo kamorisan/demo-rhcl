@@ -1,0 +1,14 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - resources/01-namespaces.yaml
+  - resources/02-servicemesh-operator.yaml
+  - resources/03-cluster-observability-operator.yaml
+  - resources/04-rbac.yaml
+  - resources/05-istio-cr.yaml
+  - resources/06-rhcl-operator.yaml
+  - resources/07-kuadrant-cr.yaml
+  - resources/08-mcp-gateway-operator.yaml
+  - resources/09-rhbk-operator.yaml
+  - resources/10-console-banner.yaml
