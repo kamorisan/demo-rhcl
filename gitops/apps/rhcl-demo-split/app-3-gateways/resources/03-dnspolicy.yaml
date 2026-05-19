@@ -13,7 +13,7 @@ spec:
     name: rhcl-workshop-gw
     sectionName: https-oidc-sandbox
   providerRefs:
-    - name: route53-credentials
+    - name: aws-credentials
 ---
 apiVersion: kuadrant.io/v1
 kind: DNSPolicy
@@ -30,7 +30,7 @@ spec:
     name: rhcl-external-gw
     sectionName: https-external-public
   providerRefs:
-    - name: route53-credentials
+    - name: aws-credentials
 ---
 apiVersion: kuadrant.io/v1
 kind: DNSPolicy
@@ -47,7 +47,7 @@ spec:
     name: rhcl-ai-gw
     sectionName: https-ai-sandbox
   providerRefs:
-    - name: route53-credentials
+    - name: aws-credentials
 ---
 apiVersion: kuadrant.io/v1
 kind: DNSPolicy
@@ -64,4 +64,4 @@ spec:
     name: rhcl-mcp-gw
     sectionName: https-mcp-public
   providerRefs:
-    - name: route53-credentials
+    - name: aws-credentials

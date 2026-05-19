@@ -50,6 +50,26 @@
       register: aws_secret
       changed_when: "'configured' in (aws_secret.stdout | lower) or 'created' in (aws_secret.stdout | lower)"
 
+    - name: Create AWS credentials Secret for DNSPolicy in openshift-ingress (if AWS credentials provided)
+      ansible.builtin.shell: |
+        set -euo pipefail
+        oc -n openshift-ingress apply -f - <<'EOF'
+        apiVersion: v1
+        kind: Secret
+        metadata:
+          name: aws-credentials
+          namespace: openshift-ingress
+        type: kuadrant.io/aws
+        stringData:
+          AWS_ACCESS_KEY_ID: "{{ aws_access_key_id }}"
+          AWS_SECRET_ACCESS_KEY: "{{ aws_secret_access_key }}"
+        EOF
+      args:
+        executable: /bin/bash
+      when: (aws_access_key_id | default('') | trim != '') and (aws_secret_access_key | default('') | trim != '')
+      register: aws_dnspolicy_secret
+      changed_when: "'configured' in (aws_dnspolicy_secret.stdout | lower) or 'created' in (aws_dnspolicy_secret.stdout | lower)"
+
     - name: Apply Application 1 (operators) - no patches needed
       ansible.builtin.shell: |
         set -euo pipefail
@@ -542,6 +562,18 @@
                   patch: |-
                     - op: replace
                       path: /spec/parentRefs/0/name
+                      value: rhcl-workshop-gw
+
+                # gateway-authpolicy: replace gateway name
+                - target:
+                    group: kuadrant.io
+                    version: v1
+                    kind: AuthPolicy
+                    name: rhcl-gw-auth
+                    namespace: openshift-ingress
+                  patch: |-
+                    - op: replace
+                      path: /spec/targetRef/name
                       value: rhcl-workshop-gw
           destination:
             server: https://kubernetes.default.svc
