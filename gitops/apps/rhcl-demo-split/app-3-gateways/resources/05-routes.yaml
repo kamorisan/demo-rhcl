@@ -1,7 +1,7 @@
 apiVersion: route.openshift.io/v1
 kind: Route
 metadata:
-  name: rhcl-gw
+  name: rhcl-workshop-gw
   namespace: openshift-ingress
   annotations:
     argocd.argoproj.io/sync-wave: "18"
@@ -9,7 +9,7 @@ spec:
   host: rhcl-workshop.REPLACE_ME_APPS_CLUSTER_DOMAIN
   to:
     kind: Service
-    name: rhcl-gw-istio
+    name: rhcl-workshop-gw-istio
   port:
     targetPort: 443
   tls:
@@ -18,7 +18,7 @@ spec:
 apiVersion: route.openshift.io/v1
 kind: Route
 metadata:
-  name: rhcl-gw-oidc
+  name: rhcl-workshop-gw-oidc
   namespace: openshift-ingress
   annotations:
     argocd.argoproj.io/sync-wave: "18"
@@ -26,7 +26,7 @@ spec:
   host: oidc-rhcl-workshop.REPLACE_ME_APPS_CLUSTER_DOMAIN
   to:
     kind: Service
-    name: rhcl-gw-istio
+    name: rhcl-workshop-gw-istio
   port:
     targetPort: 443
   tls:

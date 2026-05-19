@@ -10,7 +10,7 @@ spec:
   targetRef:
     group: gateway.networking.k8s.io
     kind: Gateway
-    name: rhcl-gw
+    name: rhcl-workshop-gw
     sectionName: https-oidc-sandbox
   providerRefs:
     - name: route53-credentials
@@ -27,7 +27,7 @@ spec:
   targetRef:
     group: gateway.networking.k8s.io
     kind: Gateway
-    name: rhcl-gw
+    name: rhcl-external-gw
     sectionName: https-external-public
   providerRefs:
     - name: route53-credentials

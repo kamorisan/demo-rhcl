@@ -1,7 +1,8 @@
+# Gateway for Workshop (main + OIDC)
 apiVersion: gateway.networking.k8s.io/v1
 kind: Gateway
 metadata:
-  name: rhcl-gw
+  name: rhcl-workshop-gw
   namespace: openshift-ingress
   labels:
     kuadrant.io/gateway: "true"
@@ -55,6 +56,26 @@ spec:
       allowedRoutes:
         namespaces:
           from: All
+---
+# Gateway for External API
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: rhcl-external-gw
+  namespace: openshift-ingress
+  labels:
+    kuadrant.io/gateway: "true"
+  annotations:
+    argocd.argoproj.io/sync-wave: "15"
+spec:
+  gatewayClassName: istio
+  listeners:
+    - name: http
+      port: 80
+      protocol: HTTP
+      allowedRoutes:
+        namespaces:
+          from: All
     - name: https-external-public
       port: 443
       protocol: HTTPS
@@ -68,33 +89,8 @@ spec:
       allowedRoutes:
         namespaces:
           from: All
-    - name: https-mcp-public
-      port: 443
-      protocol: HTTPS
-      hostname: mcp.REPLACE_ME_APPS_CLUSTER_DOMAIN
-      tls:
-        mode: Terminate
-        certificateRefs:
-          - group: ""
-            kind: Secret
-            name: cert-manager-ingress-cert
-      allowedRoutes:
-        namespaces:
-          from: All
-    - name: https-mcp-sandbox
-      port: 443
-      protocol: HTTPS
-      hostname: mcp.REPLACE_ME_EXTERNAL_BASE_DOMAIN
-      tls:
-        mode: Terminate
-        certificateRefs:
-          - group: ""
-            kind: Secret
-            name: rhcl-gw-mcp-sandbox-tls
-      allowedRoutes:
-        namespaces:
-          from: All
 ---
+# Gateway for AI Bot
 apiVersion: gateway.networking.k8s.io/v1
 kind: Gateway
 metadata:
@@ -128,6 +124,7 @@ spec:
         namespaces:
           from: All
 ---
+# Gateway for MCP
 apiVersion: gateway.networking.k8s.io/v1
 kind: Gateway
 metadata:
