@@ -174,55 +174,6 @@
             path: gitops/apps/rhcl-demo-split/app-3-gateways
             kustomize:
               patches:
-                # Certificate patches
-                - target:
-                    group: cert-manager.io
-                    version: v1
-                    kind: Certificate
-                    name: rhcl-gw-external-sandbox-tls
-                    namespace: openshift-ingress
-                  patch: |-
-                    - op: replace
-                      path: /spec/dnsNames
-                      value:
-                        - external-api.{{ external_base_domain }}
-
-                - target:
-                    group: cert-manager.io
-                    version: v1
-                    kind: Certificate
-                    name: rhcl-gw-oidc-sandbox-tls
-                    namespace: openshift-ingress
-                  patch: |-
-                    - op: replace
-                      path: /spec/dnsNames
-                      value:
-                        - oidc-rhcl-workshop.{{ external_base_domain }}
-
-                - target:
-                    group: cert-manager.io
-                    version: v1
-                    kind: Certificate
-                    name: rhcl-gw-mcp-sandbox-tls
-                    namespace: openshift-ingress
-                  patch: |-
-                    - op: replace
-                      path: /spec/dnsNames
-                      value:
-                        - mcp.{{ external_base_domain }}
-
-                - target:
-                    group: cert-manager.io
-                    version: v1
-                    kind: Certificate
-                    name: rhcl-gw-ai-sandbox-tls
-                    namespace: openshift-ingress
-                  patch: |-
-                    - op: replace
-                      path: /spec/dnsNames
-                      value:
-                        - ai.{{ external_base_domain }}
-
                 # Gateway rhcl-workshop-gw patches
                 - target:
                     group: gateway.networking.k8s.io

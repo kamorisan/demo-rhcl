@@ -23,10 +23,6 @@ spec:
       hostname: rhcl-workshop.REPLACE_ME_APPS_CLUSTER_DOMAIN
       tls:
         mode: Terminate
-        certificateRefs:
-          - group: ""
-            kind: Secret
-            name: cert-manager-ingress-cert
       allowedRoutes:
         namespaces:
           from: All
@@ -36,10 +32,6 @@ spec:
       hostname: oidc-rhcl-workshop.REPLACE_ME_APPS_CLUSTER_DOMAIN
       tls:
         mode: Terminate
-        certificateRefs:
-          - group: ""
-            kind: Secret
-            name: cert-manager-ingress-cert
       allowedRoutes:
         namespaces:
           from: All
@@ -49,10 +41,6 @@ spec:
       hostname: oidc-rhcl-workshop.REPLACE_ME_EXTERNAL_BASE_DOMAIN
       tls:
         mode: Terminate
-        certificateRefs:
-          - group: ""
-            kind: Secret
-            name: rhcl-gw-oidc-sandbox-tls
       allowedRoutes:
         namespaces:
           from: All
@@ -82,10 +70,6 @@ spec:
       hostname: external-api.REPLACE_ME_EXTERNAL_BASE_DOMAIN
       tls:
         mode: Terminate
-        certificateRefs:
-          - group: ""
-            kind: Secret
-            name: rhcl-gw-external-sandbox-tls
       allowedRoutes:
         namespaces:
           from: All
@@ -116,10 +100,6 @@ spec:
       hostname: ai.REPLACE_ME_EXTERNAL_BASE_DOMAIN
       tls:
         mode: Terminate
-        certificateRefs:
-          - group: ""
-            kind: Secret
-            name: rhcl-gw-ai-sandbox-tls
       allowedRoutes:
         namespaces:
           from: All
@@ -150,10 +130,6 @@ spec:
       hostname: mcp.REPLACE_ME_EXTERNAL_BASE_DOMAIN
       tls:
         mode: Terminate
-        certificateRefs:
-          - group: ""
-            kind: Secret
-            name: rhcl-gw-mcp-sandbox-tls
       allowedRoutes:
         namespaces:
           from: All

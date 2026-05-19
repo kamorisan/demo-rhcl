@@ -2,7 +2,6 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
 resources:
-  - resources/01-certificates.yaml
   - resources/02-gateways.yaml
   - resources/03-dnspolicy.yaml
   - resources/04-tls-policies.yaml
