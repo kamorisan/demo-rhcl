@@ -156,7 +156,7 @@
                 path: gitops/apps/rhcl-demo/overlays/rhcl2
                 kustomize:
                   patches:
-                  # Certificate
+                  # Certificate - apps.cluster domain
                   - target:
                       group: cert-manager.io
                       version: v1
@@ -171,6 +171,18 @@
                           - oidc-rhcl-workshop.apps.cluster-{{ '{{clusterId}}' }}.{{ '{{clusterId}}' }}.{{ '{{externalBaseDomain}}' }}
                           - mcp.apps.cluster-{{ '{{clusterId}}' }}.{{ '{{clusterId}}' }}.{{ '{{externalBaseDomain}}' }}
                           - external.apps.cluster-{{ '{{clusterId}}' }}.{{ '{{clusterId}}' }}.{{ '{{externalBaseDomain}}' }}
+
+                  # Certificate - external-api (sandbox domain)
+                  - target:
+                      group: cert-manager.io
+                      version: v1
+                      kind: Certificate
+                      name: rhcl-gw-external-sandbox-tls
+                      namespace: openshift-ingress
+                    patch: |-
+                      - op: replace
+                        path: /spec/dnsNames
+                        value:
                           - external-api.{{ '{{externalBaseDomain}}' }}
 
                   # Gateway rhcl-gw (6 listeners)

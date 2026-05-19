@@ -10,6 +10,7 @@ resources:
   - tls-policies.yaml
   - istio-telemetry-gateways.yaml
   - otel-collector.yaml
+  - certificate-external-sandbox.yaml
 
 patches:
   - path: patch-rhcl2-values.yaml
