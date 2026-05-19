@@ -1,0 +1,602 @@
+---
+- name: Install RHCL workshop using ApplicationSet (multi-environment)
+  hosts: localhost
+  gather_facts: false
+  connection: local
+
+  vars:
+    # Environment parameters (required)
+    env_name: "{{ lookup('env', 'ENV_NAME') | default('', true) }}"
+    cluster_id: "{{ lookup('env', 'CLUSTER_ID') | default('', true) }}"
+    external_base_domain: "{{ lookup('env', 'EXTERNAL_BASE_DOMAIN') | default('', true) }}"
+
+    # Optional: LLM API key for AI chatbot
+    llm_api_key: >-
+      {{ lookup('env', 'RHCL_AI_OPENAI_API_KEY')
+         | default(lookup('env', 'OPENAI_API_KEY'), true)
+         | default('', true) }}
+
+    # AWS credentials for Route53 DNS-01 challenge
+    aws_access_key_id: "{{ lookup('env', 'AWS_ACCESS_KEY_ID') | default('', true) }}"
+    aws_secret_access_key: "{{ lookup('env', 'AWS_SECRET_ACCESS_KEY') | default('', true) }}"
+    aws_region: "{{ lookup('env', 'AWS_REGION') | default('', true) }}"
+
+  tasks:
+    - name: Validate required parameters
+      ansible.builtin.fail:
+        msg: "Missing required parameter: {{ item }}"
+      when: (vars[item] | default('') | trim) == ''
+      loop:
+        - env_name
+        - cluster_id
+        - external_base_domain
+
+    - name: Detect if Argo CD Applications CRD exists
+      ansible.builtin.command: oc get crd applications.argoproj.io
+      register: gitops_crd
+      changed_when: false
+      failed_when: false
+
+    - name: Detect if openshift-gitops namespace exists
+      ansible.builtin.command: oc get namespace openshift-gitops
+      register: gitops_ns
+      changed_when: false
+      failed_when: false
+
+    - name: Set gitops_installed fact
+      ansible.builtin.set_fact:
+        gitops_installed: "{{ (gitops_crd.rc == 0) and (gitops_ns.rc == 0) }}"
+
+    - name: Install OpenShift GitOps operator (if missing)
+      ansible.builtin.shell: |
+        set -euo pipefail
+        cat <<'YAML' | oc apply -f -
+        apiVersion: v1
+        kind: Namespace
+        metadata:
+          name: openshift-gitops
+        ---
+        apiVersion: operators.coreos.com/v1alpha1
+        kind: Subscription
+        metadata:
+          name: openshift-gitops-operator
+          namespace: openshift-operators
+        spec:
+          channel: latest
+          installPlanApproval: Automatic
+          name: openshift-gitops-operator
+          source: redhat-operators
+          sourceNamespace: openshift-marketplace
+        YAML
+      args:
+        executable: /bin/bash
+      changed_when: true
+      when: not gitops_installed
+
+    - name: Wait for openshift-gitops namespace to exist
+      ansible.builtin.command: oc get namespace openshift-gitops
+      register: wait_gitops_ns
+      changed_when: false
+      retries: 60
+      delay: 10
+      until: wait_gitops_ns.rc == 0
+
+    - name: Wait for OpenShift GitOps server deployment to be created
+      ansible.builtin.command: oc -n openshift-gitops get deployment openshift-gitops-server
+      register: wait_gitops_deploy
+      changed_when: false
+      retries: 60
+      delay: 10
+      until: wait_gitops_deploy.rc == 0
+
+    - name: Wait for OpenShift GitOps server rollout
+      ansible.builtin.command: oc -n openshift-gitops rollout status deployment/openshift-gitops-server --timeout=10m
+      register: gitops_rollout
+      changed_when: false
+
+    - name: Detect Route53 Hosted Zone ID for external_base_domain
+      ansible.builtin.shell: |
+        set -euo pipefail
+        aws route53 list-hosted-zones --query "HostedZones[?Name=='{{ external_base_domain }}.'].Id" --output text | sed 's|/hostedzone/||'
+      register: detected_hosted_zone_id
+      changed_when: false
+      when: (aws_access_key_id | default('') | trim != '') and (aws_secret_access_key | default('') | trim != '')
+      failed_when: false
+
+    - name: Set route53_hosted_zone_id
+      ansible.builtin.set_fact:
+        route53_hosted_zone_id: "{{ detected_hosted_zone_id.stdout | default('') | trim }}"
+      when: detected_hosted_zone_id is defined
+
+    - name: Create AWS credentials Secret for cert-manager (if AWS credentials provided)
+      ansible.builtin.shell: |
+        set -euo pipefail
+        oc -n cert-manager apply -f - <<'EOF'
+        apiVersion: v1
+        kind: Secret
+        metadata:
+          name: cert-manager-aws-creds
+          namespace: cert-manager
+        type: Opaque
+        stringData:
+          aws_access_key_id: "{{ aws_access_key_id }}"
+          aws_secret_access_key: "{{ aws_secret_access_key }}"
+        EOF
+      args:
+        executable: /bin/bash
+      when: (aws_access_key_id | default('') | trim != '') and (aws_secret_access_key | default('') | trim != '')
+      register: aws_secret
+      changed_when: "'configured' in (aws_secret.stdout | lower) or 'created' in (aws_secret.stdout | lower)"
+
+    - name: Apply ApplicationSet for RHCL workshop
+      ansible.builtin.shell: |
+        set -euo pipefail
+        cat <<'EOF' | oc apply -f -
+        apiVersion: argoproj.io/v1alpha1
+        kind: ApplicationSet
+        metadata:
+          name: rhcl-workshop
+          namespace: openshift-gitops
+        spec:
+          generators:
+          - list:
+              elements:
+              - env: {{ env_name }}
+                clusterId: {{ cluster_id }}
+                externalBaseDomain: {{ external_base_domain }}
+          template:
+            metadata:
+              name: rhcl-workshop-{{ '{{env}}' }}
+              namespace: openshift-gitops
+            spec:
+              project: default
+              source:
+                repoURL: https://github.com/kamorisan/demo-rhcl.git
+                targetRevision: main
+                path: gitops/apps/rhcl-demo/overlays/rhcl2
+                kustomize:
+                  patches:
+                  # Certificate
+                  - target:
+                      group: cert-manager.io
+                      version: v1
+                      kind: Certificate
+                      name: rhcl-gw-public-tls
+                      namespace: openshift-ingress
+                    patch: |-
+                      - op: replace
+                        path: /spec/dnsNames
+                        value:
+                          - rhcl-workshop.apps.cluster-{{ '{{clusterId}}' }}.{{ '{{clusterId}}' }}.{{ '{{externalBaseDomain}}' }}
+                          - oidc-rhcl-workshop.apps.cluster-{{ '{{clusterId}}' }}.{{ '{{clusterId}}' }}.{{ '{{externalBaseDomain}}' }}
+                          - mcp.apps.cluster-{{ '{{clusterId}}' }}.{{ '{{clusterId}}' }}.{{ '{{externalBaseDomain}}' }}
+                          - external.apps.cluster-{{ '{{clusterId}}' }}.{{ '{{clusterId}}' }}.{{ '{{externalBaseDomain}}' }}
+                          - external-api.apps.cluster-{{ '{{clusterId}}' }}.{{ '{{clusterId}}' }}.{{ '{{externalBaseDomain}}' }}
+
+                  # Gateway rhcl-gw (6 listeners)
+                  - target:
+                      group: gateway.networking.k8s.io
+                      version: v1
+                      kind: Gateway
+                      name: rhcl-gw
+                      namespace: openshift-ingress
+                    patch: |-
+                      - op: replace
+                        path: /spec/listeners/0/hostname
+                        value: rhcl-workshop.apps.cluster-{{ '{{clusterId}}' }}.{{ '{{clusterId}}' }}.{{ '{{externalBaseDomain}}' }}
+                      - op: replace
+                        path: /spec/listeners/1/hostname
+                        value: oidc-rhcl-workshop.apps.cluster-{{ '{{clusterId}}' }}.{{ '{{clusterId}}' }}.{{ '{{externalBaseDomain}}' }}
+                      - op: replace
+                        path: /spec/listeners/2/hostname
+                        value: oidc-rhcl-workshop.{{ '{{externalBaseDomain}}' }}
+                      - op: replace
+                        path: /spec/listeners/3/hostname
+                        value: external-api.{{ '{{externalBaseDomain}}' }}
+                      - op: replace
+                        path: /spec/listeners/4/hostname
+                        value: mcp.apps.cluster-{{ '{{clusterId}}' }}.{{ '{{clusterId}}' }}.{{ '{{externalBaseDomain}}' }}
+                      - op: replace
+                        path: /spec/listeners/5/hostname
+                        value: mcp.{{ '{{externalBaseDomain}}' }}
+
+                  # Gateway rhcl-ai-gw (2 listeners)
+                  - target:
+                      group: gateway.networking.k8s.io
+                      version: v1
+                      kind: Gateway
+                      name: rhcl-ai-gw
+                      namespace: openshift-ingress
+                    patch: |-
+                      - op: replace
+                        path: /spec/listeners/0/hostname
+                        value: ai.{{ '{{externalBaseDomain}}' }}
+                      - op: replace
+                        path: /spec/listeners/1/hostname
+                        value: ai.{{ '{{externalBaseDomain}}' }}
+
+                  # Gateway rhcl-mcp-gw (2 listeners)
+                  - target:
+                      group: gateway.networking.k8s.io
+                      version: v1
+                      kind: Gateway
+                      name: rhcl-mcp-gw
+                      namespace: openshift-ingress
+                    patch: |-
+                      - op: replace
+                        path: /spec/listeners/0/hostname
+                        value: mcp.{{ '{{externalBaseDomain}}' }}
+                      - op: replace
+                        path: /spec/listeners/1/hostname
+                        value: mcp.{{ '{{externalBaseDomain}}' }}
+
+                  # Routes
+                  - target:
+                      group: route.openshift.io
+                      version: v1
+                      kind: Route
+                      name: rhcl-gw
+                      namespace: openshift-ingress
+                    patch: |-
+                      - op: replace
+                        path: /spec/host
+                        value: rhcl-workshop.apps.cluster-{{ '{{clusterId}}' }}.{{ '{{clusterId}}' }}.{{ '{{externalBaseDomain}}' }}
+
+                  - target:
+                      group: route.openshift.io
+                      version: v1
+                      kind: Route
+                      name: rhcl-gw-oidc
+                      namespace: openshift-ingress
+                    patch: |-
+                      - op: replace
+                        path: /spec/host
+                        value: oidc-rhcl-workshop.apps.cluster-{{ '{{clusterId}}' }}.{{ '{{clusterId}}' }}.{{ '{{externalBaseDomain}}' }}
+
+                  # HTTPRoutes - demo namespace
+                  - target:
+                      group: gateway.networking.k8s.io
+                      version: v1
+                      kind: HTTPRoute
+                      name: rhcl-ui
+                      namespace: demo
+                    patch: |-
+                      - op: replace
+                        path: /spec/hostnames/0
+                        value: rhcl-workshop.apps.cluster-{{ '{{clusterId}}' }}.{{ '{{clusterId}}' }}.{{ '{{externalBaseDomain}}' }}
+
+                  - target:
+                      group: gateway.networking.k8s.io
+                      version: v1
+                      kind: HTTPRoute
+                      name: demo-api
+                      namespace: demo
+                    patch: |-
+                      - op: replace
+                        path: /spec/hostnames/0
+                        value: rhcl-workshop.apps.cluster-{{ '{{clusterId}}' }}.{{ '{{clusterId}}' }}.{{ '{{externalBaseDomain}}' }}
+
+                  - target:
+                      group: gateway.networking.k8s.io
+                      version: v1
+                      kind: HTTPRoute
+                      name: external-proxy-public
+                      namespace: demo
+                    patch: |-
+                      - op: replace
+                        path: /spec/hostnames/0
+                        value: external-api.apps.cluster-{{ '{{clusterId}}' }}.{{ '{{clusterId}}' }}.{{ '{{externalBaseDomain}}' }}
+
+                  # HTTPRoutes - demo-ab namespace
+                  - target:
+                      group: gateway.networking.k8s.io
+                      version: v1
+                      kind: HTTPRoute
+                      name: ab-demo
+                      namespace: demo-ab
+                    patch: |-
+                      - op: replace
+                        path: /spec/hostnames/0
+                        value: rhcl-workshop.apps.cluster-{{ '{{clusterId}}' }}.{{ '{{clusterId}}' }}.{{ '{{externalBaseDomain}}' }}
+
+                  # HTTPRoutes - demo-jwt namespace
+                  - target:
+                      group: gateway.networking.k8s.io
+                      version: v1
+                      kind: HTTPRoute
+                      name: jwt-demo
+                      namespace: demo-jwt
+                    patch: |-
+                      - op: replace
+                        path: /spec/hostnames/0
+                        value: rhcl-workshop.apps.cluster-{{ '{{clusterId}}' }}.{{ '{{clusterId}}' }}.{{ '{{externalBaseDomain}}' }}
+
+                  # HTTPRoutes - rhcl-ai-bot namespace
+                  - target:
+                      group: gateway.networking.k8s.io
+                      version: v1
+                      kind: HTTPRoute
+                      name: ai-bot-main
+                      namespace: rhcl-ai-bot
+                    patch: |-
+                      - op: replace
+                        path: /spec/hostnames/0
+                        value: rhcl-workshop.apps.cluster-{{ '{{clusterId}}' }}.{{ '{{clusterId}}' }}.{{ '{{externalBaseDomain}}' }}
+
+                  - target:
+                      group: gateway.networking.k8s.io
+                      version: v1
+                      kind: HTTPRoute
+                      name: ai-bot-ai
+                      namespace: rhcl-ai-bot
+                    patch: |-
+                      - op: replace
+                        path: /spec/hostnames/0
+                        value: ai.{{ '{{externalBaseDomain}}' }}
+
+                  # HTTPRoutes - rhcl-oidc-portal namespace
+                  - target:
+                      group: gateway.networking.k8s.io
+                      version: v1
+                      kind: HTTPRoute
+                      name: secure-demo
+                      namespace: rhcl-oidc-portal
+                    patch: |-
+                      - op: replace
+                        path: /spec/hostnames
+                        value:
+                          - oidc-rhcl-workshop.apps.cluster-{{ '{{clusterId}}' }}.{{ '{{clusterId}}' }}.{{ '{{externalBaseDomain}}' }}
+                          - oidc-rhcl-workshop.{{ '{{externalBaseDomain}}' }}
+
+                  - target:
+                      group: gateway.networking.k8s.io
+                      version: v1
+                      kind: HTTPRoute
+                      name: oidc-portal
+                      namespace: rhcl-oidc-portal
+                    patch: |-
+                      - op: replace
+                        path: /spec/hostnames
+                        value:
+                          - oidc-rhcl-workshop.apps.cluster-{{ '{{clusterId}}' }}.{{ '{{clusterId}}' }}.{{ '{{externalBaseDomain}}' }}
+                          - oidc-rhcl-workshop.{{ '{{externalBaseDomain}}' }}
+
+                  - target:
+                      group: gateway.networking.k8s.io
+                      version: v1
+                      kind: HTTPRoute
+                      name: oidc-callback
+                      namespace: rhcl-oidc-portal
+                    patch: |-
+                      - op: replace
+                        path: /spec/hostnames
+                        value:
+                          - oidc-rhcl-workshop.apps.cluster-{{ '{{clusterId}}' }}.{{ '{{clusterId}}' }}.{{ '{{externalBaseDomain}}' }}
+                          - oidc-rhcl-workshop.{{ '{{externalBaseDomain}}' }}
+
+                  # HTTPRoutes - mcp-system namespace
+                  - target:
+                      group: gateway.networking.k8s.io
+                      version: v1
+                      kind: HTTPRoute
+                      name: rhcl-mcp-gateway
+                      namespace: mcp-system
+                    patch: |-
+                      - op: replace
+                        path: /spec/hostnames/0
+                        value: mcp.{{ '{{externalBaseDomain}}' }}
+
+                  - target:
+                      group: gateway.networking.k8s.io
+                      version: v1
+                      kind: HTTPRoute
+                      name: rhcl-mcp-tools
+                      namespace: mcp-system
+                    patch: |-
+                      - op: replace
+                        path: /spec/hostnames/0
+                        value: mcp.{{ '{{externalBaseDomain}}' }}
+
+                  # OIDCPolicy
+                  - target:
+                      group: extensions.kuadrant.io
+                      version: v1alpha1
+                      kind: OIDCPolicy
+                      name: secure-demo-oidc
+                      namespace: rhcl-oidc-portal
+                    patch: |-
+                      - op: replace
+                        path: /spec/provider/issuerURL
+                        value: https://oidc-rhcl-workshop.{{ '{{externalBaseDomain}}' }}/auth/realms/rhcl
+                      - op: replace
+                        path: /spec/provider/authorizationEndpoint
+                        value: https://oidc-rhcl-workshop.{{ '{{externalBaseDomain}}' }}/auth/realms/rhcl/protocol/openid-connect/auth
+                      - op: replace
+                        path: /spec/provider/tokenEndpoint
+                        value: https://oidc-rhcl-workshop.{{ '{{externalBaseDomain}}' }}/auth/realms/rhcl/protocol/openid-connect/token
+                      - op: replace
+                        path: /spec/provider/redirectURI
+                        value: https://oidc-rhcl-workshop.{{ '{{externalBaseDomain}}' }}/oidc/callback
+
+                  # AuthPolicy
+                  - target:
+                      group: kuadrant.io
+                      version: v1
+                      kind: AuthPolicy
+                      name: secure-demo-jwt
+                      namespace: rhcl-oidc-portal
+                    patch: |-
+                      - op: replace
+                        path: /spec/defaults/rules/authentication/jwt/jwt/issuerUrl
+                        value: https://oidc-rhcl-workshop.{{ '{{externalBaseDomain}}' }}/auth/realms/rhcl
+
+                  - target:
+                      group: kuadrant.io
+                      version: v1
+                      kind: AuthPolicy
+                      name: jwt-demo-jwt
+                      namespace: demo-jwt
+                    patch: |-
+                      - op: replace
+                        path: /spec/defaults/rules/authentication/jwt/jwt/issuerUrl
+                        value: https://oidc-rhcl-workshop.{{ '{{externalBaseDomain}}' }}/auth/realms/rhcl
+
+                  # Deployment - rhcl-ai-bot
+                  - target:
+                      group: apps
+                      version: v1
+                      kind: Deployment
+                      name: rhcl-ai-bot
+                      namespace: rhcl-ai-bot
+                    patch: |-
+                      - op: replace
+                        path: /spec/template/spec/containers/0/env
+                        value:
+                          - name: RHCL_AI_ESPN_BASE_URL
+                            value: https://external-api.apps.cluster-{{ '{{clusterId}}' }}.{{ '{{clusterId}}' }}.{{ '{{externalBaseDomain}}' }}
+                          - name: RHCL_AI_MCP_BASE_URL
+                            value: https://mcp.apps.cluster-{{ '{{clusterId}}' }}.{{ '{{clusterId}}' }}.{{ '{{externalBaseDomain}}' }}
+                          - name: RHCL_AI_MCP_PATH
+                            value: /mcp
+
+                  # Deployment - rhcl-mcp-tools
+                  - target:
+                      group: apps
+                      version: v1
+                      kind: Deployment
+                      name: rhcl-mcp-tools
+                      namespace: mcp-system
+                    patch: |-
+                      - op: replace
+                        path: /spec/template/spec/containers/0/env
+                        value:
+                          - name: RHCL_AI_ESPN_BASE_URL
+                            value: https://external-api.{{ '{{externalBaseDomain}}' }}
+
+                  # MCPGatewayExtension
+                  - target:
+                      group: mcp.kuadrant.io
+                      version: v1alpha1
+                      kind: MCPGatewayExtension
+                      name: rhcl-mcp
+                      namespace: mcp-system
+                    patch: |-
+                      - op: replace
+                        path: /spec/publicHost
+                        value: mcp.{{ '{{externalBaseDomain}}' }}
+
+                  # Secret - mcp-gateway-config
+                  - target:
+                      version: v1
+                      kind: Secret
+                      name: mcp-gateway-config
+                      namespace: mcp-system
+                    patch: |-
+                      - op: replace
+                        path: /stringData/config.yaml
+                        value: |
+                          servers:
+                            - enabled: true
+                              hostname: mcp.{{ '{{externalBaseDomain}}' }}
+                              name: mcp-system/rhcl-mcp-tools
+                              toolPrefix: tools_
+                              url: http://rhcl-mcp-tools-bridge.mcp-system.svc.cluster.local:8080
+
+                  # Grafana
+                  - target:
+                      group: grafana.integreatly.org
+                      version: v1beta1
+                      kind: Grafana
+                      name: rhcl-grafana
+                      namespace: monitoring
+                    patch: |-
+                      - op: replace
+                        path: /spec/route/spec/host
+                        value: grafana.apps.cluster-{{ '{{clusterId}}' }}.{{ '{{clusterId}}' }}.{{ '{{externalBaseDomain}}' }}
+
+              destination:
+                server: https://kubernetes.default.svc
+                namespace: demo
+              syncPolicy:
+                automated:
+                  prune: true
+                  selfHeal: true
+                syncOptions:
+                  - CreateNamespace=true
+        EOF
+      args:
+        executable: /bin/bash
+      register: apply_appset
+      changed_when: "'configured' in (apply_appset.stdout | lower) or 'created' in (apply_appset.stdout | lower)"
+
+    - name: Wait for ApplicationSet to create Application
+      ansible.builtin.command: oc -n openshift-gitops get application rhcl-workshop-{{ env_name }}
+      register: get_app
+      changed_when: false
+      retries: 30
+      delay: 2
+      until: get_app.rc == 0
+
+    - name: Ensure rhcl-ai-bot namespace exists (for optional secrets)
+      ansible.builtin.command: oc get namespace rhcl-ai-bot
+      register: ns_ai_bot
+      changed_when: false
+      failed_when: false
+
+    - name: Create rhcl-ai-bot namespace if missing
+      ansible.builtin.command: oc create namespace rhcl-ai-bot
+      when: ns_ai_bot.rc != 0
+      register: create_ns_ai_bot
+      changed_when: "'created' in (create_ns_ai_bot.stdout | lower)"
+
+    - name: Create LLM API key secret (optional)
+      ansible.builtin.shell: |
+        set -euo pipefail
+        oc -n rhcl-ai-bot apply -f - <<'EOF'
+        apiVersion: v1
+        kind: Secret
+        metadata:
+          name: rhcl-ai-bot-llm
+          namespace: rhcl-ai-bot
+        type: Opaque
+        stringData:
+          apiKey: "{{ llm_api_key }}"
+        EOF
+      args:
+        executable: /bin/bash
+      when: (llm_api_key | default('') | length) > 0
+      register: llm_secret
+      changed_when: "'configured' in (llm_secret.stdout | lower) or 'created' in (llm_secret.stdout | lower)"
+
+    - name: Wait for Istio CRD to be available (required by kuadrant-observability)
+      ansible.builtin.command: oc get crd telemetries.telemetry.istio.io
+      register: istio_crd
+      until: istio_crd.rc == 0
+      retries: 60
+      delay: 5
+      changed_when: false
+      failed_when: false
+
+    - name: Apply kuadrant-observability Application (after Istio is ready)
+      ansible.builtin.command: oc apply -f "{{ playbook_dir }}/../../gitops/apps/kuadrant-observability-application.yaml"
+      register: apply_kuadrant_obs
+      changed_when: "'configured' in (apply_kuadrant_obs.stdout | lower) or 'created' in (apply_kuadrant_obs.stdout | lower)"
+
+    - name: Wait for kuadrant-observability to create monitoring namespace
+      ansible.builtin.command: oc get namespace monitoring
+      register: monitoring_ns
+      until: monitoring_ns.rc == 0
+      retries: 30
+      delay: 2
+      changed_when: false
+      failed_when: false
+
+    - name: Print URLs
+      ansible.builtin.debug:
+        msg:
+          - "Environment: {{ env_name }}"
+          - "Open: https://rhcl-workshop.apps.cluster-{{ cluster_id }}.{{ cluster_id }}.{{ external_base_domain }}/"
+          - "Open: https://oidc-rhcl-workshop.apps.cluster-{{ cluster_id }}.{{ cluster_id }}.{{ external_base_domain }}/"
+          - "Open: https://grafana.apps.cluster-{{ cluster_id }}.{{ cluster_id }}.{{ external_base_domain }}/"
+          - "External API: https://external-api.{{ external_base_domain }}/"
+          - "MCP: https://mcp.{{ external_base_domain }}/"
