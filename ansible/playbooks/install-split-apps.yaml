@@ -309,6 +309,8 @@
           ignoreDifferences:
           - group: apps
             kind: Deployment
+            name: rhcl-ai-bot
+            namespace: rhcl-ai-bot
             jqPathExpressions:
             - .spec.template.spec.containers[].image
           source:
