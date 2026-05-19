@@ -12,5 +12,9 @@ resources:
   # ReferenceGrant for secure-demo HTTPRoute (oidc-portal → demo/external-proxy)
   - resources/referencegrant-oidc-to-external-proxy.yaml
 
+  # Phase 2: Keycloak
+  - resources/httproute-keycloak.yaml
+  - resources/keycloak-authpolicy.yaml
+
 # Hostname and Gateway name replacements will be handled via ArgoCD Application patches
-# Phase 2+: Additional routes will be added incrementally to avoid overwhelming deployment
+# Phase 3+: Additional routes will be added incrementally to avoid overwhelming deployment
