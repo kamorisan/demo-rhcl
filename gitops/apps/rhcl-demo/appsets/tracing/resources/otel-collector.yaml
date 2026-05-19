@@ -4,14 +4,14 @@ metadata:
   name: connectivity-link-collector
   namespace: openshift-opentelemetry
   annotations:
-    argocd.argoproj.io/sync-wave: "40"
+    argocd.argoproj.io/sync-wave: "59"
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   name: rhcl-observability-otel-k8sattributes
   annotations:
-    argocd.argoproj.io/sync-wave: "40"
+    argocd.argoproj.io/sync-wave: "59"
 rules:
   - apiGroups: [""]
     resources: ["pods", "namespaces", "nodes"]
@@ -25,7 +25,7 @@ kind: ClusterRoleBinding
 metadata:
   name: rhcl-observability-otel-k8sattributes
   annotations:
-    argocd.argoproj.io/sync-wave: "40"
+    argocd.argoproj.io/sync-wave: "59"
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
@@ -41,7 +41,7 @@ metadata:
   name: connectivity-link-collector
   namespace: openshift-opentelemetry
   annotations:
-    argocd.argoproj.io/sync-wave: "41"
+    argocd.argoproj.io/sync-wave: "60"
     argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
 spec:
   mode: deployment
