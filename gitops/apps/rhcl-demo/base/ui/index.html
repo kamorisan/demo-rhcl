@@ -3266,7 +3266,7 @@ spec:
 
       function externalApiHost(){
         // Optional: set a concrete hostname at build time.
-        const explicit = "external-api.sandbox589.opentlc.com";
+        const explicit = "REPLACE_ME_EXTERNAL_API_HOSTNAME";
         if (explicit && explicit.includes(".") && !explicit.includes("REPLACE_ME_")) return explicit;
 
         const h = String((location && location.host) ? location.host : "").trim();
