@@ -14,6 +14,6 @@ spec:
     namespace: openshift-ingress
     sectionName: https-mcp-public
   publicHost: mcp.REPLACE_ME_EXTERNAL_BASE_DOMAIN
-  privateHost: rhcl-mcp-gw-openshift-default.openshift-ingress.svc.cluster.local:80
+  privateHost: rhcl-mcp-gw-istio.openshift-ingress.svc.cluster.local:80
   httpRouteManagement: Disabled
 
