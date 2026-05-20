@@ -1,0 +1,32 @@
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: mcp-gateway
+  namespace: mcp-system
+  labels:
+    gateway.io/name: mcp-gateway
+  annotations:
+    argocd.argoproj.io/sync-wave: "15"
+spec:
+  gatewayClassName: istio
+  listeners:
+    - name: https-mcp
+      hostname: 'mcp.sandbox2689.opentlc.com'
+      port: 443
+      protocol: HTTPS
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - name: mcp-gateway-tls
+            kind: Secret
+      allowedRoutes:
+        namespaces:
+          from: All
+    - name: mcps
+      port: 80
+      protocol: HTTP
+      hostname: '*.mcp.local'
+      allowedRoutes:
+        namespaces:
+          from: All

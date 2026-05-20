@@ -1,0 +1,18 @@
+---
+apiVersion: mcp.kuadrant.io/v1alpha1
+kind: MCPGatewayExtension
+metadata:
+  name: mcp-gateway-extension
+  namespace: mcp-system
+  annotations:
+    argocd.argoproj.io/sync-wave: "20"
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
+spec:
+  targetRef:
+    group: gateway.networking.k8s.io
+    kind: Gateway
+    name: mcp-gateway
+    namespace: mcp-system
+    sectionName: https-mcp
+  publicHost: mcp.sandbox2689.opentlc.com
+  privateHost: mcp-gateway-istio.mcp-system.svc.cluster.local:80
