@@ -7,10 +7,9 @@ metadata:
     argocd.argoproj.io/sync-wave: "26"
     argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
 spec:
-  prefix: ""
+  toolPrefix: ""
   targetRef:
     group: gateway.networking.k8s.io
     kind: HTTPRoute
     name: ai-bot-mcp-server
-    namespace: rhcl-ai-bot
   path: /mcp
