@@ -162,7 +162,7 @@ spec:
             version: v1
             kind: HTTPRoute
             name: ai-bot-mcp-server
-            namespace: rhcl-ai-bot
+            namespace: mcp-system
           patch: |-
             - op: replace
               path: /spec/hostnames/0

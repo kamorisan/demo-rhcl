@@ -2,7 +2,7 @@ apiVersion: kuadrant.io/v1
 kind: AuthPolicy
 metadata:
   name: ai-bot-mcp-allow
-  namespace: rhcl-ai-bot
+  namespace: mcp-system
   annotations:
     argocd.argoproj.io/sync-wave: "30"
     argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
