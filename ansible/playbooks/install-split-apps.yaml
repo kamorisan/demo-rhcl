@@ -63,6 +63,7 @@
         stringData:
           AWS_ACCESS_KEY_ID: "{{ aws_access_key_id }}"
           AWS_SECRET_ACCESS_KEY: "{{ aws_secret_access_key }}"
+          AWS_REGION: "{{ aws_region | default('us-east-2') }}"
         EOF
       args:
         executable: /bin/bash
@@ -389,6 +390,25 @@
       retries: 30
       delay: 10
       changed_when: false
+
+    - name: Create OpenAI API key Secret for rhcl-ai-bot (if provided)
+      ansible.builtin.shell: |
+        set -euo pipefail
+        oc -n rhcl-ai-bot apply -f - <<'EOF'
+        apiVersion: v1
+        kind: Secret
+        metadata:
+          name: rhcl-ai-bot-llm
+          namespace: rhcl-ai-bot
+        type: Opaque
+        stringData:
+          apiKey: "{{ openai_api_key }}"
+        EOF
+      args:
+        executable: /bin/bash
+      when: (openai_api_key | default('') | trim != '')
+      register: openai_secret
+      changed_when: "'configured' in (openai_secret.stdout | lower) or 'created' in (openai_secret.stdout | lower)"
 
     - name: Apply Application 5 (routes-policies) - Phase 1
       ansible.builtin.shell: |
@@ -766,13 +786,20 @@
       ansible.builtin.debug:
         msg:
           - "Environment: {{ env_name }}"
+          - "Cluster ID: {{ cluster_id }}"
+          - "External Base Domain: {{ external_base_domain }}"
+          - ""
           - "Application 1 (operators): deployed"
           - "Application 2 (platform-crs): deployed"
           - "Application 3 (gateways): deployed"
           - "Application 4 (demo-apps): deployed"
           - "Application 5 (routes-policies): deployed - All 28 resources"
+          - ""
           - "Workshop URL: https://rhcl-workshop.{{ external_base_domain }}/"
           - "OIDC URL: https://oidc-rhcl-workshop.{{ external_base_domain }}/"
           - "External API: https://external-api.{{ external_base_domain }}/"
           - "AI Bot: https://ai.{{ external_base_domain }}/"
           - "MCP: https://mcp.{{ external_base_domain }}/"
+          - ""
+          - "OpenAI API Key: {{ 'configured' if (openai_api_key | default('') | trim != '') else 'NOT configured (AI features disabled)' }}"
+          - "AWS Credentials: {{ 'configured' if (aws_access_key_id | default('') | trim != '') else 'NOT configured (DNS/TLS disabled)' }}"
