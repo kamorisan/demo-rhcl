@@ -12,8 +12,8 @@ spec:
     kind: Gateway
     name: rhcl-mcp-gw
     namespace: openshift-ingress
-    sectionName: https-mcp-public
+    sectionName: http-mcp
   publicHost: mcp.REPLACE_ME_EXTERNAL_BASE_DOMAIN
   privateHost: rhcl-mcp-gw-istio.openshift-ingress.svc.cluster.local:80
-  httpRouteManagement: Disabled
+  httpRouteManagement: Enabled
 
