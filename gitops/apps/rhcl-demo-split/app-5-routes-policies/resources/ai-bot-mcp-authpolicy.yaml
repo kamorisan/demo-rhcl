@@ -1,0 +1,19 @@
+apiVersion: kuadrant.io/v1
+kind: AuthPolicy
+metadata:
+  name: ai-bot-mcp-allow
+  namespace: rhcl-ai-bot
+  annotations:
+    argocd.argoproj.io/sync-wave: "30"
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
+spec:
+  targetRef:
+    group: gateway.networking.k8s.io
+    kind: HTTPRoute
+    name: ai-bot-mcp-server
+  defaults:
+    rules:
+      authorization:
+        allow-all:
+          opa:
+            rego: "allow = true"

@@ -31,6 +31,7 @@ resources:
   - resources/mcp-authpolicy.yaml
   - resources/mcp-gateway-referencegrant.yaml
   - resources/ai-bot-mcp-httproute.yaml
+  - resources/ai-bot-mcp-authpolicy.yaml
   - resources/ai-bot-mcpserverregistration.yaml
 
   # Phase 4: External Proxy
@@ -54,5 +55,5 @@ resources:
   - resources/api-keys.yaml
   - resources/referencegrant-jwt-to-external-proxy.yaml
 
-# All 28 resources now included
+# All 29 resources now included
 # Hostname and Gateway name replacements handled via ArgoCD Application patches
