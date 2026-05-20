@@ -30,6 +30,7 @@ resources:
   - resources/httproute-mcp-gateway.yaml
   - resources/mcp-authpolicy.yaml
   - resources/mcp-gateway-referencegrant.yaml
+  - resources/referencegrant-mcp-to-ai-bot-service.yaml
   - resources/ai-bot-mcp-httproute.yaml
   - resources/ai-bot-mcp-authpolicy.yaml
   - resources/ai-bot-mcpserverregistration.yaml

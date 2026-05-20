@@ -1,0 +1,15 @@
+apiVersion: gateway.networking.k8s.io/v1beta1
+kind: ReferenceGrant
+metadata:
+  name: allow-mcp-httproute-to-ai-bot-service
+  namespace: rhcl-ai-bot
+  annotations:
+    argocd.argoproj.io/sync-wave: "23"
+spec:
+  from:
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
+      namespace: mcp-system
+  to:
+    - group: ""
+      kind: Service
