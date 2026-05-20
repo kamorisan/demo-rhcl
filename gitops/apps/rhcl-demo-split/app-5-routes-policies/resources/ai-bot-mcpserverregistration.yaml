@@ -12,4 +12,5 @@ spec:
     group: gateway.networking.k8s.io
     kind: HTTPRoute
     name: ai-bot-mcp-server
+    namespace: rhcl-ai-bot
   path: /mcp
