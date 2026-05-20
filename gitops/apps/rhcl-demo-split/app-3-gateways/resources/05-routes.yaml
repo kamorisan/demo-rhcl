@@ -6,7 +6,7 @@ metadata:
   annotations:
     argocd.argoproj.io/sync-wave: "18"
 spec:
-  host: rhcl-workshop.REPLACE_ME_APPS_CLUSTER_DOMAIN
+  host: rhcl-workshop.REPLACE_ME_EXTERNAL_BASE_DOMAIN
   to:
     kind: Service
     name: rhcl-workshop-gw-istio
@@ -23,7 +23,7 @@ metadata:
   annotations:
     argocd.argoproj.io/sync-wave: "18"
 spec:
-  host: oidc-rhcl-workshop.REPLACE_ME_APPS_CLUSTER_DOMAIN
+  host: oidc-rhcl-workshop.REPLACE_ME_EXTERNAL_BASE_DOMAIN
   to:
     kind: Service
     name: rhcl-workshop-gw-istio

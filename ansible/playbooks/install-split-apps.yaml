@@ -215,10 +215,10 @@
                   patch: |-
                     - op: replace
                       path: /spec/listeners/1/hostname
-                      value: rhcl-workshop.{{ apps_cluster_domain }}
+                      value: rhcl-workshop.{{ external_base_domain }}
                     - op: replace
                       path: /spec/listeners/2/hostname
-                      value: oidc-rhcl-workshop.{{ apps_cluster_domain }}
+                      value: oidc-rhcl-workshop.{{ external_base_domain }}
 
                 # Gateway rhcl-external-gw patches
                 - target:
@@ -230,7 +230,7 @@
                   patch: |-
                     - op: replace
                       path: /spec/listeners/1/hostname
-                      value: external-api.{{ apps_cluster_domain }}
+                      value: external-api.{{ external_base_domain }}
 
                 # Gateway rhcl-ai-gw patches
                 - target:
@@ -272,7 +272,7 @@
                   patch: |-
                     - op: replace
                       path: /spec/host
-                      value: rhcl-workshop.{{ apps_cluster_domain }}
+                      value: rhcl-workshop.{{ external_base_domain }}
 
                 - target:
                     group: route.openshift.io
@@ -283,7 +283,7 @@
                   patch: |-
                     - op: replace
                       path: /spec/host
-                      value: oidc-rhcl-workshop.{{ apps_cluster_domain }}
+                      value: oidc-rhcl-workshop.{{ external_base_domain }}
           destination:
             server: https://kubernetes.default.svc
             namespace: openshift-ingress
