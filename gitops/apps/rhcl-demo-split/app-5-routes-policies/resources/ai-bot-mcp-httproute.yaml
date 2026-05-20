@@ -9,9 +9,6 @@ spec:
   parentRefs:
     - name: rhcl-mcp-gw
       namespace: openshift-ingress
-      sectionName: https-mcp-public
-  hostnames:
-    - ai-bot.mcp.local
   rules:
     - matches:
         - path:
