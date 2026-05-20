@@ -7,7 +7,7 @@ spec:
   project: default
   source:
     repoURL: https://github.com/kamorisan/demo-rhcl.git
-    targetRevision: feature/split-applications
+    targetRevision: feature/apps345-espn-tools-verified
     path: gitops/apps/rhcl-demo-split/app-3-gateways
   destination:
     server: https://kubernetes.default.svc
