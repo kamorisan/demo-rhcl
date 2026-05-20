@@ -14,7 +14,7 @@ spec:
   defaults:
     rules:
       authorization:
-        deny-all:
+        allow-all:
           opa:
-            rego: "allow = false"
+            rego: "allow = true"
 
