@@ -16,6 +16,12 @@ spec:
         - path:
             type: PathPrefix
             value: /
+      filters:
+        - type: RequestHeaderModifier
+          requestHeaderModifier:
+            set:
+              - name: Accept
+                value: "application/json, text/event-stream"
       backendRefs:
         - name: rhcl-ai-bot
           port: 80
