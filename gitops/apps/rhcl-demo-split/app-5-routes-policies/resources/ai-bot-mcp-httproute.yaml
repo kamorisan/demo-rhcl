@@ -9,6 +9,8 @@ spec:
   parentRefs:
     - name: rhcl-mcp-gw
       namespace: openshift-ingress
+  hostnames:
+    - ai-bot-espn.mcp.local
   rules:
     - matches:
         - path:
