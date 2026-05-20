@@ -27,7 +27,7 @@ spec:
               value: https://external-api.sandbox2689.opentlc.com
             - op: replace
               path: /spec/template/spec/containers/0/env/9/value
-              value: http://rhcl-mcp-gw-istio.openshift-ingress.svc.cluster.local
+              value: http://mcp.sandbox2689.opentlc.com
   destination:
     server: https://kubernetes.default.svc
     namespace: demo
