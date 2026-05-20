@@ -191,6 +191,14 @@
             kind: Gateway
             jqPathExpressions:
             - .status
+          - group: kuadrant.io
+            kind: DNSPolicy
+            jqPathExpressions:
+            - .status
+          - group: kuadrant.io
+            kind: TLSPolicy
+            jqPathExpressions:
+            - .status
           source:
             repoURL: https://github.com/kamorisan/demo-rhcl.git
             targetRevision: feature/split-applications
