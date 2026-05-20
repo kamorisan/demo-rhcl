@@ -1,0 +1,20 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: mcp-upstream-test
+  namespace: openshift-gitops
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/kamorisan/demo-rhcl.git
+    targetRevision: main
+    path: gitops/apps/mcp-upstream-test
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: mcp-upstream-test
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
