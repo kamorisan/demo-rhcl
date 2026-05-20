@@ -1,0 +1,2470 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  annotations:
+    argocd.argoproj.io/sync-wave: "5"
+    kubectl.kubernetes.io/last-applied-configuration: |
+      {"apiVersion":"argoproj.io/v1alpha1","kind":"Application","metadata":{"annotations":{"argocd.argoproj.io/sync-wave":"5"},"finalizers":["resources-finalizer.argocd.argoproj.io"],"name":"rhcl-app-5-routes-policies","namespace":"openshift-gitops"},"spec":{"destination":{"namespace":"demo","server":"https://kubernetes.default.svc"},"project":"default","source":{"kustomize":{"patches":[{"patch":"- op: replace\n  path: /spec/hostnames/0\n  value: rhcl-workshop.sandbox2689.opentlc.com\n- op: replace\n  path: /spec/parentRefs/0/name\n  value: rhcl-workshop-gw","target":{"group":"gateway.networking.k8s.io","kind":"HTTPRoute","name":"rhcl-ui","namespace":"demo","version":"v1"}},{"patch":"- op: replace\n  path: /spec/hostnames/0\n  value: oidc-rhcl-workshop.sandbox2689.opentlc.com\n- op: replace\n  path: /spec/parentRefs/0/name\n  value: rhcl-workshop-gw","target":{"group":"gateway.networking.k8s.io","kind":"HTTPRoute","name":"oidc-portal","namespace":"rhcl-oidc-portal","version":"v1"}},{"patch":"- op: replace\n  path: /spec/hostnames/0\n  value: rhcl-workshop.sandbox2689.opentlc.com\n- op: replace\n  path: /spec/parentRefs/0/name\n  value: rhcl-workshop-gw","target":{"group":"gateway.networking.k8s.io","kind":"HTTPRoute","name":"demo-api","namespace":"demo","version":"v1"}},{"patch":"- op: replace\n  path: /spec/hostnames/0\n  value: oidc-rhcl-workshop.sandbox2689.opentlc.com\n- op: replace\n  path: /spec/parentRefs/0/name\n  value: rhcl-workshop-gw","target":{"group":"gateway.networking.k8s.io","kind":"HTTPRoute","name":"secure-demo","namespace":"rhcl-oidc-portal","version":"v1"}},{"patch":"- op: replace\n  path: /spec/hostnames/0\n  value: oidc-rhcl-workshop.sandbox2689.opentlc.com\n- op: replace\n  path: /spec/parentRefs/0/name\n  value: rhcl-workshop-gw","target":{"group":"gateway.networking.k8s.io","kind":"HTTPRoute","name":"oidc-portal","namespace":"rhcl-oidc-portal","version":"v1"}},{"patch":"- op: replace\n  path: /spec/hostnames\n  value:\n    - rhcl-workshop.sandbox2689.opentlc.com\n    - oidc-rhcl-workshop.sandbox2689.opentlc.com\n- op: replace\n  path: /spec/parentRefs/0/name\n  value: rhcl-workshop-gw","target":{"group":"gateway.networking.k8s.io","kind":"HTTPRoute","name":"keycloak","namespace":"rhcl-keycloak","version":"v1"}},{"patch":"- op: replace\n  path: /spec/hostnames/0\n  value: oidc-rhcl-workshop.sandbox2689.opentlc.com\n- op: replace\n  path: /spec/parentRefs/0/name\n  value: rhcl-workshop-gw","target":{"group":"gateway.networking.k8s.io","kind":"HTTPRoute","name":"oidc-portal-callback","namespace":"rhcl-oidc-portal","version":"v1"}},{"patch":"- op: replace\n  path: /spec/hostnames/0\n  value: oidc-rhcl-workshop.sandbox2689.opentlc.com\n- op: replace\n  path: /spec/parentRefs/0/name\n  value: rhcl-workshop-gw","target":{"group":"gateway.networking.k8s.io","kind":"HTTPRoute","name":"oidc-portal-whoami","namespace":"rhcl-oidc-portal","version":"v1"}},{"patch":"- op: replace\n  path: /spec/hostnames/0\n  value: rhcl-workshop.sandbox2689.opentlc.com\n- op: replace\n  path: /spec/parentRefs/0/name\n  value: rhcl-workshop-gw","target":{"group":"gateway.networking.k8s.io","kind":"HTTPRoute","name":"ai-bot-main","namespace":"rhcl-ai-bot","version":"v1"}},{"patch":"- op: replace\n  path: /spec/hostnames/0\n  value: ai.sandbox2689.opentlc.com\n- op: replace\n  path: /spec/parentRefs/0/name\n  value: rhcl-ai-gw","target":{"group":"gateway.networking.k8s.io","kind":"HTTPRoute","name":"ai-bot-ai","namespace":"rhcl-ai-bot","version":"v1"}},{"patch":"- op: replace\n  path: /spec/hostnames/0\n  value: mcp.sandbox2689.opentlc.com\n- op: replace\n  path: /spec/parentRefs/0/name\n  value: rhcl-mcp-gw","target":{"group":"gateway.networking.k8s.io","kind":"HTTPRoute","name":"rhcl-mcp-gateway","namespace":"mcp-system","version":"v1"}},{"patch":"- op: replace\n  path: /spec/publicHost\n  value: mcp.sandbox2689.opentlc.com","target":{"group":"mcp.kuadrant.io","kind":"MCPGatewayExtension","name":"rhcl-mcp","namespace":"mcp-system","version":"v1alpha1"}},{"patch":"- op: replace\n  path: /spec/hostnames/0\n  value: mcp.sandbox2689.opentlc.com","target":{"group":"gateway.networking.k8s.io","kind":"HTTPRoute","name":"ai-bot-mcp-server","namespace":"rhcl-ai-bot","version":"v1"}},{"patch":"- op: replace\n  path: /spec/parentRefs/0/name\n  value: rhcl-workshop-gw","target":{"group":"gateway.networking.k8s.io","kind":"HTTPRoute","name":"external-proxy","namespace":"demo","version":"v1"}},{"patch":"- op: replace\n  path: /spec/hostnames/0\n  value: external-api.sandbox2689.opentlc.com\n- op: replace\n  path: /spec/parentRefs/0/name\n  value: rhcl-external-gw","target":{"group":"gateway.networking.k8s.io","kind":"HTTPRoute","name":"external-proxy-public","namespace":"demo","version":"v1"}},{"patch":"- op: replace\n  path: /spec/hostnames/0\n  value: rhcl-workshop.sandbox2689.opentlc.com\n- op: replace\n  path: /spec/parentRefs/0/name\n  value: rhcl-workshop-gw","target":{"group":"gateway.networking.k8s.io","kind":"HTTPRoute","name":"ab-demo","namespace":"demo-ab","version":"v1"}},{"patch":"- op: replace\n  path: /spec/hostnames/0\n  value: rhcl-workshop.sandbox2689.opentlc.com\n- op: replace\n  path: /spec/parentRefs/0/name\n  value: rhcl-workshop-gw","target":{"group":"gateway.networking.k8s.io","kind":"HTTPRoute","name":"jwt-demo","namespace":"demo-jwt","version":"v1"}},{"patch":"- op: replace\n  path: /spec/parentRefs/0/name\n  value: rhcl-workshop-gw","target":{"group":"gateway.networking.k8s.io","kind":"HTTPRoute","name":"http-to-https","namespace":"openshift-ingress","version":"v1"}},{"patch":"- op: replace\n  path: /spec/targetRef/name\n  value: rhcl-workshop-gw","target":{"group":"kuadrant.io","kind":"AuthPolicy","name":"rhcl-gw-auth","namespace":"openshift-ingress","version":"v1"}},{"patch":"- op: replace\n  path: /spec/provider/issuerURL\n  value: https://oidc-rhcl-workshop.sandbox2689.opentlc.com/auth/realms/rhcl\n- op: replace\n  path: /spec/provider/authorizationEndpoint\n  value: https://oidc-rhcl-workshop.sandbox2689.opentlc.com/auth/realms/rhcl/protocol/openid-connect/auth\n- op: replace\n  path: /spec/provider/tokenEndpoint\n  value: https://oidc-rhcl-workshop.sandbox2689.opentlc.com/auth/realms/rhcl/protocol/openid-connect/token\n- op: replace\n  path: /spec/provider/redirectURI\n  value: https://oidc-rhcl-workshop.sandbox2689.opentlc.com/auth/callback","target":{"group":"extensions.kuadrant.io","kind":"OIDCPolicy","name":"secure-demo-oidc","namespace":"rhcl-oidc-portal","version":"v1alpha1"}},{"patch":"- op: replace\n  path: /spec/defaults/rules/authentication/jwt/jwt/issuerUrl\n  value: https://rhcl-workshop.sandbox2689.opentlc.com/auth/realms/rhcl","target":{"group":"kuadrant.io","kind":"AuthPolicy","name":"jwt-demo-jwt","namespace":"demo-jwt","version":"v1"}},{"patch":"- op: replace\n  path: /spec/defaults/rules/authentication/jwt/jwt/issuerUrl\n  value: https://rhcl-workshop.sandbox2689.opentlc.com/auth/realms/rhcl","target":{"group":"kuadrant.io","kind":"AuthPolicy","name":"secure-demo-jwt","namespace":"rhcl-oidc-portal","version":"v1"}}]},"path":"gitops/apps/rhcl-demo-split/app-5-routes-policies","repoURL":"https://github.com/kamorisan/demo-rhcl.git","targetRevision":"feature/split-applications"},"syncPolicy":{"retry":{"backoff":{"duration":"30s","factor":2,"maxDuration":"10m"},"limit":10},"syncOptions":["CreateNamespace=true","RespectIgnoreDifferences=true"]}}}
+  creationTimestamp: "2026-05-20T01:57:07Z"
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+  generation: 153
+  name: rhcl-app-5-routes-policies
+  namespace: openshift-gitops
+  resourceVersion: "680878"
+  uid: f2ed886a-4c81-4e64-afc0-08ac3c7dec7b
+spec:
+  destination:
+    namespace: demo
+    server: https://kubernetes.default.svc
+  project: default
+  source:
+    kustomize:
+      patches:
+      - patch: |-
+          - op: replace
+            path: /spec/hostnames/0
+            value: rhcl-workshop.sandbox2689.opentlc.com
+          - op: replace
+            path: /spec/parentRefs/0/name
+            value: rhcl-workshop-gw
+        target:
+          group: gateway.networking.k8s.io
+          kind: HTTPRoute
+          name: rhcl-ui
+          namespace: demo
+          version: v1
+      - patch: |-
+          - op: replace
+            path: /spec/hostnames/0
+            value: oidc-rhcl-workshop.sandbox2689.opentlc.com
+          - op: replace
+            path: /spec/parentRefs/0/name
+            value: rhcl-workshop-gw
+        target:
+          group: gateway.networking.k8s.io
+          kind: HTTPRoute
+          name: oidc-portal
+          namespace: rhcl-oidc-portal
+          version: v1
+      - patch: |-
+          - op: replace
+            path: /spec/hostnames/0
+            value: rhcl-workshop.sandbox2689.opentlc.com
+          - op: replace
+            path: /spec/parentRefs/0/name
+            value: rhcl-workshop-gw
+        target:
+          group: gateway.networking.k8s.io
+          kind: HTTPRoute
+          name: demo-api
+          namespace: demo
+          version: v1
+      - patch: |-
+          - op: replace
+            path: /spec/hostnames/0
+            value: oidc-rhcl-workshop.sandbox2689.opentlc.com
+          - op: replace
+            path: /spec/parentRefs/0/name
+            value: rhcl-workshop-gw
+        target:
+          group: gateway.networking.k8s.io
+          kind: HTTPRoute
+          name: secure-demo
+          namespace: rhcl-oidc-portal
+          version: v1
+      - patch: |-
+          - op: replace
+            path: /spec/hostnames/0
+            value: oidc-rhcl-workshop.sandbox2689.opentlc.com
+          - op: replace
+            path: /spec/parentRefs/0/name
+            value: rhcl-workshop-gw
+        target:
+          group: gateway.networking.k8s.io
+          kind: HTTPRoute
+          name: oidc-portal
+          namespace: rhcl-oidc-portal
+          version: v1
+      - patch: |-
+          - op: replace
+            path: /spec/hostnames
+            value:
+              - rhcl-workshop.sandbox2689.opentlc.com
+              - oidc-rhcl-workshop.sandbox2689.opentlc.com
+          - op: replace
+            path: /spec/parentRefs/0/name
+            value: rhcl-workshop-gw
+        target:
+          group: gateway.networking.k8s.io
+          kind: HTTPRoute
+          name: keycloak
+          namespace: rhcl-keycloak
+          version: v1
+      - patch: |-
+          - op: replace
+            path: /spec/hostnames/0
+            value: oidc-rhcl-workshop.sandbox2689.opentlc.com
+          - op: replace
+            path: /spec/parentRefs/0/name
+            value: rhcl-workshop-gw
+        target:
+          group: gateway.networking.k8s.io
+          kind: HTTPRoute
+          name: oidc-portal-callback
+          namespace: rhcl-oidc-portal
+          version: v1
+      - patch: |-
+          - op: replace
+            path: /spec/hostnames/0
+            value: oidc-rhcl-workshop.sandbox2689.opentlc.com
+          - op: replace
+            path: /spec/parentRefs/0/name
+            value: rhcl-workshop-gw
+        target:
+          group: gateway.networking.k8s.io
+          kind: HTTPRoute
+          name: oidc-portal-whoami
+          namespace: rhcl-oidc-portal
+          version: v1
+      - patch: |-
+          - op: replace
+            path: /spec/hostnames/0
+            value: rhcl-workshop.sandbox2689.opentlc.com
+          - op: replace
+            path: /spec/parentRefs/0/name
+            value: rhcl-workshop-gw
+        target:
+          group: gateway.networking.k8s.io
+          kind: HTTPRoute
+          name: ai-bot-main
+          namespace: rhcl-ai-bot
+          version: v1
+      - patch: |-
+          - op: replace
+            path: /spec/hostnames/0
+            value: ai.sandbox2689.opentlc.com
+          - op: replace
+            path: /spec/parentRefs/0/name
+            value: rhcl-ai-gw
+        target:
+          group: gateway.networking.k8s.io
+          kind: HTTPRoute
+          name: ai-bot-ai
+          namespace: rhcl-ai-bot
+          version: v1
+      - patch: |-
+          - op: replace
+            path: /spec/hostnames/0
+            value: mcp.sandbox2689.opentlc.com
+          - op: replace
+            path: /spec/parentRefs/0/name
+            value: rhcl-mcp-gw
+        target:
+          group: gateway.networking.k8s.io
+          kind: HTTPRoute
+          name: rhcl-mcp-gateway
+          namespace: mcp-system
+          version: v1
+      - patch: |-
+          - op: replace
+            path: /spec/publicHost
+            value: mcp.sandbox2689.opentlc.com
+        target:
+          group: mcp.kuadrant.io
+          kind: MCPGatewayExtension
+          name: rhcl-mcp
+          namespace: mcp-system
+          version: v1alpha1
+      - patch: |-
+          - op: replace
+            path: /spec/hostnames/0
+            value: mcp.sandbox2689.opentlc.com
+        target:
+          group: gateway.networking.k8s.io
+          kind: HTTPRoute
+          name: ai-bot-mcp-server
+          namespace: rhcl-ai-bot
+          version: v1
+      - patch: |-
+          - op: replace
+            path: /spec/parentRefs/0/name
+            value: rhcl-workshop-gw
+        target:
+          group: gateway.networking.k8s.io
+          kind: HTTPRoute
+          name: external-proxy
+          namespace: demo
+          version: v1
+      - patch: |-
+          - op: replace
+            path: /spec/hostnames/0
+            value: external-api.sandbox2689.opentlc.com
+          - op: replace
+            path: /spec/parentRefs/0/name
+            value: rhcl-external-gw
+        target:
+          group: gateway.networking.k8s.io
+          kind: HTTPRoute
+          name: external-proxy-public
+          namespace: demo
+          version: v1
+      - patch: |-
+          - op: replace
+            path: /spec/hostnames/0
+            value: rhcl-workshop.sandbox2689.opentlc.com
+          - op: replace
+            path: /spec/parentRefs/0/name
+            value: rhcl-workshop-gw
+        target:
+          group: gateway.networking.k8s.io
+          kind: HTTPRoute
+          name: ab-demo
+          namespace: demo-ab
+          version: v1
+      - patch: |-
+          - op: replace
+            path: /spec/hostnames/0
+            value: rhcl-workshop.sandbox2689.opentlc.com
+          - op: replace
+            path: /spec/parentRefs/0/name
+            value: rhcl-workshop-gw
+        target:
+          group: gateway.networking.k8s.io
+          kind: HTTPRoute
+          name: jwt-demo
+          namespace: demo-jwt
+          version: v1
+      - patch: |-
+          - op: replace
+            path: /spec/parentRefs/0/name
+            value: rhcl-workshop-gw
+        target:
+          group: gateway.networking.k8s.io
+          kind: HTTPRoute
+          name: http-to-https
+          namespace: openshift-ingress
+          version: v1
+      - patch: |-
+          - op: replace
+            path: /spec/targetRef/name
+            value: rhcl-workshop-gw
+        target:
+          group: kuadrant.io
+          kind: AuthPolicy
+          name: rhcl-gw-auth
+          namespace: openshift-ingress
+          version: v1
+      - patch: |-
+          - op: replace
+            path: /spec/provider/issuerURL
+            value: https://oidc-rhcl-workshop.sandbox2689.opentlc.com/auth/realms/rhcl
+          - op: replace
+            path: /spec/provider/authorizationEndpoint
+            value: https://oidc-rhcl-workshop.sandbox2689.opentlc.com/auth/realms/rhcl/protocol/openid-connect/auth
+          - op: replace
+            path: /spec/provider/tokenEndpoint
+            value: https://oidc-rhcl-workshop.sandbox2689.opentlc.com/auth/realms/rhcl/protocol/openid-connect/token
+          - op: replace
+            path: /spec/provider/redirectURI
+            value: https://oidc-rhcl-workshop.sandbox2689.opentlc.com/auth/callback
+        target:
+          group: extensions.kuadrant.io
+          kind: OIDCPolicy
+          name: secure-demo-oidc
+          namespace: rhcl-oidc-portal
+          version: v1alpha1
+      - patch: |-
+          - op: replace
+            path: /spec/defaults/rules/authentication/jwt/jwt/issuerUrl
+            value: https://rhcl-workshop.sandbox2689.opentlc.com/auth/realms/rhcl
+        target:
+          group: kuadrant.io
+          kind: AuthPolicy
+          name: jwt-demo-jwt
+          namespace: demo-jwt
+          version: v1
+      - patch: |-
+          - op: replace
+            path: /spec/defaults/rules/authentication/jwt/jwt/issuerUrl
+            value: https://rhcl-workshop.sandbox2689.opentlc.com/auth/realms/rhcl
+        target:
+          group: kuadrant.io
+          kind: AuthPolicy
+          name: secure-demo-jwt
+          namespace: rhcl-oidc-portal
+          version: v1
+    path: gitops/apps/rhcl-demo-split/app-5-routes-policies
+    repoURL: https://github.com/kamorisan/demo-rhcl.git
+    targetRevision: feature/split-applications
+  syncPolicy:
+    retry:
+      backoff:
+        duration: 30s
+        factor: 2
+        maxDuration: 10m
+      limit: 10
+    syncOptions:
+    - CreateNamespace=true
+    - RespectIgnoreDifferences=true
+status:
+  controllerNamespace: openshift-gitops
+  health:
+    lastTransitionTime: "2026-05-20T04:12:25Z"
+    status: Healthy
+  history:
+  - deployStartedAt: "2026-05-20T01:57:08Z"
+    deployedAt: "2026-05-20T01:57:27Z"
+    id: 0
+    initiatedBy:
+      username: manual
+    revision: 7a0a1d43cb780195d51c2b4a9d361e83390dba0b
+    source:
+      kustomize:
+        patches:
+        - patch: |-
+            - op: replace
+              path: /spec/hostnames/0
+              value: rhcl-workshop.sandbox2689.opentlc.com
+            - op: replace
+              path: /spec/parentRefs/0/name
+              value: rhcl-workshop-gw
+          target:
+            group: gateway.networking.k8s.io
+            kind: HTTPRoute
+            name: rhcl-ui
+            namespace: demo
+            version: v1
+        - patch: |-
+            - op: replace
+              path: /spec/hostnames/0
+              value: oidc-rhcl-workshop.sandbox2689.opentlc.com
+            - op: replace
+              path: /spec/parentRefs/0/name
+              value: rhcl-workshop-gw
+          target:
+            group: gateway.networking.k8s.io
+            kind: HTTPRoute
+            name: oidc-portal
+            namespace: rhcl-oidc-portal
+            version: v1
+        - patch: |-
+            - op: replace
+              path: /spec/hostnames/0
+              value: rhcl-workshop.sandbox2689.opentlc.com
+            - op: replace
+              path: /spec/parentRefs/0/name
+              value: rhcl-workshop-gw
+          target:
+            group: gateway.networking.k8s.io
+            kind: HTTPRoute
+            name: demo-api
+            namespace: demo
+            version: v1
+        - patch: |-
+            - op: replace
+              path: /spec/hostnames/0
+              value: oidc-rhcl-workshop.sandbox2689.opentlc.com
+            - op: replace
+              path: /spec/parentRefs/0/name
+              value: rhcl-workshop-gw
+          target:
+            group: gateway.networking.k8s.io
+            kind: HTTPRoute
+            name: secure-demo
+            namespace: rhcl-oidc-portal
+            version: v1
+        - patch: |-
+            - op: replace
+              path: /spec/hostnames/0
+              value: oidc-rhcl-workshop.sandbox2689.opentlc.com
+            - op: replace
+              path: /spec/parentRefs/0/name
+              value: rhcl-workshop-gw
+          target:
+            group: gateway.networking.k8s.io
+            kind: HTTPRoute
+            name: oidc-portal
+            namespace: rhcl-oidc-portal
+            version: v1
+        - patch: |-
+            - op: replace
+              path: /spec/hostnames
+              value:
+                - rhcl-workshop.sandbox2689.opentlc.com
+                - oidc-rhcl-workshop.sandbox2689.opentlc.com
+            - op: replace
+              path: /spec/parentRefs/0/name
+              value: rhcl-workshop-gw
+          target:
+            group: gateway.networking.k8s.io
+            kind: HTTPRoute
+            name: keycloak
+            namespace: rhcl-keycloak
+            version: v1
+        - patch: |-
+            - op: replace
+              path: /spec/hostnames/0
+              value: oidc-rhcl-workshop.sandbox2689.opentlc.com
+            - op: replace
+              path: /spec/parentRefs/0/name
+              value: rhcl-workshop-gw
+          target:
+            group: gateway.networking.k8s.io
+            kind: HTTPRoute
+            name: oidc-portal-callback
+            namespace: rhcl-oidc-portal
+            version: v1
+        - patch: |-
+            - op: replace
+              path: /spec/hostnames/0
+              value: oidc-rhcl-workshop.sandbox2689.opentlc.com
+            - op: replace
+              path: /spec/parentRefs/0/name
+              value: rhcl-workshop-gw
+          target:
+            group: gateway.networking.k8s.io
+            kind: HTTPRoute
+            name: oidc-portal-whoami
+            namespace: rhcl-oidc-portal
+            version: v1
+        - patch: |-
+            - op: replace
+              path: /spec/hostnames/0
+              value: rhcl-workshop.sandbox2689.opentlc.com
+            - op: replace
+              path: /spec/parentRefs/0/name
+              value: rhcl-workshop-gw
+          target:
+            group: gateway.networking.k8s.io
+            kind: HTTPRoute
+            name: ai-bot-main
+            namespace: rhcl-ai-bot
+            version: v1
+        - patch: |-
+            - op: replace
+              path: /spec/hostnames/0
+              value: ai.sandbox2689.opentlc.com
+            - op: replace
+              path: /spec/parentRefs/0/name
+              value: rhcl-ai-gw
+          target:
+            group: gateway.networking.k8s.io
+            kind: HTTPRoute
+            name: ai-bot-ai
+            namespace: rhcl-ai-bot
+            version: v1
+        - patch: |-
+            - op: replace
+              path: /spec/hostnames/0
+              value: mcp.sandbox2689.opentlc.com
+            - op: replace
+              path: /spec/parentRefs/0/name
+              value: rhcl-mcp-gw
+          target:
+            group: gateway.networking.k8s.io
+            kind: HTTPRoute
+            name: rhcl-mcp-gateway
+            namespace: mcp-system
+            version: v1
+        - patch: |-
+            - op: replace
+              path: /spec/publicHost
+              value: mcp.sandbox2689.opentlc.com
+          target:
+            group: mcp.kuadrant.io
+            kind: MCPGatewayExtension
+            name: rhcl-mcp
+            namespace: mcp-system
+            version: v1alpha1
+        - patch: |-
+            - op: replace
+              path: /spec/hostnames/0
+              value: mcp.sandbox2689.opentlc.com
+          target:
+            group: gateway.networking.k8s.io
+            kind: HTTPRoute
+            name: ai-bot-mcp-server
+            namespace: rhcl-ai-bot
+            version: v1
+        - patch: |-
+            - op: replace
+              path: /spec/parentRefs/0/name
+              value: rhcl-workshop-gw
+          target:
+            group: gateway.networking.k8s.io
+            kind: HTTPRoute
+            name: external-proxy
+            namespace: demo
+            version: v1
+        - patch: |-
+            - op: replace
+              path: /spec/hostnames/0
+              value: external-api.sandbox2689.opentlc.com
+            - op: replace
+              path: /spec/parentRefs/0/name
+              value: rhcl-external-gw
+          target:
+            group: gateway.networking.k8s.io
+            kind: HTTPRoute
+            name: external-proxy-public
+            namespace: demo
+            version: v1
+        - patch: |-
+            - op: replace
+              path: /spec/hostnames/0
+              value: rhcl-workshop.sandbox2689.opentlc.com
+            - op: replace
+              path: /spec/parentRefs/0/name
+              value: rhcl-workshop-gw
+          target:
+            group: gateway.networking.k8s.io
+            kind: HTTPRoute
+            name: ab-demo
+            namespace: demo-ab
+            version: v1
+        - patch: |-
+            - op: replace
+              path: /spec/hostnames/0
+              value: rhcl-workshop.sandbox2689.opentlc.com
+            - op: replace
+              path: /spec/parentRefs/0/name
+              value: rhcl-workshop-gw
+          target:
+            group: gateway.networking.k8s.io
+            kind: HTTPRoute
+            name: jwt-demo
+            namespace: demo-jwt
+            version: v1
+        - patch: |-
+            - op: replace
+              path: /spec/parentRefs/0/name
+              value: rhcl-workshop-gw
+          target:
+            group: gateway.networking.k8s.io
+            kind: HTTPRoute
+            name: http-to-https
+            namespace: openshift-ingress
+            version: v1
+        - patch: |-
+            - op: replace
+              path: /spec/targetRef/name
+              value: rhcl-workshop-gw
+          target:
+            group: kuadrant.io
+            kind: AuthPolicy
+            name: rhcl-gw-auth
+            namespace: openshift-ingress
+            version: v1
+        - patch: |-
+            - op: replace
+              path: /spec/provider/issuerURL
+              value: https://oidc-rhcl-workshop.sandbox2689.opentlc.com/auth/realms/rhcl
+            - op: replace
+              path: /spec/provider/authorizationEndpoint
+              value: https://oidc-rhcl-workshop.sandbox2689.opentlc.com/auth/realms/rhcl/protocol/openid-connect/auth
+            - op: replace
+              path: /spec/provider/tokenEndpoint
+              value: https://oidc-rhcl-workshop.sandbox2689.opentlc.com/auth/realms/rhcl/protocol/openid-connect/token
+            - op: replace
+              path: /spec/provider/redirectURI
+              value: https://oidc-rhcl-workshop.sandbox2689.opentlc.com/auth/callback
+          target:
+            group: extensions.kuadrant.io
+            kind: OIDCPolicy
+            name: secure-demo-oidc
+            namespace: rhcl-oidc-portal
+            version: v1alpha1
+        - patch: |-
+            - op: replace
+              path: /spec/defaults/rules/authentication/jwt/jwt/issuerUrl
+              value: https://rhcl-workshop.sandbox2689.opentlc.com/auth/realms/rhcl
+          target:
+            group: kuadrant.io
+            kind: AuthPolicy
+            name: jwt-demo-jwt
+            namespace: demo-jwt
+            version: v1
+        - patch: |-
+            - op: replace
+              path: /spec/defaults/rules/authentication/jwt/jwt/issuerUrl
+              value: https://rhcl-workshop.sandbox2689.opentlc.com/auth/realms/rhcl
+          target:
+            group: kuadrant.io
+            kind: AuthPolicy
+            name: secure-demo-jwt
+            namespace: rhcl-oidc-portal
+            version: v1
+      path: gitops/apps/rhcl-demo-split/app-5-routes-policies
+      repoURL: https://github.com/kamorisan/demo-rhcl.git
+      targetRevision: feature/split-applications
+  - deployStartedAt: "2026-05-20T02:01:26Z"
+    deployedAt: "2026-05-20T02:01:53Z"
+    id: 1
+    initiatedBy:
+      username: manual
+    revision: 7ed2b1f1bc34463ff24863bc9daa2219931a1de2
+    source:
+      kustomize:
+        patches:
+        - patch: |-
+            - op: replace
+              path: /spec/hostnames/0
+              value: rhcl-workshop.sandbox2689.opentlc.com
+            - op: replace
+              path: /spec/parentRefs/0/name
+              value: rhcl-workshop-gw
+          target:
+            group: gateway.networking.k8s.io
+            kind: HTTPRoute
+            name: rhcl-ui
+            namespace: demo
+            version: v1
+        - patch: |-
+            - op: replace
+              path: /spec/hostnames/0
+              value: oidc-rhcl-workshop.sandbox2689.opentlc.com
+            - op: replace
+              path: /spec/parentRefs/0/name
+              value: rhcl-workshop-gw
+          target:
+            group: gateway.networking.k8s.io
+            kind: HTTPRoute
+            name: oidc-portal
+            namespace: rhcl-oidc-portal
+            version: v1
+        - patch: |-
+            - op: replace
+              path: /spec/hostnames/0
+              value: rhcl-workshop.sandbox2689.opentlc.com
+            - op: replace
+              path: /spec/parentRefs/0/name
+              value: rhcl-workshop-gw
+          target:
+            group: gateway.networking.k8s.io
+            kind: HTTPRoute
+            name: demo-api
+            namespace: demo
+            version: v1
+        - patch: |-
+            - op: replace
+              path: /spec/hostnames/0
+              value: oidc-rhcl-workshop.sandbox2689.opentlc.com
+            - op: replace
+              path: /spec/parentRefs/0/name
+              value: rhcl-workshop-gw
+          target:
+            group: gateway.networking.k8s.io
+            kind: HTTPRoute
+            name: secure-demo
+            namespace: rhcl-oidc-portal
+            version: v1
+        - patch: |-
+            - op: replace
+              path: /spec/hostnames/0
+              value: oidc-rhcl-workshop.sandbox2689.opentlc.com
+            - op: replace
+              path: /spec/parentRefs/0/name
+              value: rhcl-workshop-gw
+          target:
+            group: gateway.networking.k8s.io
+            kind: HTTPRoute
+            name: oidc-portal
+            namespace: rhcl-oidc-portal
+            version: v1
+        - patch: |-
+            - op: replace
+              path: /spec/hostnames
+              value:
+                - rhcl-workshop.sandbox2689.opentlc.com
+                - oidc-rhcl-workshop.sandbox2689.opentlc.com
+            - op: replace
+              path: /spec/parentRefs/0/name
+              value: rhcl-workshop-gw
+          target:
+            group: gateway.networking.k8s.io
+            kind: HTTPRoute
+            name: keycloak
+            namespace: rhcl-keycloak
+            version: v1
+        - patch: |-
+            - op: replace
+              path: /spec/hostnames/0
+              value: oidc-rhcl-workshop.sandbox2689.opentlc.com
+            - op: replace
+              path: /spec/parentRefs/0/name
+              value: rhcl-workshop-gw
+          target:
+            group: gateway.networking.k8s.io
+            kind: HTTPRoute
+            name: oidc-portal-callback
+            namespace: rhcl-oidc-portal
+            version: v1
+        - patch: |-
+            - op: replace
+              path: /spec/hostnames/0
+              value: oidc-rhcl-workshop.sandbox2689.opentlc.com
+            - op: replace
+              path: /spec/parentRefs/0/name
+              value: rhcl-workshop-gw
+          target:
+            group: gateway.networking.k8s.io
+            kind: HTTPRoute
+            name: oidc-portal-whoami
+            namespace: rhcl-oidc-portal
+            version: v1
+        - patch: |-
+            - op: replace
+              path: /spec/hostnames/0
+              value: rhcl-workshop.sandbox2689.opentlc.com
+            - op: replace
+              path: /spec/parentRefs/0/name
+              value: rhcl-workshop-gw
+          target:
+            group: gateway.networking.k8s.io
+            kind: HTTPRoute
+            name: ai-bot-main
+            namespace: rhcl-ai-bot
+            version: v1
+        - patch: |-
+            - op: replace
+              path: /spec/hostnames/0
+              value: ai.sandbox2689.opentlc.com
+            - op: replace
+              path: /spec/parentRefs/0/name
+              value: rhcl-ai-gw
+          target:
+            group: gateway.networking.k8s.io
+            kind: HTTPRoute
+            name: ai-bot-ai
+            namespace: rhcl-ai-bot
+            version: v1
+        - patch: |-
+            - op: replace
+              path: /spec/hostnames/0
+              value: mcp.sandbox2689.opentlc.com
+            - op: replace
+              path: /spec/parentRefs/0/name
+              value: rhcl-mcp-gw
+          target:
+            group: gateway.networking.k8s.io
+            kind: HTTPRoute
+            name: rhcl-mcp-gateway
+            namespace: mcp-system
+            version: v1
+        - patch: |-
+            - op: replace
+              path: /spec/publicHost
+              value: mcp.sandbox2689.opentlc.com
+          target:
+            group: mcp.kuadrant.io
+            kind: MCPGatewayExtension
+            name: rhcl-mcp
+            namespace: mcp-system
+            version: v1alpha1
+        - patch: |-
+            - op: replace
+              path: /spec/hostnames/0
+              value: mcp.sandbox2689.opentlc.com
+          target:
+            group: gateway.networking.k8s.io
+            kind: HTTPRoute
+            name: ai-bot-mcp-server
+            namespace: rhcl-ai-bot
+            version: v1
+        - patch: |-
+            - op: replace
+              path: /spec/parentRefs/0/name
+              value: rhcl-workshop-gw
+          target:
+            group: gateway.networking.k8s.io
+            kind: HTTPRoute
+            name: external-proxy
+            namespace: demo
+            version: v1
+        - patch: |-
+            - op: replace
+              path: /spec/hostnames/0
+              value: external-api.sandbox2689.opentlc.com
+            - op: replace
+              path: /spec/parentRefs/0/name
+              value: rhcl-external-gw
+          target:
+            group: gateway.networking.k8s.io
+            kind: HTTPRoute
+            name: external-proxy-public
+            namespace: demo
+            version: v1
+        - patch: |-
+            - op: replace
+              path: /spec/hostnames/0
+              value: rhcl-workshop.sandbox2689.opentlc.com
+            - op: replace
+              path: /spec/parentRefs/0/name
+              value: rhcl-workshop-gw
+          target:
+            group: gateway.networking.k8s.io
+            kind: HTTPRoute
+            name: ab-demo
+            namespace: demo-ab
+            version: v1
+        - patch: |-
+            - op: replace
+              path: /spec/hostnames/0
+              value: rhcl-workshop.sandbox2689.opentlc.com
+            - op: replace
+              path: /spec/parentRefs/0/name
+              value: rhcl-workshop-gw
+          target:
+            group: gateway.networking.k8s.io
+            kind: HTTPRoute
+            name: jwt-demo
+            namespace: demo-jwt
+            version: v1
+        - patch: |-
+            - op: replace
+              path: /spec/parentRefs/0/name
+              value: rhcl-workshop-gw
+          target:
+            group: gateway.networking.k8s.io
+            kind: HTTPRoute
+            name: http-to-https
+            namespace: openshift-ingress
+            version: v1
+        - patch: |-
+            - op: replace
+              path: /spec/targetRef/name
+              value: rhcl-workshop-gw
+          target:
+            group: kuadrant.io
+            kind: AuthPolicy
+            name: rhcl-gw-auth
+            namespace: openshift-ingress
+            version: v1
+        - patch: |-
+            - op: replace
+              path: /spec/provider/issuerURL
+              value: https://oidc-rhcl-workshop.sandbox2689.opentlc.com/auth/realms/rhcl
+            - op: replace
+              path: /spec/provider/authorizationEndpoint
+              value: https://oidc-rhcl-workshop.sandbox2689.opentlc.com/auth/realms/rhcl/protocol/openid-connect/auth
+            - op: replace
+              path: /spec/provider/tokenEndpoint
+              value: https://oidc-rhcl-workshop.sandbox2689.opentlc.com/auth/realms/rhcl/protocol/openid-connect/token
+            - op: replace
+              path: /spec/provider/redirectURI
+              value: https://oidc-rhcl-workshop.sandbox2689.opentlc.com/auth/callback
+          target:
+            group: extensions.kuadrant.io
+            kind: OIDCPolicy
+            name: secure-demo-oidc
+            namespace: rhcl-oidc-portal
+            version: v1alpha1
+        - patch: |-
+            - op: replace
+              path: /spec/defaults/rules/authentication/jwt/jwt/issuerUrl
+              value: https://rhcl-workshop.sandbox2689.opentlc.com/auth/realms/rhcl
+          target:
+            group: kuadrant.io
+            kind: AuthPolicy
+            name: jwt-demo-jwt
+            namespace: demo-jwt
+            version: v1
+        - patch: |-
+            - op: replace
+              path: /spec/defaults/rules/authentication/jwt/jwt/issuerUrl
+              value: https://rhcl-workshop.sandbox2689.opentlc.com/auth/realms/rhcl
+          target:
+            group: kuadrant.io
+            kind: AuthPolicy
+            name: secure-demo-jwt
+            namespace: rhcl-oidc-portal
+            version: v1
+      path: gitops/apps/rhcl-demo-split/app-5-routes-policies
+      repoURL: https://github.com/kamorisan/demo-rhcl.git
+      targetRevision: feature/split-applications
+  - deployStartedAt: "2026-05-20T02:13:50Z"
+    deployedAt: "2026-05-20T02:14:18Z"
+    id: 2
+    initiatedBy:
+      username: manual
+    revision: 30c6b1ccfecb233685e09816ef834e3c0af2dc68
+    source:
+      kustomize:
+        patches:
+        - patch: |-
+            - op: replace
+              path: /spec/hostnames/0
+              value: rhcl-workshop.sandbox2689.opentlc.com
+            - op: replace
+              path: /spec/parentRefs/0/name
+              value: rhcl-workshop-gw
+          target:
+            group: gateway.networking.k8s.io
+            kind: HTTPRoute
+            name: rhcl-ui
+            namespace: demo
+            version: v1
+        - patch: |-
+            - op: replace
+              path: /spec/hostnames/0
+              value: oidc-rhcl-workshop.sandbox2689.opentlc.com
+            - op: replace
+              path: /spec/parentRefs/0/name
+              value: rhcl-workshop-gw
+          target:
+            group: gateway.networking.k8s.io
+            kind: HTTPRoute
+            name: oidc-portal
+            namespace: rhcl-oidc-portal
+            version: v1
+        - patch: |-
+            - op: replace
+              path: /spec/hostnames/0
+              value: rhcl-workshop.sandbox2689.opentlc.com
+            - op: replace
+              path: /spec/parentRefs/0/name
+              value: rhcl-workshop-gw
+          target:
+            group: gateway.networking.k8s.io
+            kind: HTTPRoute
+            name: demo-api
+            namespace: demo
+            version: v1
+        - patch: |-
+            - op: replace
+              path: /spec/hostnames/0
+              value: oidc-rhcl-workshop.sandbox2689.opentlc.com
+            - op: replace
+              path: /spec/parentRefs/0/name
+              value: rhcl-workshop-gw
+          target:
+            group: gateway.networking.k8s.io
+            kind: HTTPRoute
+            name: secure-demo
+            namespace: rhcl-oidc-portal
+            version: v1
+        - patch: |-
+            - op: replace
+              path: /spec/hostnames/0
+              value: oidc-rhcl-workshop.sandbox2689.opentlc.com
+            - op: replace
+              path: /spec/parentRefs/0/name
+              value: rhcl-workshop-gw
+          target:
+            group: gateway.networking.k8s.io
+            kind: HTTPRoute
+            name: oidc-portal
+            namespace: rhcl-oidc-portal
+            version: v1
+        - patch: |-
+            - op: replace
+              path: /spec/hostnames
+              value:
+                - rhcl-workshop.sandbox2689.opentlc.com
+                - oidc-rhcl-workshop.sandbox2689.opentlc.com
+            - op: replace
+              path: /spec/parentRefs/0/name
+              value: rhcl-workshop-gw
+          target:
+            group: gateway.networking.k8s.io
+            kind: HTTPRoute
+            name: keycloak
+            namespace: rhcl-keycloak
+            version: v1
+        - patch: |-
+            - op: replace
+              path: /spec/hostnames/0
+              value: oidc-rhcl-workshop.sandbox2689.opentlc.com
+            - op: replace
+              path: /spec/parentRefs/0/name
+              value: rhcl-workshop-gw
+          target:
+            group: gateway.networking.k8s.io
+            kind: HTTPRoute
+            name: oidc-portal-callback
+            namespace: rhcl-oidc-portal
+            version: v1
+        - patch: |-
+            - op: replace
+              path: /spec/hostnames/0
+              value: oidc-rhcl-workshop.sandbox2689.opentlc.com
+            - op: replace
+              path: /spec/parentRefs/0/name
+              value: rhcl-workshop-gw
+          target:
+            group: gateway.networking.k8s.io
+            kind: HTTPRoute
+            name: oidc-portal-whoami
+            namespace: rhcl-oidc-portal
+            version: v1
+        - patch: |-
+            - op: replace
+              path: /spec/hostnames/0
+              value: rhcl-workshop.sandbox2689.opentlc.com
+            - op: replace
+              path: /spec/parentRefs/0/name
+              value: rhcl-workshop-gw
+          target:
+            group: gateway.networking.k8s.io
+            kind: HTTPRoute
+            name: ai-bot-main
+            namespace: rhcl-ai-bot
+            version: v1
+        - patch: |-
+            - op: replace
+              path: /spec/hostnames/0
+              value: ai.sandbox2689.opentlc.com
+            - op: replace
+              path: /spec/parentRefs/0/name
+              value: rhcl-ai-gw
+          target:
+            group: gateway.networking.k8s.io
+            kind: HTTPRoute
+            name: ai-bot-ai
+            namespace: rhcl-ai-bot
+            version: v1
+        - patch: |-
+            - op: replace
+              path: /spec/hostnames/0
+              value: mcp.sandbox2689.opentlc.com
+            - op: replace
+              path: /spec/parentRefs/0/name
+              value: rhcl-mcp-gw
+          target:
+            group: gateway.networking.k8s.io
+            kind: HTTPRoute
+            name: rhcl-mcp-gateway
+            namespace: mcp-system
+            version: v1
+        - patch: |-
+            - op: replace
+              path: /spec/publicHost
+              value: mcp.sandbox2689.opentlc.com
+          target:
+            group: mcp.kuadrant.io
+            kind: MCPGatewayExtension
+            name: rhcl-mcp
+            namespace: mcp-system
+            version: v1alpha1
+        - patch: |-
+            - op: replace
+              path: /spec/hostnames/0
+              value: mcp.sandbox2689.opentlc.com
+          target:
+            group: gateway.networking.k8s.io
+            kind: HTTPRoute
+            name: ai-bot-mcp-server
+            namespace: rhcl-ai-bot
+            version: v1
+        - patch: |-
+            - op: replace
+              path: /spec/parentRefs/0/name
+              value: rhcl-workshop-gw
+          target:
+            group: gateway.networking.k8s.io
+            kind: HTTPRoute
+            name: external-proxy
+            namespace: demo
+            version: v1
+        - patch: |-
+            - op: replace
+              path: /spec/hostnames/0
+              value: external-api.sandbox2689.opentlc.com
+            - op: replace
+              path: /spec/parentRefs/0/name
+              value: rhcl-external-gw
+          target:
+            group: gateway.networking.k8s.io
+            kind: HTTPRoute
+            name: external-proxy-public
+            namespace: demo
+            version: v1
+        - patch: |-
+            - op: replace
+              path: /spec/hostnames/0
+              value: rhcl-workshop.sandbox2689.opentlc.com
+            - op: replace
+              path: /spec/parentRefs/0/name
+              value: rhcl-workshop-gw
+          target:
+            group: gateway.networking.k8s.io
+            kind: HTTPRoute
+            name: ab-demo
+            namespace: demo-ab
+            version: v1
+        - patch: |-
+            - op: replace
+              path: /spec/hostnames/0
+              value: rhcl-workshop.sandbox2689.opentlc.com
+            - op: replace
+              path: /spec/parentRefs/0/name
+              value: rhcl-workshop-gw
+          target:
+            group: gateway.networking.k8s.io
+            kind: HTTPRoute
+            name: jwt-demo
+            namespace: demo-jwt
+            version: v1
+        - patch: |-
+            - op: replace
+              path: /spec/parentRefs/0/name
+              value: rhcl-workshop-gw
+          target:
+            group: gateway.networking.k8s.io
+            kind: HTTPRoute
+            name: http-to-https
+            namespace: openshift-ingress
+            version: v1
+        - patch: |-
+            - op: replace
+              path: /spec/targetRef/name
+              value: rhcl-workshop-gw
+          target:
+            group: kuadrant.io
+            kind: AuthPolicy
+            name: rhcl-gw-auth
+            namespace: openshift-ingress
+            version: v1
+        - patch: |-
+            - op: replace
+              path: /spec/provider/issuerURL
+              value: https://oidc-rhcl-workshop.sandbox2689.opentlc.com/auth/realms/rhcl
+            - op: replace
+              path: /spec/provider/authorizationEndpoint
+              value: https://oidc-rhcl-workshop.sandbox2689.opentlc.com/auth/realms/rhcl/protocol/openid-connect/auth
+            - op: replace
+              path: /spec/provider/tokenEndpoint
+              value: https://oidc-rhcl-workshop.sandbox2689.opentlc.com/auth/realms/rhcl/protocol/openid-connect/token
+            - op: replace
+              path: /spec/provider/redirectURI
+              value: https://oidc-rhcl-workshop.sandbox2689.opentlc.com/auth/callback
+          target:
+            group: extensions.kuadrant.io
+            kind: OIDCPolicy
+            name: secure-demo-oidc
+            namespace: rhcl-oidc-portal
+            version: v1alpha1
+        - patch: |-
+            - op: replace
+              path: /spec/defaults/rules/authentication/jwt/jwt/issuerUrl
+              value: https://rhcl-workshop.sandbox2689.opentlc.com/auth/realms/rhcl
+          target:
+            group: kuadrant.io
+            kind: AuthPolicy
+            name: jwt-demo-jwt
+            namespace: demo-jwt
+            version: v1
+        - patch: |-
+            - op: replace
+              path: /spec/defaults/rules/authentication/jwt/jwt/issuerUrl
+              value: https://rhcl-workshop.sandbox2689.opentlc.com/auth/realms/rhcl
+          target:
+            group: kuadrant.io
+            kind: AuthPolicy
+            name: secure-demo-jwt
+            namespace: rhcl-oidc-portal
+            version: v1
+      path: gitops/apps/rhcl-demo-split/app-5-routes-policies
+      repoURL: https://github.com/kamorisan/demo-rhcl.git
+      targetRevision: feature/split-applications
+  operationState:
+    finishedAt: "2026-05-20T02:14:18Z"
+    message: successfully synced (all tasks run)
+    operation:
+      initiatedBy:
+        username: manual
+      retry: {}
+      sync:
+        syncStrategy:
+          hook: {}
+    phase: Succeeded
+    startedAt: "2026-05-20T02:13:50Z"
+    syncResult:
+      resources:
+      - group: gateway.networking.k8s.io
+        hookPhase: Succeeded
+        kind: ReferenceGrant
+        message: referencegrant.gateway.networking.k8s.io/allow-jwt-lab-to-external-proxy
+          unchanged
+        name: allow-jwt-lab-to-external-proxy
+        namespace: demo
+        status: Synced
+        syncPhase: Sync
+        version: v1beta1
+      - group: gateway.networking.k8s.io
+        hookPhase: Succeeded
+        kind: ReferenceGrant
+        message: referencegrant.gateway.networking.k8s.io/allow-oidc-portal-to-external-proxy
+          unchanged
+        name: allow-oidc-portal-to-external-proxy
+        namespace: demo
+        status: Synced
+        syncPhase: Sync
+        version: v1beta1
+      - group: kuadrant.io
+        hookPhase: Succeeded
+        kind: AuthPolicy
+        message: authpolicy.kuadrant.io/rhcl-gw-auth unchanged
+        name: rhcl-gw-auth
+        namespace: openshift-ingress
+        status: Synced
+        syncPhase: Sync
+        version: v1
+      - group: gateway.networking.k8s.io
+        hookPhase: Succeeded
+        kind: HTTPRoute
+        message: HTTPRoute is healthy
+        name: ab-demo
+        namespace: demo-ab
+        status: Synced
+        syncPhase: Sync
+        version: v1
+      - group: gateway.networking.k8s.io
+        hookPhase: Succeeded
+        kind: HTTPRoute
+        message: HTTPRoute is healthy
+        name: keycloak
+        namespace: rhcl-keycloak
+        status: Synced
+        syncPhase: Sync
+        version: v1
+      - group: gateway.networking.k8s.io
+        hookPhase: Succeeded
+        kind: HTTPRoute
+        message: HTTPRoute is healthy
+        name: ai-bot-ai
+        namespace: rhcl-ai-bot
+        status: Synced
+        syncPhase: Sync
+        version: v1
+      - group: gateway.networking.k8s.io
+        hookPhase: Succeeded
+        kind: HTTPRoute
+        message: HTTPRoute is healthy
+        name: oidc-portal
+        namespace: rhcl-oidc-portal
+        status: Synced
+        syncPhase: Sync
+        version: v1
+      - group: gateway.networking.k8s.io
+        hookPhase: Succeeded
+        kind: HTTPRoute
+        message: HTTPRoute is healthy
+        name: external-proxy-public
+        namespace: demo
+        status: Synced
+        syncPhase: Sync
+        version: v1
+      - group: gateway.networking.k8s.io
+        hookPhase: Succeeded
+        kind: HTTPRoute
+        message: HTTPRoute is healthy
+        name: external-proxy
+        namespace: demo
+        status: Synced
+        syncPhase: Sync
+        version: v1
+      - group: gateway.networking.k8s.io
+        hookPhase: Succeeded
+        kind: HTTPRoute
+        message: HTTPRoute is healthy
+        name: rhcl-ui
+        namespace: demo
+        status: Synced
+        syncPhase: Sync
+        version: v1
+      - group: gateway.networking.k8s.io
+        hookPhase: Succeeded
+        kind: HTTPRoute
+        message: HTTPRoute is healthy
+        name: ai-bot-main
+        namespace: rhcl-ai-bot
+        status: Synced
+        syncPhase: Sync
+        version: v1
+      - group: gateway.networking.k8s.io
+        hookPhase: Succeeded
+        kind: HTTPRoute
+        message: HTTPRoute is healthy
+        name: secure-demo
+        namespace: rhcl-oidc-portal
+        status: Synced
+        syncPhase: Sync
+        version: v1
+      - group: gateway.networking.k8s.io
+        hookPhase: Succeeded
+        kind: HTTPRoute
+        message: HTTPRoute is healthy
+        name: jwt-demo
+        namespace: demo-jwt
+        status: Synced
+        syncPhase: Sync
+        version: v1
+      - group: gateway.networking.k8s.io
+        hookPhase: Succeeded
+        kind: HTTPRoute
+        message: HTTPRoute is healthy
+        name: http-to-https
+        namespace: openshift-ingress
+        status: Synced
+        syncPhase: Sync
+        version: v1
+      - group: gateway.networking.k8s.io
+        hookPhase: Succeeded
+        kind: HTTPRoute
+        message: HTTPRoute is healthy
+        name: demo-api
+        namespace: demo
+        status: Synced
+        syncPhase: Sync
+        version: v1
+      - group: gateway.networking.k8s.io
+        hookPhase: Succeeded
+        kind: ReferenceGrant
+        message: referencegrant.gateway.networking.k8s.io/allow-mcp-extension unchanged
+        name: allow-mcp-extension
+        namespace: openshift-ingress
+        status: Synced
+        syncPhase: Sync
+        version: v1beta1
+      - group: gateway.networking.k8s.io
+        hookPhase: Succeeded
+        kind: HTTPRoute
+        message: HTTPRoute is healthy
+        name: ai-bot-mcp-server
+        namespace: rhcl-ai-bot
+        status: Synced
+        syncPhase: Sync
+        version: v1
+      - group: mcp.kuadrant.io
+        hookPhase: Succeeded
+        kind: MCPGatewayExtension
+        message: mcpgatewayextension.mcp.kuadrant.io/rhcl-mcp unchanged
+        name: rhcl-mcp
+        namespace: mcp-system
+        status: Synced
+        syncPhase: Sync
+        version: v1alpha1
+      - group: gateway.networking.k8s.io
+        hookPhase: Succeeded
+        kind: HTTPRoute
+        message: HTTPRoute is healthy
+        name: rhcl-mcp-gateway
+        namespace: mcp-system
+        status: Synced
+        syncPhase: Sync
+        version: v1
+      - group: gateway.networking.k8s.io
+        hookPhase: Succeeded
+        kind: HTTPRoute
+        message: HTTPRoute is healthy
+        name: oidc-portal-whoami
+        namespace: rhcl-oidc-portal
+        status: Synced
+        syncPhase: Sync
+        version: v1
+      - group: gateway.networking.k8s.io
+        hookPhase: Succeeded
+        kind: HTTPRoute
+        message: HTTPRoute is healthy
+        name: oidc-portal-callback
+        namespace: rhcl-oidc-portal
+        status: Synced
+        syncPhase: Sync
+        version: v1
+      - group: mcp.kuadrant.io
+        hookPhase: Succeeded
+        kind: MCPServerRegistration
+        message: mcpserverregistration.mcp.kuadrant.io/ai-bot-espn configured
+        name: ai-bot-espn
+        namespace: rhcl-ai-bot
+        status: Synced
+        syncPhase: Sync
+        version: v1alpha1
+      - group: ""
+        hookPhase: Succeeded
+        kind: Secret
+        message: secret/bob-key configured
+        name: bob-key
+        namespace: demo
+        status: Synced
+        syncPhase: Sync
+        version: v1
+      - group: ""
+        hookPhase: Succeeded
+        kind: Secret
+        message: secret/alice-key configured
+        name: alice-key
+        namespace: demo
+        status: Synced
+        syncPhase: Sync
+        version: v1
+      - group: kuadrant.io
+        hookPhase: Succeeded
+        kind: AuthPolicy
+        message: authpolicy.kuadrant.io/ab-demo-allow unchanged
+        name: ab-demo-allow
+        namespace: demo-ab
+        status: Synced
+        syncPhase: Sync
+        version: v1
+      - group: kuadrant.io
+        hookPhase: Succeeded
+        kind: AuthPolicy
+        message: authpolicy.kuadrant.io/rhcl-ui-allow unchanged
+        name: rhcl-ui-allow
+        namespace: demo
+        status: Synced
+        syncPhase: Sync
+        version: v1
+      - group: kuadrant.io
+        hookPhase: Succeeded
+        kind: AuthPolicy
+        message: authpolicy.kuadrant.io/jwt-demo-jwt unchanged
+        name: jwt-demo-jwt
+        namespace: demo-jwt
+        status: Synced
+        syncPhase: Sync
+        version: v1
+      - group: kuadrant.io
+        hookPhase: Succeeded
+        kind: AuthPolicy
+        message: authpolicy.kuadrant.io/ai-bot-main-allow unchanged
+        name: ai-bot-main-allow
+        namespace: rhcl-ai-bot
+        status: Synced
+        syncPhase: Sync
+        version: v1
+      - group: kuadrant.io
+        hookPhase: Succeeded
+        kind: AuthPolicy
+        message: authpolicy.kuadrant.io/external-proxy-public-allow unchanged
+        name: external-proxy-public-allow
+        namespace: demo
+        status: Synced
+        syncPhase: Sync
+        version: v1
+      - group: kuadrant.io
+        hookPhase: Succeeded
+        kind: AuthPolicy
+        message: authpolicy.kuadrant.io/oidc-portal-callback-allow unchanged
+        name: oidc-portal-callback-allow
+        namespace: rhcl-oidc-portal
+        status: Synced
+        syncPhase: Sync
+        version: v1
+      - group: kuadrant.io
+        hookPhase: Succeeded
+        kind: AuthPolicy
+        message: authpolicy.kuadrant.io/keycloak-allow unchanged
+        name: keycloak-allow
+        namespace: rhcl-keycloak
+        status: Synced
+        syncPhase: Sync
+        version: v1
+      - group: kuadrant.io
+        hookPhase: Succeeded
+        kind: AuthPolicy
+        message: authpolicy.kuadrant.io/secure-demo-jwt unchanged
+        name: secure-demo-jwt
+        namespace: rhcl-oidc-portal
+        status: Synced
+        syncPhase: Sync
+        version: v1
+      - group: kuadrant.io
+        hookPhase: Succeeded
+        kind: AuthPolicy
+        message: authpolicy.kuadrant.io/demo-api-auth unchanged
+        name: demo-api-auth
+        namespace: demo
+        status: Synced
+        syncPhase: Sync
+        version: v1
+      - group: kuadrant.io
+        hookPhase: Succeeded
+        kind: AuthPolicy
+        message: authpolicy.kuadrant.io/oidc-portal-whoami-allow unchanged
+        name: oidc-portal-whoami-allow
+        namespace: rhcl-oidc-portal
+        status: Synced
+        syncPhase: Sync
+        version: v1
+      - group: kuadrant.io
+        hookPhase: Succeeded
+        kind: AuthPolicy
+        message: authpolicy.kuadrant.io/external-proxy-allow unchanged
+        name: external-proxy-allow
+        namespace: demo
+        status: Synced
+        syncPhase: Sync
+        version: v1
+      - group: kuadrant.io
+        hookPhase: Succeeded
+        kind: AuthPolicy
+        message: authpolicy.kuadrant.io/oidc-portal-allow unchanged
+        name: oidc-portal-allow
+        namespace: rhcl-oidc-portal
+        status: Synced
+        syncPhase: Sync
+        version: v1
+      - group: extensions.kuadrant.io
+        hookPhase: Succeeded
+        kind: OIDCPolicy
+        message: oidcpolicy.extensions.kuadrant.io/secure-demo-oidc unchanged
+        name: secure-demo-oidc
+        namespace: rhcl-oidc-portal
+        status: Synced
+        syncPhase: Sync
+        version: v1alpha1
+      - group: kuadrant.io
+        hookPhase: Succeeded
+        kind: RateLimitPolicy
+        message: ratelimitpolicy.kuadrant.io/demo-api-rlp unchanged
+        name: demo-api-rlp
+        namespace: demo
+        status: Synced
+        syncPhase: Sync
+        version: v1
+      - group: kuadrant.io
+        hookPhase: Running
+        kind: TokenRateLimitPolicy
+        message: tokenratelimitpolicy.kuadrant.io/ai-bot-ai-token-rl unchanged
+        name: ai-bot-ai-token-rl
+        namespace: rhcl-ai-bot
+        status: Synced
+        syncPhase: Sync
+        version: v1alpha1
+      - group: kuadrant.io
+        hookPhase: Running
+        kind: TokenRateLimitPolicy
+        message: tokenratelimitpolicy.kuadrant.io/ai-bot-main-token-rl unchanged
+        name: ai-bot-main-token-rl
+        namespace: rhcl-ai-bot
+        status: Synced
+        syncPhase: Sync
+        version: v1alpha1
+      - group: kuadrant.io
+        hookPhase: Running
+        kind: AuthPolicy
+        message: authpolicy.kuadrant.io/rhcl-mcp-allow unchanged
+        name: rhcl-mcp-allow
+        namespace: mcp-system
+        status: Synced
+        syncPhase: Sync
+        version: v1
+      revision: 30c6b1ccfecb233685e09816ef834e3c0af2dc68
+      source:
+        kustomize:
+          patches:
+          - patch: |-
+              - op: replace
+                path: /spec/hostnames/0
+                value: rhcl-workshop.sandbox2689.opentlc.com
+              - op: replace
+                path: /spec/parentRefs/0/name
+                value: rhcl-workshop-gw
+            target:
+              group: gateway.networking.k8s.io
+              kind: HTTPRoute
+              name: rhcl-ui
+              namespace: demo
+              version: v1
+          - patch: |-
+              - op: replace
+                path: /spec/hostnames/0
+                value: oidc-rhcl-workshop.sandbox2689.opentlc.com
+              - op: replace
+                path: /spec/parentRefs/0/name
+                value: rhcl-workshop-gw
+            target:
+              group: gateway.networking.k8s.io
+              kind: HTTPRoute
+              name: oidc-portal
+              namespace: rhcl-oidc-portal
+              version: v1
+          - patch: |-
+              - op: replace
+                path: /spec/hostnames/0
+                value: rhcl-workshop.sandbox2689.opentlc.com
+              - op: replace
+                path: /spec/parentRefs/0/name
+                value: rhcl-workshop-gw
+            target:
+              group: gateway.networking.k8s.io
+              kind: HTTPRoute
+              name: demo-api
+              namespace: demo
+              version: v1
+          - patch: |-
+              - op: replace
+                path: /spec/hostnames/0
+                value: oidc-rhcl-workshop.sandbox2689.opentlc.com
+              - op: replace
+                path: /spec/parentRefs/0/name
+                value: rhcl-workshop-gw
+            target:
+              group: gateway.networking.k8s.io
+              kind: HTTPRoute
+              name: secure-demo
+              namespace: rhcl-oidc-portal
+              version: v1
+          - patch: |-
+              - op: replace
+                path: /spec/hostnames/0
+                value: oidc-rhcl-workshop.sandbox2689.opentlc.com
+              - op: replace
+                path: /spec/parentRefs/0/name
+                value: rhcl-workshop-gw
+            target:
+              group: gateway.networking.k8s.io
+              kind: HTTPRoute
+              name: oidc-portal
+              namespace: rhcl-oidc-portal
+              version: v1
+          - patch: |-
+              - op: replace
+                path: /spec/hostnames
+                value:
+                  - rhcl-workshop.sandbox2689.opentlc.com
+                  - oidc-rhcl-workshop.sandbox2689.opentlc.com
+              - op: replace
+                path: /spec/parentRefs/0/name
+                value: rhcl-workshop-gw
+            target:
+              group: gateway.networking.k8s.io
+              kind: HTTPRoute
+              name: keycloak
+              namespace: rhcl-keycloak
+              version: v1
+          - patch: |-
+              - op: replace
+                path: /spec/hostnames/0
+                value: oidc-rhcl-workshop.sandbox2689.opentlc.com
+              - op: replace
+                path: /spec/parentRefs/0/name
+                value: rhcl-workshop-gw
+            target:
+              group: gateway.networking.k8s.io
+              kind: HTTPRoute
+              name: oidc-portal-callback
+              namespace: rhcl-oidc-portal
+              version: v1
+          - patch: |-
+              - op: replace
+                path: /spec/hostnames/0
+                value: oidc-rhcl-workshop.sandbox2689.opentlc.com
+              - op: replace
+                path: /spec/parentRefs/0/name
+                value: rhcl-workshop-gw
+            target:
+              group: gateway.networking.k8s.io
+              kind: HTTPRoute
+              name: oidc-portal-whoami
+              namespace: rhcl-oidc-portal
+              version: v1
+          - patch: |-
+              - op: replace
+                path: /spec/hostnames/0
+                value: rhcl-workshop.sandbox2689.opentlc.com
+              - op: replace
+                path: /spec/parentRefs/0/name
+                value: rhcl-workshop-gw
+            target:
+              group: gateway.networking.k8s.io
+              kind: HTTPRoute
+              name: ai-bot-main
+              namespace: rhcl-ai-bot
+              version: v1
+          - patch: |-
+              - op: replace
+                path: /spec/hostnames/0
+                value: ai.sandbox2689.opentlc.com
+              - op: replace
+                path: /spec/parentRefs/0/name
+                value: rhcl-ai-gw
+            target:
+              group: gateway.networking.k8s.io
+              kind: HTTPRoute
+              name: ai-bot-ai
+              namespace: rhcl-ai-bot
+              version: v1
+          - patch: |-
+              - op: replace
+                path: /spec/hostnames/0
+                value: mcp.sandbox2689.opentlc.com
+              - op: replace
+                path: /spec/parentRefs/0/name
+                value: rhcl-mcp-gw
+            target:
+              group: gateway.networking.k8s.io
+              kind: HTTPRoute
+              name: rhcl-mcp-gateway
+              namespace: mcp-system
+              version: v1
+          - patch: |-
+              - op: replace
+                path: /spec/publicHost
+                value: mcp.sandbox2689.opentlc.com
+            target:
+              group: mcp.kuadrant.io
+              kind: MCPGatewayExtension
+              name: rhcl-mcp
+              namespace: mcp-system
+              version: v1alpha1
+          - patch: |-
+              - op: replace
+                path: /spec/hostnames/0
+                value: mcp.sandbox2689.opentlc.com
+            target:
+              group: gateway.networking.k8s.io
+              kind: HTTPRoute
+              name: ai-bot-mcp-server
+              namespace: rhcl-ai-bot
+              version: v1
+          - patch: |-
+              - op: replace
+                path: /spec/parentRefs/0/name
+                value: rhcl-workshop-gw
+            target:
+              group: gateway.networking.k8s.io
+              kind: HTTPRoute
+              name: external-proxy
+              namespace: demo
+              version: v1
+          - patch: |-
+              - op: replace
+                path: /spec/hostnames/0
+                value: external-api.sandbox2689.opentlc.com
+              - op: replace
+                path: /spec/parentRefs/0/name
+                value: rhcl-external-gw
+            target:
+              group: gateway.networking.k8s.io
+              kind: HTTPRoute
+              name: external-proxy-public
+              namespace: demo
+              version: v1
+          - patch: |-
+              - op: replace
+                path: /spec/hostnames/0
+                value: rhcl-workshop.sandbox2689.opentlc.com
+              - op: replace
+                path: /spec/parentRefs/0/name
+                value: rhcl-workshop-gw
+            target:
+              group: gateway.networking.k8s.io
+              kind: HTTPRoute
+              name: ab-demo
+              namespace: demo-ab
+              version: v1
+          - patch: |-
+              - op: replace
+                path: /spec/hostnames/0
+                value: rhcl-workshop.sandbox2689.opentlc.com
+              - op: replace
+                path: /spec/parentRefs/0/name
+                value: rhcl-workshop-gw
+            target:
+              group: gateway.networking.k8s.io
+              kind: HTTPRoute
+              name: jwt-demo
+              namespace: demo-jwt
+              version: v1
+          - patch: |-
+              - op: replace
+                path: /spec/parentRefs/0/name
+                value: rhcl-workshop-gw
+            target:
+              group: gateway.networking.k8s.io
+              kind: HTTPRoute
+              name: http-to-https
+              namespace: openshift-ingress
+              version: v1
+          - patch: |-
+              - op: replace
+                path: /spec/targetRef/name
+                value: rhcl-workshop-gw
+            target:
+              group: kuadrant.io
+              kind: AuthPolicy
+              name: rhcl-gw-auth
+              namespace: openshift-ingress
+              version: v1
+          - patch: |-
+              - op: replace
+                path: /spec/provider/issuerURL
+                value: https://oidc-rhcl-workshop.sandbox2689.opentlc.com/auth/realms/rhcl
+              - op: replace
+                path: /spec/provider/authorizationEndpoint
+                value: https://oidc-rhcl-workshop.sandbox2689.opentlc.com/auth/realms/rhcl/protocol/openid-connect/auth
+              - op: replace
+                path: /spec/provider/tokenEndpoint
+                value: https://oidc-rhcl-workshop.sandbox2689.opentlc.com/auth/realms/rhcl/protocol/openid-connect/token
+              - op: replace
+                path: /spec/provider/redirectURI
+                value: https://oidc-rhcl-workshop.sandbox2689.opentlc.com/auth/callback
+            target:
+              group: extensions.kuadrant.io
+              kind: OIDCPolicy
+              name: secure-demo-oidc
+              namespace: rhcl-oidc-portal
+              version: v1alpha1
+          - patch: |-
+              - op: replace
+                path: /spec/defaults/rules/authentication/jwt/jwt/issuerUrl
+                value: https://rhcl-workshop.sandbox2689.opentlc.com/auth/realms/rhcl
+            target:
+              group: kuadrant.io
+              kind: AuthPolicy
+              name: jwt-demo-jwt
+              namespace: demo-jwt
+              version: v1
+          - patch: |-
+              - op: replace
+                path: /spec/defaults/rules/authentication/jwt/jwt/issuerUrl
+                value: https://rhcl-workshop.sandbox2689.opentlc.com/auth/realms/rhcl
+            target:
+              group: kuadrant.io
+              kind: AuthPolicy
+              name: secure-demo-jwt
+              namespace: rhcl-oidc-portal
+              version: v1
+        path: gitops/apps/rhcl-demo-split/app-5-routes-policies
+        repoURL: https://github.com/kamorisan/demo-rhcl.git
+        targetRevision: feature/split-applications
+  reconciledAt: "2026-05-20T05:02:56Z"
+  resources:
+  - kind: Secret
+    name: alice-key
+    namespace: demo
+    status: Synced
+    syncWave: 30
+    version: v1
+  - kind: Secret
+    name: bob-key
+    namespace: demo
+    status: Synced
+    syncWave: 30
+    version: v1
+  - group: extensions.kuadrant.io
+    kind: OIDCPolicy
+    name: secure-demo-oidc
+    namespace: rhcl-oidc-portal
+    status: Synced
+    syncWave: 30
+    version: v1alpha1
+  - group: gateway.networking.k8s.io
+    health:
+      message: HTTPRoute is healthy
+      status: Healthy
+    kind: HTTPRoute
+    name: ab-demo
+    namespace: demo-ab
+    status: Synced
+    syncWave: 20
+    version: v1
+  - group: gateway.networking.k8s.io
+    health:
+      message: HTTPRoute is healthy
+      status: Healthy
+    kind: HTTPRoute
+    name: jwt-demo
+    namespace: demo-jwt
+    status: Synced
+    syncWave: 20
+    version: v1
+  - group: gateway.networking.k8s.io
+    health:
+      message: HTTPRoute is healthy
+      status: Healthy
+    kind: HTTPRoute
+    name: demo-api
+    namespace: demo
+    status: Synced
+    syncWave: 20
+    version: v1
+  - group: gateway.networking.k8s.io
+    health:
+      message: HTTPRoute is healthy
+      status: Healthy
+    kind: HTTPRoute
+    name: external-proxy
+    namespace: demo
+    status: Synced
+    syncWave: 20
+    version: v1
+  - group: gateway.networking.k8s.io
+    health:
+      message: HTTPRoute is healthy
+      status: Healthy
+    kind: HTTPRoute
+    name: external-proxy-public
+    namespace: demo
+    status: Synced
+    syncWave: 20
+    version: v1
+  - group: gateway.networking.k8s.io
+    health:
+      message: HTTPRoute is healthy
+      status: Healthy
+    kind: HTTPRoute
+    name: rhcl-ui
+    namespace: demo
+    status: Synced
+    syncWave: 20
+    version: v1
+  - group: gateway.networking.k8s.io
+    health:
+      message: HTTPRoute is healthy
+      status: Healthy
+    kind: HTTPRoute
+    name: rhcl-mcp-gateway
+    namespace: mcp-system
+    status: Synced
+    syncWave: 25
+    version: v1
+  - group: gateway.networking.k8s.io
+    health:
+      message: HTTPRoute is healthy
+      status: Healthy
+    kind: HTTPRoute
+    name: http-to-https
+    namespace: openshift-ingress
+    status: Synced
+    syncWave: 20
+    version: v1
+  - group: gateway.networking.k8s.io
+    health:
+      message: HTTPRoute is healthy
+      status: Healthy
+    kind: HTTPRoute
+    name: ai-bot-ai
+    namespace: rhcl-ai-bot
+    status: Synced
+    syncWave: 20
+    version: v1
+  - group: gateway.networking.k8s.io
+    health:
+      message: HTTPRoute is healthy
+      status: Healthy
+    kind: HTTPRoute
+    name: ai-bot-main
+    namespace: rhcl-ai-bot
+    status: Synced
+    syncWave: 20
+    version: v1
+  - group: gateway.networking.k8s.io
+    health:
+      status: Missing
+    kind: HTTPRoute
+    name: ai-bot-mcp-server
+    namespace: rhcl-ai-bot
+    status: OutOfSync
+    syncWave: 24
+    version: v1
+  - group: gateway.networking.k8s.io
+    health:
+      message: HTTPRoute is healthy
+      status: Healthy
+    kind: HTTPRoute
+    name: keycloak
+    namespace: rhcl-keycloak
+    status: Synced
+    syncWave: 20
+    version: v1
+  - group: gateway.networking.k8s.io
+    health:
+      message: HTTPRoute is healthy
+      status: Healthy
+    kind: HTTPRoute
+    name: oidc-portal
+    namespace: rhcl-oidc-portal
+    status: Synced
+    syncWave: 20
+    version: v1
+  - group: gateway.networking.k8s.io
+    health:
+      message: HTTPRoute is healthy
+      status: Healthy
+    kind: HTTPRoute
+    name: oidc-portal-callback
+    namespace: rhcl-oidc-portal
+    status: Synced
+    syncWave: 25
+    version: v1
+  - group: gateway.networking.k8s.io
+    health:
+      message: HTTPRoute is healthy
+      status: Healthy
+    kind: HTTPRoute
+    name: oidc-portal-whoami
+    namespace: rhcl-oidc-portal
+    status: Synced
+    syncWave: 25
+    version: v1
+  - group: gateway.networking.k8s.io
+    health:
+      message: HTTPRoute is healthy
+      status: Healthy
+    kind: HTTPRoute
+    name: secure-demo
+    namespace: rhcl-oidc-portal
+    status: Synced
+    syncWave: 20
+    version: v1
+  - group: gateway.networking.k8s.io
+    kind: ReferenceGrant
+    name: allow-jwt-lab-to-external-proxy
+    namespace: demo
+    status: Synced
+    syncWave: 19
+    version: v1beta1
+  - group: gateway.networking.k8s.io
+    kind: ReferenceGrant
+    name: allow-oidc-portal-to-external-proxy
+    namespace: demo
+    status: Synced
+    syncWave: 19
+    version: v1beta1
+  - group: gateway.networking.k8s.io
+    kind: ReferenceGrant
+    name: allow-mcp-extension
+    namespace: openshift-ingress
+    status: Synced
+    syncWave: 23
+    version: v1beta1
+  - group: kuadrant.io
+    kind: AuthPolicy
+    name: ab-demo-allow
+    namespace: demo-ab
+    status: Synced
+    syncWave: 30
+    version: v1
+  - group: kuadrant.io
+    kind: AuthPolicy
+    name: jwt-demo-jwt
+    namespace: demo-jwt
+    status: Synced
+    syncWave: 30
+    version: v1
+  - group: kuadrant.io
+    kind: AuthPolicy
+    name: demo-api-auth
+    namespace: demo
+    status: Synced
+    syncWave: 30
+    version: v1
+  - group: kuadrant.io
+    kind: AuthPolicy
+    name: external-proxy-allow
+    namespace: demo
+    status: Synced
+    syncWave: 30
+    version: v1
+  - group: kuadrant.io
+    kind: AuthPolicy
+    name: external-proxy-public-allow
+    namespace: demo
+    status: Synced
+    syncWave: 30
+    version: v1
+  - group: kuadrant.io
+    kind: AuthPolicy
+    name: rhcl-ui-allow
+    namespace: demo
+    status: Synced
+    syncWave: 30
+    version: v1
+  - group: kuadrant.io
+    kind: AuthPolicy
+    name: rhcl-mcp-allow
+    namespace: mcp-system
+    status: Synced
+    syncWave: 32
+    version: v1
+  - group: kuadrant.io
+    kind: AuthPolicy
+    name: rhcl-gw-auth
+    namespace: openshift-ingress
+    status: Synced
+    syncWave: 19
+    version: v1
+  - group: kuadrant.io
+    kind: AuthPolicy
+    name: ai-bot-main-allow
+    namespace: rhcl-ai-bot
+    status: Synced
+    syncWave: 30
+    version: v1
+  - group: kuadrant.io
+    health:
+      status: Missing
+    kind: AuthPolicy
+    name: ai-bot-mcp-allow
+    namespace: rhcl-ai-bot
+    status: OutOfSync
+    syncWave: 30
+    version: v1
+  - group: kuadrant.io
+    kind: AuthPolicy
+    name: keycloak-allow
+    namespace: rhcl-keycloak
+    status: Synced
+    syncWave: 30
+    version: v1
+  - group: kuadrant.io
+    kind: AuthPolicy
+    name: oidc-portal-allow
+    namespace: rhcl-oidc-portal
+    status: Synced
+    syncWave: 30
+    version: v1
+  - group: kuadrant.io
+    kind: AuthPolicy
+    name: oidc-portal-callback-allow
+    namespace: rhcl-oidc-portal
+    status: Synced
+    syncWave: 30
+    version: v1
+  - group: kuadrant.io
+    kind: AuthPolicy
+    name: oidc-portal-whoami-allow
+    namespace: rhcl-oidc-portal
+    status: Synced
+    syncWave: 30
+    version: v1
+  - group: kuadrant.io
+    kind: AuthPolicy
+    name: secure-demo-jwt
+    namespace: rhcl-oidc-portal
+    status: Synced
+    syncWave: 30
+    version: v1
+  - group: kuadrant.io
+    kind: RateLimitPolicy
+    name: demo-api-rlp
+    namespace: demo
+    status: Synced
+    syncWave: 31
+    version: v1
+  - group: kuadrant.io
+    kind: TokenRateLimitPolicy
+    name: ai-bot-ai-token-rl
+    namespace: rhcl-ai-bot
+    status: Synced
+    syncWave: 32
+    version: v1alpha1
+  - group: kuadrant.io
+    kind: TokenRateLimitPolicy
+    name: ai-bot-main-token-rl
+    namespace: rhcl-ai-bot
+    status: Synced
+    syncWave: 32
+    version: v1alpha1
+  - group: mcp.kuadrant.io
+    kind: MCPGatewayExtension
+    name: rhcl-mcp
+    namespace: mcp-system
+    status: Synced
+    syncWave: 24
+    version: v1alpha1
+  - group: mcp.kuadrant.io
+    health:
+      status: Missing
+    kind: MCPServerRegistration
+    name: ai-bot-espn
+    namespace: rhcl-ai-bot
+    status: OutOfSync
+    syncWave: 26
+    version: v1alpha1
+  sourceType: Kustomize
+  summary:
+    images:
+    - registry.redhat.io/rhcl-tech-preview/mcp-gateway-rhel9@sha256:49308fb631ced835c79d97188dbf13c601e5401544b085feb2bf975a7beebce0
+  sync:
+    comparedTo:
+      destination:
+        namespace: demo
+        server: https://kubernetes.default.svc
+      source:
+        kustomize:
+          patches:
+          - patch: |-
+              - op: replace
+                path: /spec/hostnames/0
+                value: rhcl-workshop.sandbox2689.opentlc.com
+              - op: replace
+                path: /spec/parentRefs/0/name
+                value: rhcl-workshop-gw
+            target:
+              group: gateway.networking.k8s.io
+              kind: HTTPRoute
+              name: rhcl-ui
+              namespace: demo
+              version: v1
+          - patch: |-
+              - op: replace
+                path: /spec/hostnames/0
+                value: oidc-rhcl-workshop.sandbox2689.opentlc.com
+              - op: replace
+                path: /spec/parentRefs/0/name
+                value: rhcl-workshop-gw
+            target:
+              group: gateway.networking.k8s.io
+              kind: HTTPRoute
+              name: oidc-portal
+              namespace: rhcl-oidc-portal
+              version: v1
+          - patch: |-
+              - op: replace
+                path: /spec/hostnames/0
+                value: rhcl-workshop.sandbox2689.opentlc.com
+              - op: replace
+                path: /spec/parentRefs/0/name
+                value: rhcl-workshop-gw
+            target:
+              group: gateway.networking.k8s.io
+              kind: HTTPRoute
+              name: demo-api
+              namespace: demo
+              version: v1
+          - patch: |-
+              - op: replace
+                path: /spec/hostnames/0
+                value: oidc-rhcl-workshop.sandbox2689.opentlc.com
+              - op: replace
+                path: /spec/parentRefs/0/name
+                value: rhcl-workshop-gw
+            target:
+              group: gateway.networking.k8s.io
+              kind: HTTPRoute
+              name: secure-demo
+              namespace: rhcl-oidc-portal
+              version: v1
+          - patch: |-
+              - op: replace
+                path: /spec/hostnames/0
+                value: oidc-rhcl-workshop.sandbox2689.opentlc.com
+              - op: replace
+                path: /spec/parentRefs/0/name
+                value: rhcl-workshop-gw
+            target:
+              group: gateway.networking.k8s.io
+              kind: HTTPRoute
+              name: oidc-portal
+              namespace: rhcl-oidc-portal
+              version: v1
+          - patch: |-
+              - op: replace
+                path: /spec/hostnames
+                value:
+                  - rhcl-workshop.sandbox2689.opentlc.com
+                  - oidc-rhcl-workshop.sandbox2689.opentlc.com
+              - op: replace
+                path: /spec/parentRefs/0/name
+                value: rhcl-workshop-gw
+            target:
+              group: gateway.networking.k8s.io
+              kind: HTTPRoute
+              name: keycloak
+              namespace: rhcl-keycloak
+              version: v1
+          - patch: |-
+              - op: replace
+                path: /spec/hostnames/0
+                value: oidc-rhcl-workshop.sandbox2689.opentlc.com
+              - op: replace
+                path: /spec/parentRefs/0/name
+                value: rhcl-workshop-gw
+            target:
+              group: gateway.networking.k8s.io
+              kind: HTTPRoute
+              name: oidc-portal-callback
+              namespace: rhcl-oidc-portal
+              version: v1
+          - patch: |-
+              - op: replace
+                path: /spec/hostnames/0
+                value: oidc-rhcl-workshop.sandbox2689.opentlc.com
+              - op: replace
+                path: /spec/parentRefs/0/name
+                value: rhcl-workshop-gw
+            target:
+              group: gateway.networking.k8s.io
+              kind: HTTPRoute
+              name: oidc-portal-whoami
+              namespace: rhcl-oidc-portal
+              version: v1
+          - patch: |-
+              - op: replace
+                path: /spec/hostnames/0
+                value: rhcl-workshop.sandbox2689.opentlc.com
+              - op: replace
+                path: /spec/parentRefs/0/name
+                value: rhcl-workshop-gw
+            target:
+              group: gateway.networking.k8s.io
+              kind: HTTPRoute
+              name: ai-bot-main
+              namespace: rhcl-ai-bot
+              version: v1
+          - patch: |-
+              - op: replace
+                path: /spec/hostnames/0
+                value: ai.sandbox2689.opentlc.com
+              - op: replace
+                path: /spec/parentRefs/0/name
+                value: rhcl-ai-gw
+            target:
+              group: gateway.networking.k8s.io
+              kind: HTTPRoute
+              name: ai-bot-ai
+              namespace: rhcl-ai-bot
+              version: v1
+          - patch: |-
+              - op: replace
+                path: /spec/hostnames/0
+                value: mcp.sandbox2689.opentlc.com
+              - op: replace
+                path: /spec/parentRefs/0/name
+                value: rhcl-mcp-gw
+            target:
+              group: gateway.networking.k8s.io
+              kind: HTTPRoute
+              name: rhcl-mcp-gateway
+              namespace: mcp-system
+              version: v1
+          - patch: |-
+              - op: replace
+                path: /spec/publicHost
+                value: mcp.sandbox2689.opentlc.com
+            target:
+              group: mcp.kuadrant.io
+              kind: MCPGatewayExtension
+              name: rhcl-mcp
+              namespace: mcp-system
+              version: v1alpha1
+          - patch: |-
+              - op: replace
+                path: /spec/hostnames/0
+                value: mcp.sandbox2689.opentlc.com
+            target:
+              group: gateway.networking.k8s.io
+              kind: HTTPRoute
+              name: ai-bot-mcp-server
+              namespace: rhcl-ai-bot
+              version: v1
+          - patch: |-
+              - op: replace
+                path: /spec/parentRefs/0/name
+                value: rhcl-workshop-gw
+            target:
+              group: gateway.networking.k8s.io
+              kind: HTTPRoute
+              name: external-proxy
+              namespace: demo
+              version: v1
+          - patch: |-
+              - op: replace
+                path: /spec/hostnames/0
+                value: external-api.sandbox2689.opentlc.com
+              - op: replace
+                path: /spec/parentRefs/0/name
+                value: rhcl-external-gw
+            target:
+              group: gateway.networking.k8s.io
+              kind: HTTPRoute
+              name: external-proxy-public
+              namespace: demo
+              version: v1
+          - patch: |-
+              - op: replace
+                path: /spec/hostnames/0
+                value: rhcl-workshop.sandbox2689.opentlc.com
+              - op: replace
+                path: /spec/parentRefs/0/name
+                value: rhcl-workshop-gw
+            target:
+              group: gateway.networking.k8s.io
+              kind: HTTPRoute
+              name: ab-demo
+              namespace: demo-ab
+              version: v1
+          - patch: |-
+              - op: replace
+                path: /spec/hostnames/0
+                value: rhcl-workshop.sandbox2689.opentlc.com
+              - op: replace
+                path: /spec/parentRefs/0/name
+                value: rhcl-workshop-gw
+            target:
+              group: gateway.networking.k8s.io
+              kind: HTTPRoute
+              name: jwt-demo
+              namespace: demo-jwt
+              version: v1
+          - patch: |-
+              - op: replace
+                path: /spec/parentRefs/0/name
+                value: rhcl-workshop-gw
+            target:
+              group: gateway.networking.k8s.io
+              kind: HTTPRoute
+              name: http-to-https
+              namespace: openshift-ingress
+              version: v1
+          - patch: |-
+              - op: replace
+                path: /spec/targetRef/name
+                value: rhcl-workshop-gw
+            target:
+              group: kuadrant.io
+              kind: AuthPolicy
+              name: rhcl-gw-auth
+              namespace: openshift-ingress
+              version: v1
+          - patch: |-
+              - op: replace
+                path: /spec/provider/issuerURL
+                value: https://oidc-rhcl-workshop.sandbox2689.opentlc.com/auth/realms/rhcl
+              - op: replace
+                path: /spec/provider/authorizationEndpoint
+                value: https://oidc-rhcl-workshop.sandbox2689.opentlc.com/auth/realms/rhcl/protocol/openid-connect/auth
+              - op: replace
+                path: /spec/provider/tokenEndpoint
+                value: https://oidc-rhcl-workshop.sandbox2689.opentlc.com/auth/realms/rhcl/protocol/openid-connect/token
+              - op: replace
+                path: /spec/provider/redirectURI
+                value: https://oidc-rhcl-workshop.sandbox2689.opentlc.com/auth/callback
+            target:
+              group: extensions.kuadrant.io
+              kind: OIDCPolicy
+              name: secure-demo-oidc
+              namespace: rhcl-oidc-portal
+              version: v1alpha1
+          - patch: |-
+              - op: replace
+                path: /spec/defaults/rules/authentication/jwt/jwt/issuerUrl
+                value: https://rhcl-workshop.sandbox2689.opentlc.com/auth/realms/rhcl
+            target:
+              group: kuadrant.io
+              kind: AuthPolicy
+              name: jwt-demo-jwt
+              namespace: demo-jwt
+              version: v1
+          - patch: |-
+              - op: replace
+                path: /spec/defaults/rules/authentication/jwt/jwt/issuerUrl
+                value: https://rhcl-workshop.sandbox2689.opentlc.com/auth/realms/rhcl
+            target:
+              group: kuadrant.io
+              kind: AuthPolicy
+              name: secure-demo-jwt
+              namespace: rhcl-oidc-portal
+              version: v1
+        path: gitops/apps/rhcl-demo-split/app-5-routes-policies
+        repoURL: https://github.com/kamorisan/demo-rhcl.git
+        targetRevision: feature/split-applications
+    revision: 11cd0391e199a8044aecef7042eaaff6662735b9
+    status: OutOfSync

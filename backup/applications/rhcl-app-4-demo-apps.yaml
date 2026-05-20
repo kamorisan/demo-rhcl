@@ -1,0 +1,887 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  annotations:
+    argocd.argoproj.io/sync-wave: "4"
+    kubectl.kubernetes.io/last-applied-configuration: |
+      {"apiVersion":"argoproj.io/v1alpha1","kind":"Application","metadata":{"annotations":{"argocd.argoproj.io/sync-wave":"4"},"finalizers":["resources-finalizer.argocd.argoproj.io"],"name":"rhcl-app-4-demo-apps","namespace":"openshift-gitops"},"spec":{"destination":{"namespace":"demo","server":"https://kubernetes.default.svc"},"ignoreDifferences":[{"group":"apps","jqPathExpressions":[".spec.template.spec.containers[].image"],"kind":"Deployment","name":"rhcl-ai-bot","namespace":"rhcl-ai-bot"}],"project":"default","source":{"kustomize":{"patches":[{"patch":"- op: replace\n  path: /spec/template/spec/containers/0/env/9/value\n  value: https://external-api.sandbox2689.opentlc.com\n- op: replace\n  path: /spec/template/spec/containers/0/env/10/value\n  value: https://mcp.sandbox2689.opentlc.com","target":{"group":"apps","kind":"Deployment","name":"rhcl-ai-bot","namespace":"rhcl-ai-bot","version":"v1"}}]},"path":"gitops/apps/rhcl-demo-split/app-4-demo-apps","repoURL":"https://github.com/kamorisan/demo-rhcl.git","targetRevision":"feature/split-applications"},"syncPolicy":{"retry":{"backoff":{"duration":"30s","factor":2,"maxDuration":"10m"},"limit":10},"syncOptions":["CreateNamespace=true","RespectIgnoreDifferences=true"]}}}
+  creationTimestamp: "2026-05-20T01:44:22Z"
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+  generation: 102
+  name: rhcl-app-4-demo-apps
+  namespace: openshift-gitops
+  resourceVersion: "680942"
+  uid: 3570ddb0-8caa-4be1-a3e4-0743d0bfb064
+spec:
+  destination:
+    namespace: demo
+    server: https://kubernetes.default.svc
+  ignoreDifferences:
+  - group: apps
+    jqPathExpressions:
+    - .spec.template.spec.containers[].image
+    kind: Deployment
+    name: rhcl-ai-bot
+    namespace: rhcl-ai-bot
+  project: default
+  source:
+    kustomize:
+      patches:
+      - patch: |-
+          - op: replace
+            path: /spec/template/spec/containers/0/env/9/value
+            value: https://external-api.sandbox2689.opentlc.com
+          - op: replace
+            path: /spec/template/spec/containers/0/env/10/value
+            value: https://mcp.sandbox2689.opentlc.com
+        target:
+          group: apps
+          kind: Deployment
+          name: rhcl-ai-bot
+          namespace: rhcl-ai-bot
+          version: v1
+    path: gitops/apps/rhcl-demo-split/app-4-demo-apps
+    repoURL: https://github.com/kamorisan/demo-rhcl.git
+    targetRevision: feature/split-applications
+  syncPolicy:
+    retry:
+      backoff:
+        duration: 30s
+        factor: 2
+        maxDuration: 10m
+      limit: 10
+    syncOptions:
+    - CreateNamespace=true
+    - RespectIgnoreDifferences=true
+status:
+  controllerNamespace: openshift-gitops
+  health:
+    lastTransitionTime: "2026-05-20T01:47:29Z"
+    status: Healthy
+  history:
+  - deployStartedAt: "2026-05-20T01:44:28Z"
+    deployedAt: "2026-05-20T01:47:16Z"
+    id: 0
+    initiatedBy:
+      username: manual
+    revision: ee22301fb428dba0feaee244a567f9f6c5f684c9
+    source:
+      kustomize:
+        patches:
+        - patch: |-
+            - op: replace
+              path: /spec/template/spec/containers/0/env/9/value
+              value: https://external-api.sandbox2689.opentlc.com
+            - op: replace
+              path: /spec/template/spec/containers/0/env/10/value
+              value: https://mcp.sandbox2689.opentlc.com
+          target:
+            group: apps
+            kind: Deployment
+            name: rhcl-ai-bot
+            namespace: rhcl-ai-bot
+            version: v1
+      path: gitops/apps/rhcl-demo-split/app-4-demo-apps
+      repoURL: https://github.com/kamorisan/demo-rhcl.git
+      targetRevision: feature/split-applications
+  operationState:
+    finishedAt: "2026-05-20T01:47:16Z"
+    message: successfully synced (all tasks run)
+    operation:
+      initiatedBy:
+        username: manual
+      retry: {}
+      sync: {}
+    phase: Succeeded
+    startedAt: "2026-05-20T01:44:28Z"
+    syncResult:
+      resources:
+      - group: ""
+        hookPhase: Succeeded
+        kind: Secret
+        message: secret/keycloak-db-secret created
+        name: keycloak-db-secret
+        namespace: rhcl-keycloak
+        status: Synced
+        syncPhase: Sync
+        version: v1
+      - group: ""
+        hookPhase: Succeeded
+        kind: ConfigMap
+        message: configmap/ab-b-nginx created
+        name: ab-b-nginx
+        namespace: demo-ab
+        status: Synced
+        syncPhase: Sync
+        version: v1
+      - group: ""
+        hookPhase: Succeeded
+        kind: ConfigMap
+        message: configmap/canary-v2-nginx created
+        name: canary-v2-nginx
+        namespace: demo-ab
+        status: Synced
+        syncPhase: Sync
+        version: v1
+      - group: ""
+        hookPhase: Succeeded
+        kind: ConfigMap
+        message: configmap/rhcl-ui-nginx created
+        name: rhcl-ui-nginx
+        namespace: demo
+        status: Synced
+        syncPhase: Sync
+        version: v1
+      - group: ""
+        hookPhase: Succeeded
+        kind: ConfigMap
+        message: configmap/external-proxy-nginx created
+        name: external-proxy-nginx
+        namespace: demo
+        status: Synced
+        syncPhase: Sync
+        version: v1
+      - group: ""
+        hookPhase: Succeeded
+        kind: ConfigMap
+        message: configmap/oidc-callback-g698tbt2mm created
+        name: oidc-callback-g698tbt2mm
+        namespace: rhcl-oidc-portal
+        status: Synced
+        syncPhase: Sync
+        version: v1
+      - group: ""
+        hookPhase: Succeeded
+        kind: ConfigMap
+        message: configmap/secure-api created
+        name: secure-api
+        namespace: demo
+        status: Synced
+        syncPhase: Sync
+        version: v1
+      - group: ""
+        hookPhase: Succeeded
+        kind: ConfigMap
+        message: configmap/rhcl-oidc-ui-nginx created
+        name: rhcl-oidc-ui-nginx
+        namespace: rhcl-oidc-portal
+        status: Synced
+        syncPhase: Sync
+        version: v1
+      - group: ""
+        hookPhase: Succeeded
+        kind: ConfigMap
+        message: configmap/rhcl-oidc-ui-hbkfmk747b created
+        name: rhcl-oidc-ui-hbkfmk747b
+        namespace: rhcl-oidc-portal
+        status: Synced
+        syncPhase: Sync
+        version: v1
+      - group: ""
+        hookPhase: Succeeded
+        kind: ConfigMap
+        message: configmap/ab-a-nginx created
+        name: ab-a-nginx
+        namespace: demo-ab
+        status: Synced
+        syncPhase: Sync
+        version: v1
+      - group: ""
+        hookPhase: Succeeded
+        kind: ConfigMap
+        message: configmap/canary-v1-nginx created
+        name: canary-v1-nginx
+        namespace: demo-ab
+        status: Synced
+        syncPhase: Sync
+        version: v1
+      - group: ""
+        hookPhase: Succeeded
+        kind: ConfigMap
+        message: configmap/rhcl-ui-k68dc7mg2b created
+        name: rhcl-ui-k68dc7mg2b
+        namespace: demo
+        status: Synced
+        syncPhase: Sync
+        version: v1
+      - group: ""
+        hookPhase: Succeeded
+        kind: PersistentVolumeClaim
+        message: persistentvolumeclaim/keycloak-db-data created
+        name: keycloak-db-data
+        namespace: rhcl-keycloak
+        status: Synced
+        syncPhase: Sync
+        version: v1
+      - group: apps
+        hookPhase: Succeeded
+        images:
+        - registry.redhat.io/rhel9/postgresql-15:latest
+        kind: Deployment
+        message: deployment.apps/keycloak-db created
+        name: keycloak-db
+        namespace: rhcl-keycloak
+        status: Synced
+        syncPhase: Sync
+        version: v1
+      - group: ""
+        hookPhase: Succeeded
+        kind: ConfigMap
+        message: configmap/keycloak-theme-rhcl created
+        name: keycloak-theme-rhcl
+        namespace: rhcl-keycloak
+        status: Synced
+        syncPhase: Sync
+        version: v1
+      - group: ""
+        hookPhase: Succeeded
+        kind: Service
+        message: service/canary-v1 created
+        name: canary-v1
+        namespace: demo-ab
+        status: Synced
+        syncPhase: Sync
+        version: v1
+      - group: ""
+        hookPhase: Succeeded
+        kind: Service
+        message: service/ab-a created
+        name: ab-a
+        namespace: demo-ab
+        status: Synced
+        syncPhase: Sync
+        version: v1
+      - group: ""
+        hookPhase: Succeeded
+        kind: Service
+        message: service/canary-v2 created
+        name: canary-v2
+        namespace: demo-ab
+        status: Synced
+        syncPhase: Sync
+        version: v1
+      - group: ""
+        hookPhase: Succeeded
+        kind: Service
+        message: service/ab-b created
+        name: ab-b
+        namespace: demo-ab
+        status: Synced
+        syncPhase: Sync
+        version: v1
+      - group: ""
+        hookPhase: Succeeded
+        kind: Service
+        message: service/demo-api created
+        name: demo-api
+        namespace: demo
+        status: Synced
+        syncPhase: Sync
+        version: v1
+      - group: ""
+        hookPhase: Succeeded
+        kind: Service
+        message: service/keycloak-db created
+        name: keycloak-db
+        namespace: rhcl-keycloak
+        status: Synced
+        syncPhase: Sync
+        version: v1
+      - group: ""
+        hookPhase: Succeeded
+        kind: Service
+        message: service/oidc-callback created
+        name: oidc-callback
+        namespace: rhcl-oidc-portal
+        status: Synced
+        syncPhase: Sync
+        version: v1
+      - group: ""
+        hookPhase: Succeeded
+        kind: Service
+        message: service/secure-api created
+        name: secure-api
+        namespace: demo
+        status: Synced
+        syncPhase: Sync
+        version: v1
+      - group: ""
+        hookPhase: Succeeded
+        kind: Service
+        message: service/rhcl-oidc-ui created
+        name: rhcl-oidc-ui
+        namespace: rhcl-oidc-portal
+        status: Synced
+        syncPhase: Sync
+        version: v1
+      - group: ""
+        hookPhase: Succeeded
+        kind: Service
+        message: service/rhcl-ui created
+        name: rhcl-ui
+        namespace: demo
+        status: Synced
+        syncPhase: Sync
+        version: v1
+      - group: ""
+        hookPhase: Succeeded
+        kind: Service
+        message: service/external-proxy created
+        name: external-proxy
+        namespace: demo
+        status: Synced
+        syncPhase: Sync
+        version: v1
+      - group: apps
+        hookPhase: Succeeded
+        images:
+        - node:20-alpine
+        kind: Deployment
+        message: deployment.apps/oidc-callback created
+        name: oidc-callback
+        namespace: rhcl-oidc-portal
+        status: Synced
+        syncPhase: Sync
+        version: v1
+      - group: apps
+        hookPhase: Succeeded
+        images:
+        - registry.redhat.io/ubi10/nginx-126:10.1
+        kind: Deployment
+        message: deployment.apps/canary-v2 created
+        name: canary-v2
+        namespace: demo-ab
+        status: Synced
+        syncPhase: Sync
+        version: v1
+      - group: apps
+        hookPhase: Succeeded
+        images:
+        - registry.redhat.io/ubi10/nginx-126:10.1
+        kind: Deployment
+        message: deployment.apps/canary-v1 created
+        name: canary-v1
+        namespace: demo-ab
+        status: Synced
+        syncPhase: Sync
+        version: v1
+      - group: apps
+        hookPhase: Succeeded
+        images:
+        - registry.redhat.io/ubi10/nginx-126:10.1
+        kind: Deployment
+        message: deployment.apps/ab-a created
+        name: ab-a
+        namespace: demo-ab
+        status: Synced
+        syncPhase: Sync
+        version: v1
+      - group: apps
+        hookPhase: Succeeded
+        images:
+        - ghcr.io/mccutchen/go-httpbin:2.22.1
+        kind: Deployment
+        message: deployment.apps/secure-api created
+        name: secure-api
+        namespace: demo
+        status: Synced
+        syncPhase: Sync
+        version: v1
+      - group: apps
+        hookPhase: Succeeded
+        images:
+        - registry.redhat.io/ubi10/nginx-126:10.1
+        kind: Deployment
+        message: deployment.apps/external-proxy created
+        name: external-proxy
+        namespace: demo
+        status: Synced
+        syncPhase: Sync
+        version: v1
+      - group: apps
+        hookPhase: Succeeded
+        images:
+        - registry.redhat.io/ubi10/nginx-126:10.1
+        kind: Deployment
+        message: deployment.apps/rhcl-ui created
+        name: rhcl-ui
+        namespace: demo
+        status: Synced
+        syncPhase: Sync
+        version: v1
+      - group: apps
+        hookPhase: Succeeded
+        images:
+        - registry.redhat.io/ubi10/nginx-126:10.1
+        kind: Deployment
+        message: deployment.apps/ab-b created
+        name: ab-b
+        namespace: demo-ab
+        status: Synced
+        syncPhase: Sync
+        version: v1
+      - group: apps
+        hookPhase: Succeeded
+        images:
+        - quay.io/kuadrant/authorino-examples:talker-api
+        kind: Deployment
+        message: deployment.apps/demo-api created
+        name: demo-api
+        namespace: demo
+        status: Synced
+        syncPhase: Sync
+        version: v1
+      - group: apps
+        hookPhase: Succeeded
+        images:
+        - registry.redhat.io/ubi10/nginx-126:10.1
+        kind: Deployment
+        message: deployment.apps/rhcl-oidc-ui created
+        name: rhcl-oidc-ui
+        namespace: rhcl-oidc-portal
+        status: Synced
+        syncPhase: Sync
+        version: v1
+      - group: image.openshift.io
+        hookPhase: Succeeded
+        kind: ImageStream
+        message: imagestream.image.openshift.io/rhcl-ai-bot created
+        name: rhcl-ai-bot
+        namespace: rhcl-ai-bot
+        status: Synced
+        syncPhase: Sync
+        version: v1
+      - group: build.openshift.io
+        hookPhase: Succeeded
+        kind: BuildConfig
+        message: buildconfig.build.openshift.io/rhcl-ai-bot created
+        name: rhcl-ai-bot
+        namespace: rhcl-ai-bot
+        status: Synced
+        syncPhase: Sync
+        version: v1
+      - group: ""
+        hookPhase: Succeeded
+        kind: Service
+        message: service/rhcl-ai-bot created
+        name: rhcl-ai-bot
+        namespace: rhcl-ai-bot
+        status: Synced
+        syncPhase: Sync
+        version: v1
+      - group: apps
+        hookPhase: Succeeded
+        images:
+        - image-registry.openshift-image-registry.svc:5000/rhcl-ai-bot/rhcl-ai-bot:latest
+        kind: Deployment
+        message: deployment.apps/rhcl-ai-bot created
+        name: rhcl-ai-bot
+        namespace: rhcl-ai-bot
+        status: Synced
+        syncPhase: Sync
+        version: v1
+      - group: k8s.keycloak.org
+        hookPhase: Succeeded
+        kind: Keycloak
+        message: keycloak.k8s.keycloak.org/keycloak created
+        name: keycloak
+        namespace: rhcl-keycloak
+        status: Synced
+        syncPhase: Sync
+        version: v2alpha1
+      - group: k8s.keycloak.org
+        hookPhase: Running
+        kind: KeycloakRealmImport
+        message: keycloakrealmimport.k8s.keycloak.org/rhcl-realm-v2 created
+        name: rhcl-realm-v2
+        namespace: rhcl-keycloak
+        status: Synced
+        syncPhase: Sync
+        version: v2alpha1
+      revision: ee22301fb428dba0feaee244a567f9f6c5f684c9
+      source:
+        kustomize:
+          patches:
+          - patch: |-
+              - op: replace
+                path: /spec/template/spec/containers/0/env/9/value
+                value: https://external-api.sandbox2689.opentlc.com
+              - op: replace
+                path: /spec/template/spec/containers/0/env/10/value
+                value: https://mcp.sandbox2689.opentlc.com
+            target:
+              group: apps
+              kind: Deployment
+              name: rhcl-ai-bot
+              namespace: rhcl-ai-bot
+              version: v1
+        path: gitops/apps/rhcl-demo-split/app-4-demo-apps
+        repoURL: https://github.com/kamorisan/demo-rhcl.git
+        targetRevision: feature/split-applications
+  reconciledAt: "2026-05-20T05:03:01Z"
+  resources:
+  - kind: ConfigMap
+    name: ab-a-nginx
+    namespace: demo-ab
+    status: Synced
+    syncWave: 11
+    version: v1
+  - kind: ConfigMap
+    name: ab-b-nginx
+    namespace: demo-ab
+    status: Synced
+    syncWave: 11
+    version: v1
+  - kind: ConfigMap
+    name: canary-v1-nginx
+    namespace: demo-ab
+    status: Synced
+    syncWave: 11
+    version: v1
+  - kind: ConfigMap
+    name: canary-v2-nginx
+    namespace: demo-ab
+    status: Synced
+    syncWave: 11
+    version: v1
+  - kind: ConfigMap
+    name: external-proxy-nginx
+    namespace: demo
+    status: Synced
+    syncWave: 11
+    version: v1
+  - kind: ConfigMap
+    name: rhcl-ui-k68dc7mg2b
+    namespace: demo
+    status: Synced
+    syncWave: 11
+    version: v1
+  - kind: ConfigMap
+    name: rhcl-ui-nginx
+    namespace: demo
+    status: Synced
+    syncWave: 11
+    version: v1
+  - kind: ConfigMap
+    name: secure-api
+    namespace: demo
+    status: Synced
+    syncWave: 11
+    version: v1
+  - kind: ConfigMap
+    name: keycloak-theme-rhcl
+    namespace: rhcl-keycloak
+    status: Synced
+    syncWave: 12
+    version: v1
+  - kind: ConfigMap
+    name: oidc-callback-g698tbt2mm
+    namespace: rhcl-oidc-portal
+    status: Synced
+    syncWave: 11
+    version: v1
+  - kind: ConfigMap
+    name: rhcl-oidc-ui-hbkfmk747b
+    namespace: rhcl-oidc-portal
+    status: Synced
+    syncWave: 11
+    version: v1
+  - kind: ConfigMap
+    name: rhcl-oidc-ui-nginx
+    namespace: rhcl-oidc-portal
+    status: Synced
+    syncWave: 11
+    version: v1
+  - health:
+      status: Healthy
+    kind: PersistentVolumeClaim
+    name: keycloak-db-data
+    namespace: rhcl-keycloak
+    status: Synced
+    syncWave: 11
+    version: v1
+  - kind: Secret
+    name: keycloak-db-secret
+    namespace: rhcl-keycloak
+    status: Synced
+    syncWave: 11
+    version: v1
+  - health:
+      status: Healthy
+    kind: Service
+    name: ab-a
+    namespace: demo-ab
+    status: Synced
+    syncWave: 12
+    version: v1
+  - health:
+      status: Healthy
+    kind: Service
+    name: ab-b
+    namespace: demo-ab
+    status: Synced
+    syncWave: 12
+    version: v1
+  - health:
+      status: Healthy
+    kind: Service
+    name: canary-v1
+    namespace: demo-ab
+    status: Synced
+    syncWave: 12
+    version: v1
+  - health:
+      status: Healthy
+    kind: Service
+    name: canary-v2
+    namespace: demo-ab
+    status: Synced
+    syncWave: 12
+    version: v1
+  - health:
+      status: Healthy
+    kind: Service
+    name: demo-api
+    namespace: demo
+    status: Synced
+    syncWave: 12
+    version: v1
+  - health:
+      status: Healthy
+    kind: Service
+    name: external-proxy
+    namespace: demo
+    status: Synced
+    syncWave: 12
+    version: v1
+  - health:
+      status: Healthy
+    kind: Service
+    name: rhcl-ui
+    namespace: demo
+    status: Synced
+    syncWave: 12
+    version: v1
+  - health:
+      status: Healthy
+    kind: Service
+    name: secure-api
+    namespace: demo
+    status: Synced
+    syncWave: 12
+    version: v1
+  - health:
+      status: Healthy
+    kind: Service
+    name: rhcl-ai-bot
+    namespace: rhcl-ai-bot
+    status: Synced
+    syncWave: 13
+    version: v1
+  - health:
+      status: Healthy
+    kind: Service
+    name: keycloak-db
+    namespace: rhcl-keycloak
+    status: Synced
+    syncWave: 12
+    version: v1
+  - health:
+      status: Healthy
+    kind: Service
+    name: oidc-callback
+    namespace: rhcl-oidc-portal
+    status: Synced
+    syncWave: 12
+    version: v1
+  - health:
+      status: Healthy
+    kind: Service
+    name: rhcl-oidc-ui
+    namespace: rhcl-oidc-portal
+    status: Synced
+    syncWave: 12
+    version: v1
+  - group: apps
+    health:
+      status: Healthy
+    kind: Deployment
+    name: ab-a
+    namespace: demo-ab
+    status: Synced
+    syncWave: 12
+    version: v1
+  - group: apps
+    health:
+      status: Healthy
+    kind: Deployment
+    name: ab-b
+    namespace: demo-ab
+    status: Synced
+    syncWave: 12
+    version: v1
+  - group: apps
+    health:
+      status: Healthy
+    kind: Deployment
+    name: canary-v1
+    namespace: demo-ab
+    status: Synced
+    syncWave: 12
+    version: v1
+  - group: apps
+    health:
+      status: Healthy
+    kind: Deployment
+    name: canary-v2
+    namespace: demo-ab
+    status: Synced
+    syncWave: 12
+    version: v1
+  - group: apps
+    health:
+      status: Healthy
+    kind: Deployment
+    name: demo-api
+    namespace: demo
+    status: Synced
+    syncWave: 12
+    version: v1
+  - group: apps
+    health:
+      status: Healthy
+    kind: Deployment
+    name: external-proxy
+    namespace: demo
+    status: Synced
+    syncWave: 12
+    version: v1
+  - group: apps
+    health:
+      status: Healthy
+    kind: Deployment
+    name: rhcl-ui
+    namespace: demo
+    status: Synced
+    syncWave: 12
+    version: v1
+  - group: apps
+    health:
+      status: Healthy
+    kind: Deployment
+    name: secure-api
+    namespace: demo
+    status: Synced
+    syncWave: 12
+    version: v1
+  - group: apps
+    health:
+      status: Healthy
+    kind: Deployment
+    name: rhcl-ai-bot
+    namespace: rhcl-ai-bot
+    status: OutOfSync
+    syncWave: 13
+    version: v1
+  - group: apps
+    health:
+      status: Healthy
+    kind: Deployment
+    name: keycloak-db
+    namespace: rhcl-keycloak
+    status: Synced
+    syncWave: 11
+    version: v1
+  - group: apps
+    health:
+      status: Healthy
+    kind: Deployment
+    name: oidc-callback
+    namespace: rhcl-oidc-portal
+    status: Synced
+    syncWave: 12
+    version: v1
+  - group: apps
+    health:
+      status: Healthy
+    kind: Deployment
+    name: rhcl-oidc-ui
+    namespace: rhcl-oidc-portal
+    status: Synced
+    syncWave: 12
+    version: v1
+  - group: build.openshift.io
+    kind: BuildConfig
+    name: rhcl-ai-bot
+    namespace: rhcl-ai-bot
+    status: Synced
+    syncWave: 12
+    version: v1
+  - group: image.openshift.io
+    kind: ImageStream
+    name: rhcl-ai-bot
+    namespace: rhcl-ai-bot
+    status: Synced
+    syncWave: 12
+    version: v1
+  - group: k8s.keycloak.org
+    health:
+      status: Healthy
+    kind: Keycloak
+    name: keycloak
+    namespace: rhcl-keycloak
+    status: Synced
+    syncWave: 13
+    version: v2alpha1
+  - group: k8s.keycloak.org
+    kind: KeycloakRealmImport
+    name: rhcl-realm-v2
+    namespace: rhcl-keycloak
+    status: Synced
+    syncWave: 14
+    version: v2alpha1
+  sourceType: Kustomize
+  summary:
+    images:
+    - ghcr.io/mccutchen/go-httpbin:2.22.1
+    - image-registry.openshift-image-registry.svc:5000/rhcl-ai-bot/rhcl-ai-bot@sha256:701988d352d322b9f29f2d427319ee7caf923ce3522d965b78913ab402ec5035
+    - node:20-alpine
+    - quay.io/kuadrant/authorino-examples:talker-api
+    - quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:bb61d35949f062ae868c8ce6958d6f9702da6c9f06ccda7be7c5161b9c03a63f
+    - registry.redhat.io/rhbk/keycloak-rhel9@sha256:0b27f6c0254d5674d131985b5ed0d876611b2f32ca94a02844d30cd257e8c9d9
+    - registry.redhat.io/rhel9/postgresql-15:latest
+    - registry.redhat.io/ubi10/nginx-126:10.1
+  sync:
+    comparedTo:
+      destination:
+        namespace: demo
+        server: https://kubernetes.default.svc
+      ignoreDifferences:
+      - group: apps
+        jqPathExpressions:
+        - .spec.template.spec.containers[].image
+        kind: Deployment
+        name: rhcl-ai-bot
+        namespace: rhcl-ai-bot
+      source:
+        kustomize:
+          patches:
+          - patch: |-
+              - op: replace
+                path: /spec/template/spec/containers/0/env/9/value
+                value: https://external-api.sandbox2689.opentlc.com
+              - op: replace
+                path: /spec/template/spec/containers/0/env/10/value
+                value: https://mcp.sandbox2689.opentlc.com
+            target:
+              group: apps
+              kind: Deployment
+              name: rhcl-ai-bot
+              namespace: rhcl-ai-bot
+              version: v1
+        path: gitops/apps/rhcl-demo-split/app-4-demo-apps
+        repoURL: https://github.com/kamorisan/demo-rhcl.git
+        targetRevision: feature/split-applications
+    revision: 11cd0391e199a8044aecef7042eaaff6662735b9
+    status: OutOfSync

@@ -11,7 +11,7 @@ spec:
     group: gateway.networking.k8s.io
     kind: HTTPRoute
     name: ai-bot-mcp-server
-  defaults:
+  overrides:
     rules:
       authorization:
         allow-all:
