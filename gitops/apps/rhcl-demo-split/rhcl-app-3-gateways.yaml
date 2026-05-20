@@ -1,0 +1,112 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: rhcl-app-3-gateways
+  namespace: openshift-gitops
+  annotations:
+    argocd.argoproj.io/sync-wave: "3"
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/kamorisan/demo-rhcl.git
+    targetRevision: feature/split-applications
+    path: gitops/apps/rhcl-demo-split/app-3-gateways
+    kustomize:
+      patches:
+        - target:
+            group: gateway.networking.k8s.io
+            version: v1
+            kind: Gateway
+            name: rhcl-workshop-gw
+            namespace: openshift-ingress
+          patch: |-
+            - op: replace
+              path: /spec/listeners/1/hostname
+              value: rhcl-workshop.sandbox2689.opentlc.com
+            - op: replace
+              path: /spec/listeners/2/hostname
+              value: oidc-rhcl-workshop.sandbox2689.opentlc.com
+        - target:
+            group: gateway.networking.k8s.io
+            version: v1
+            kind: Gateway
+            name: rhcl-external-gw
+            namespace: openshift-ingress
+          patch: |-
+            - op: replace
+              path: /spec/listeners/1/hostname
+              value: external-api.sandbox2689.opentlc.com
+        - target:
+            group: gateway.networking.k8s.io
+            version: v1
+            kind: Gateway
+            name: rhcl-ai-gw
+            namespace: openshift-ingress
+          patch: |-
+            - op: replace
+              path: /spec/listeners/0/hostname
+              value: ai.sandbox2689.opentlc.com
+            - op: replace
+              path: /spec/listeners/1/hostname
+              value: ai.sandbox2689.opentlc.com
+        - target:
+            group: gateway.networking.k8s.io
+            version: v1
+            kind: Gateway
+            name: rhcl-mcp-gw
+            namespace: openshift-ingress
+          patch: |-
+            - op: replace
+              path: /spec/listeners/0/hostname
+              value: mcp.sandbox2689.opentlc.com
+            - op: replace
+              path: /spec/listeners/1/hostname
+              value: mcp.sandbox2689.opentlc.com
+        - target:
+            group: route.openshift.io
+            version: v1
+            kind: Route
+            name: rhcl-workshop-gw
+            namespace: openshift-ingress
+          patch: |-
+            - op: replace
+              path: /spec/host
+              value: rhcl-workshop.sandbox2689.opentlc.com
+        - target:
+            group: route.openshift.io
+            version: v1
+            kind: Route
+            name: rhcl-workshop-gw-oidc
+            namespace: openshift-ingress
+          patch: |-
+            - op: replace
+              path: /spec/host
+              value: oidc-rhcl-workshop.sandbox2689.opentlc.com
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: openshift-ingress
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+      - RespectIgnoreDifferences=true
+    retry:
+      limit: 10
+      backoff:
+        duration: 30s
+        factor: 2
+        maxDuration: 10m
+  ignoreDifferences:
+    - group: gateway.networking.k8s.io
+      kind: Gateway
+      jqPathExpressions:
+        - .status
+    - group: kuadrant.io
+      kind: DNSPolicy
+      jqPathExpressions:
+        - .status
+    - group: kuadrant.io
+      kind: TLSPolicy
+      jqPathExpressions:
+        - .status
