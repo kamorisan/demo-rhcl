@@ -24,10 +24,7 @@ spec:
           patch: |-
             - op: replace
               path: /spec/template/spec/containers/0/env/9/value
-              value: https://external-api.sandbox2689.opentlc.com
-            - op: replace
-              path: /spec/template/spec/containers/0/env/10/value
-              value: https://mcp.sandbox2689.opentlc.com/mcp
+              value: https://mcp.sandbox2689.opentlc.com
   destination:
     server: https://kubernetes.default.svc
     namespace: demo
