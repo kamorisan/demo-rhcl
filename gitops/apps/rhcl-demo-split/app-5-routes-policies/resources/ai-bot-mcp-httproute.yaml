@@ -24,5 +24,6 @@ spec:
                 value: "application/json, text/event-stream"
       backendRefs:
         - name: rhcl-ai-bot
+          namespace: rhcl-ai-bot
           port: 80
           weight: 1
