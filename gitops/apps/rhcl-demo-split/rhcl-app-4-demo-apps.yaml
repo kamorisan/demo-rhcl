@@ -23,6 +23,9 @@ spec:
             namespace: rhcl-ai-bot
           patch: |-
             - op: replace
+              path: /spec/template/spec/containers/0/env/8/value
+              value: https://external-api.sandbox2689.opentlc.com
+            - op: replace
               path: /spec/template/spec/containers/0/env/9/value
               value: https://mcp.sandbox2689.opentlc.com
   destination:
