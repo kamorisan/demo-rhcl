@@ -1,33 +1,29 @@
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
-  name: ai-bot-ai
-  namespace: rhcl-ai-bot
-  labels:
-    app: rhcl-ai-bot
-    service: rhcl-ai-bot
-    deployment: rhcl-ai-bot
+  name: rhcl-mcp-gateway
+  namespace: mcp-system
   annotations:
-    argocd.argoproj.io/sync-wave: "20"
+    argocd.argoproj.io/sync-wave: "25"
 spec:
-  hostnames:
-    - ai.REPLACE_ME_EXTERNAL_BASE_DOMAIN
   parentRefs:
     - group: gateway.networking.k8s.io
       kind: Gateway
-      name: rhcl-ai-gw
+      name: rhcl-mcp-gw
       namespace: openshift-ingress
-      sectionName: https-ai-sandbox
+      sectionName: https-mcp-public
+  hostnames:
+    - mcp.REPLACE_ME_EXTERNAL_BASE_DOMAIN
   rules:
     - matches:
         - method: POST
           path:
             type: PathPrefix
-            value: /ai
+            value: /mcp
         - method: OPTIONS
           path:
             type: PathPrefix
-            value: /ai
+            value: /mcp
       filters:
         - type: ResponseHeaderModifier
           responseHeaderModifier:
@@ -37,13 +33,13 @@ spec:
               - name: access-control-allow-methods
                 value: "GET,POST,OPTIONS,HEAD"
               - name: access-control-allow-headers
-                value: "content-type,authorization,accept,origin,x-requested-with"
+                value: "content-type,authorization,accept,origin,x-requested-with,mcp-session-id"
               - name: access-control-expose-headers
                 value: "mcp-session-id"
       backendRefs:
         - group: ""
           kind: Service
-          name: rhcl-ai-bot
-          port: 80
+          name: mcp-gateway
+          port: 8080
           weight: 1
 

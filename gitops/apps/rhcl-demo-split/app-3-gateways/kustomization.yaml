@@ -8,3 +8,4 @@ resources:
   - resources/05-routes.yaml
   - resources/06-referencegrants.yaml
   - resources/07-telemetry.yaml
+  - resources/mcp-gateway-authpolicy.yaml

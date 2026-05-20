@@ -20,12 +20,14 @@ resources:
   - resources/httproute-oidc-portal-whoami.yaml
   - resources/oidc-portal-whoami-authpolicy.yaml
 
-  # Phase 3: AI Bot
+  # Phase 3: AI Bot and MCP Gateway
   - resources/httproute-ai-bot-main.yaml
   - resources/httproute-ai-bot-ai.yaml
   - resources/ai-bot-main-authpolicy.yaml
   - resources/ai-bot-main-tokenratelimitpolicy.yaml
   - resources/ai-bot-ai-tokenratelimitpolicy.yaml
+  - resources/httproute-mcp-gateway.yaml
+  - resources/mcp-authpolicy.yaml
 
   # Phase 4: External Proxy
   - resources/httproute-external-proxy.yaml

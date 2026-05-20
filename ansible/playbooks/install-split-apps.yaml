@@ -342,6 +342,22 @@
             repoURL: https://github.com/kamorisan/demo-rhcl.git
             targetRevision: feature/split-applications
             path: gitops/apps/rhcl-demo-split/app-4-demo-apps
+            kustomize:
+              patches:
+                # AI Bot Deployment environment variables
+                - target:
+                    group: apps
+                    version: v1
+                    kind: Deployment
+                    name: rhcl-ai-bot
+                    namespace: rhcl-ai-bot
+                  patch: |-
+                    - op: replace
+                      path: /spec/template/spec/containers/0/env/9/value
+                      value: https://external-api.{{ external_base_domain }}
+                    - op: replace
+                      path: /spec/template/spec/containers/0/env/10/value
+                      value: https://mcp.{{ external_base_domain }}
           destination:
             server: https://kubernetes.default.svc
             namespace: demo
@@ -546,6 +562,21 @@
                     - op: replace
                       path: /spec/parentRefs/0/name
                       value: rhcl-ai-gw
+
+                # httproute-mcp-gateway: hostname and gateway (MCP system)
+                - target:
+                    group: gateway.networking.k8s.io
+                    version: v1
+                    kind: HTTPRoute
+                    name: rhcl-mcp-gateway
+                    namespace: mcp-system
+                  patch: |-
+                    - op: replace
+                      path: /spec/hostnames/0
+                      value: mcp.{{ external_base_domain }}
+                    - op: replace
+                      path: /spec/parentRefs/0/name
+                      value: rhcl-mcp-gw
 
                 # Phase 4: External Proxy
                 # httproute-external-proxy: gateway only (no hostname)
