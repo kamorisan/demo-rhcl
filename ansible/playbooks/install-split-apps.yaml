@@ -590,6 +590,18 @@
                       path: /spec/publicHost
                       value: mcp.{{ external_base_domain }}
 
+                # httproute-ai-bot-mcp-server: hostname for MCP Server Registration
+                - target:
+                    group: gateway.networking.k8s.io
+                    version: v1
+                    kind: HTTPRoute
+                    name: ai-bot-mcp-server
+                    namespace: rhcl-ai-bot
+                  patch: |-
+                    - op: replace
+                      path: /spec/hostnames/0
+                      value: mcp.{{ external_base_domain }}
+
                 # Phase 4: External Proxy
                 # httproute-external-proxy: gateway only (no hostname)
                 - target:
