@@ -11,7 +11,6 @@ spec:
       kind: Gateway
       name: rhcl-mcp-gw
       namespace: openshift-ingress
-      sectionName: https-mcp-public
   hostnames:
     - mcp.REPLACE_ME_EXTERNAL_BASE_DOMAIN
   rules:
