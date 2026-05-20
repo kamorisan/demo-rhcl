@@ -87,7 +87,7 @@
           project: default
           source:
             repoURL: https://github.com/kamorisan/demo-rhcl.git
-            targetRevision: feature/split-applications
+            targetRevision: feature/apps345-espn-tools-verified
             path: gitops/apps/rhcl-demo-split/app-1-operators
           destination:
             server: https://kubernetes.default.svc
@@ -136,7 +136,7 @@
           project: default
           source:
             repoURL: https://github.com/kamorisan/demo-rhcl.git
-            targetRevision: feature/split-applications
+            targetRevision: feature/apps345-espn-tools-verified
             path: gitops/apps/rhcl-demo-split/app-2-platform-crs
             # No kustomize patches needed - cert-manager auto-detects hostedZoneID
           destination:
@@ -201,7 +201,7 @@
             - .status
           source:
             repoURL: https://github.com/kamorisan/demo-rhcl.git
-            targetRevision: feature/split-applications
+            targetRevision: feature/apps345-espn-tools-verified
             path: gitops/apps/rhcl-demo-split/app-3-gateways
             kustomize:
               patches:
@@ -340,7 +340,7 @@
             - .spec.template.spec.containers[].image
           source:
             repoURL: https://github.com/kamorisan/demo-rhcl.git
-            targetRevision: feature/split-applications
+            targetRevision: feature/apps345-espn-tools-verified
             path: gitops/apps/rhcl-demo-split/app-4-demo-apps
             kustomize:
               patches:
@@ -407,7 +407,7 @@
           project: default
           source:
             repoURL: https://github.com/kamorisan/demo-rhcl.git
-            targetRevision: feature/split-applications
+            targetRevision: feature/apps345-espn-tools-verified
             path: gitops/apps/rhcl-demo-split/app-5-routes-policies
             kustomize:
               patches:

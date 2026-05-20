@@ -12,5 +12,3 @@ resources:
   - resources/08-mcp-gateway-operator.yaml
   - resources/09-rhbk-operator.yaml
   - resources/10-console-banner.yaml
-  - resources/11-opentelemetry-operator.yaml
-  - resources/12-grafana-operator.yaml
