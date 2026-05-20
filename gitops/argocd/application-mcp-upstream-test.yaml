@@ -7,7 +7,7 @@ spec:
   project: default
   source:
     repoURL: https://github.com/kamorisan/demo-rhcl.git
-    targetRevision: main
+    targetRevision: feature/split-applications
     path: gitops/apps/mcp-upstream-test
   destination:
     server: https://kubernetes.default.svc
