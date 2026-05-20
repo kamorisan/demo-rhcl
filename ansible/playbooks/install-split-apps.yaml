@@ -405,7 +405,7 @@
                   patch: |-
                     - op: replace
                       path: /spec/hostnames/0
-                      value: rhcl-workshop.{{ apps_cluster_domain }}
+                      value: rhcl-workshop.{{ external_base_domain }}
                     - op: replace
                       path: /spec/parentRefs/0/name
                       value: rhcl-workshop-gw
@@ -420,7 +420,7 @@
                   patch: |-
                     - op: replace
                       path: /spec/hostnames/0
-                      value: oidc-rhcl-workshop.{{ apps_cluster_domain }}
+                      value: oidc-rhcl-workshop.{{ external_base_domain }}
                     - op: replace
                       path: /spec/parentRefs/0/name
                       value: rhcl-workshop-gw
@@ -435,7 +435,7 @@
                   patch: |-
                     - op: replace
                       path: /spec/hostnames/0
-                      value: rhcl-workshop.{{ apps_cluster_domain }}
+                      value: rhcl-workshop.{{ external_base_domain }}
                     - op: replace
                       path: /spec/parentRefs/0/name
                       value: rhcl-workshop-gw
@@ -450,7 +450,7 @@
                   patch: |-
                     - op: replace
                       path: /spec/hostnames/0
-                      value: oidc-rhcl-workshop.{{ apps_cluster_domain }}
+                      value: oidc-rhcl-workshop.{{ external_base_domain }}
                     - op: replace
                       path: /spec/parentRefs/0/name
                       value: rhcl-workshop-gw
@@ -465,7 +465,7 @@
                   patch: |-
                     - op: replace
                       path: /spec/hostnames/0
-                      value: oidc-rhcl-workshop.{{ apps_cluster_domain }}
+                      value: oidc-rhcl-workshop.{{ external_base_domain }}
                     - op: replace
                       path: /spec/parentRefs/0/name
                       value: rhcl-workshop-gw
@@ -481,8 +481,8 @@
                     - op: replace
                       path: /spec/hostnames
                       value:
-                        - rhcl-workshop.{{ apps_cluster_domain }}
-                        - oidc-rhcl-workshop.{{ apps_cluster_domain }}
+                        - rhcl-workshop.{{ external_base_domain }}
+                        - oidc-rhcl-workshop.{{ external_base_domain }}
                     - op: replace
                       path: /spec/parentRefs/0/name
                       value: rhcl-workshop-gw
@@ -497,7 +497,7 @@
                   patch: |-
                     - op: replace
                       path: /spec/hostnames/0
-                      value: oidc-rhcl-workshop.{{ apps_cluster_domain }}
+                      value: oidc-rhcl-workshop.{{ external_base_domain }}
                     - op: replace
                       path: /spec/parentRefs/0/name
                       value: rhcl-workshop-gw
@@ -512,7 +512,7 @@
                   patch: |-
                     - op: replace
                       path: /spec/hostnames/0
-                      value: oidc-rhcl-workshop.{{ apps_cluster_domain }}
+                      value: oidc-rhcl-workshop.{{ external_base_domain }}
                     - op: replace
                       path: /spec/parentRefs/0/name
                       value: rhcl-workshop-gw
@@ -527,7 +527,7 @@
                   patch: |-
                     - op: replace
                       path: /spec/hostnames/0
-                      value: rhcl-workshop.{{ apps_cluster_domain }}
+                      value: rhcl-workshop.{{ external_base_domain }}
                     - op: replace
                       path: /spec/parentRefs/0/name
                       value: rhcl-workshop-gw
@@ -570,7 +570,7 @@
                   patch: |-
                     - op: replace
                       path: /spec/hostnames/0
-                      value: external-api.{{ apps_cluster_domain }}
+                      value: external-api.{{ external_base_domain }}
                     - op: replace
                       path: /spec/parentRefs/0/name
                       value: rhcl-external-gw
@@ -586,7 +586,7 @@
                   patch: |-
                     - op: replace
                       path: /spec/hostnames/0
-                      value: rhcl-workshop.{{ apps_cluster_domain }}
+                      value: rhcl-workshop.{{ external_base_domain }}
                     - op: replace
                       path: /spec/parentRefs/0/name
                       value: rhcl-workshop-gw
@@ -601,7 +601,7 @@
                   patch: |-
                     - op: replace
                       path: /spec/hostnames/0
-                      value: rhcl-workshop.{{ apps_cluster_domain }}
+                      value: rhcl-workshop.{{ external_base_domain }}
                     - op: replace
                       path: /spec/parentRefs/0/name
                       value: rhcl-workshop-gw
@@ -641,16 +641,16 @@
                   patch: |-
                     - op: replace
                       path: /spec/provider/issuerURL
-                      value: https://oidc-rhcl-workshop.{{ apps_cluster_domain }}/auth/realms/rhcl
+                      value: https://oidc-rhcl-workshop.{{ external_base_domain }}/auth/realms/rhcl
                     - op: replace
                       path: /spec/provider/authorizationEndpoint
-                      value: https://oidc-rhcl-workshop.{{ apps_cluster_domain }}/auth/realms/rhcl/protocol/openid-connect/auth
+                      value: https://oidc-rhcl-workshop.{{ external_base_domain }}/auth/realms/rhcl/protocol/openid-connect/auth
                     - op: replace
                       path: /spec/provider/tokenEndpoint
-                      value: https://oidc-rhcl-workshop.{{ apps_cluster_domain }}/auth/realms/rhcl/protocol/openid-connect/token
+                      value: https://oidc-rhcl-workshop.{{ external_base_domain }}/auth/realms/rhcl/protocol/openid-connect/token
                     - op: replace
                       path: /spec/provider/redirectURI
-                      value: https://oidc-rhcl-workshop.{{ apps_cluster_domain }}/auth/callback
+                      value: https://oidc-rhcl-workshop.{{ external_base_domain }}/auth/callback
 
                 # jwt-demo-jwt AuthPolicy: replace issuerUrl
                 - target:
@@ -662,7 +662,7 @@
                   patch: |-
                     - op: replace
                       path: /spec/defaults/rules/authentication/jwt/jwt/issuerUrl
-                      value: https://rhcl-workshop.{{ apps_cluster_domain }}/auth/realms/rhcl
+                      value: https://rhcl-workshop.{{ external_base_domain }}/auth/realms/rhcl
 
                 # secure-demo-jwt AuthPolicy: replace issuerUrl
                 - target:
@@ -674,7 +674,7 @@
                   patch: |-
                     - op: replace
                       path: /spec/defaults/rules/authentication/jwt/jwt/issuerUrl
-                      value: https://rhcl-workshop.{{ apps_cluster_domain }}/auth/realms/rhcl
+                      value: https://rhcl-workshop.{{ external_base_domain }}/auth/realms/rhcl
           destination:
             server: https://kubernetes.default.svc
             namespace: demo
@@ -716,8 +716,8 @@
           - "Application 3 (gateways): deployed"
           - "Application 4 (demo-apps): deployed"
           - "Application 5 (routes-policies): deployed - All 28 resources"
-          - "Workshop URL: https://rhcl-workshop.{{ apps_cluster_domain }}/"
-          - "OIDC URL: https://oidc-rhcl-workshop.{{ apps_cluster_domain }}/"
+          - "Workshop URL: https://rhcl-workshop.{{ external_base_domain }}/"
+          - "OIDC URL: https://oidc-rhcl-workshop.{{ external_base_domain }}/"
           - "External API: https://external-api.{{ external_base_domain }}/"
           - "AI Bot: https://ai.{{ external_base_domain }}/"
           - "MCP: https://mcp.{{ external_base_domain }}/"
