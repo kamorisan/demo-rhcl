@@ -13,7 +13,18 @@ spec:
     repoURL: https://github.com/kamorisan/demo-rhcl.git
     targetRevision: feature/split-applications
     path: gitops/apps/rhcl-demo-split/app-4-demo-apps
-    kustomize: {}
+    kustomize:
+      patches:
+        - target:
+            group: apps
+            version: v1
+            kind: Deployment
+            name: rhcl-ai-bot
+            namespace: rhcl-ai-bot
+          patch: |-
+            - op: replace
+              path: /spec/template/spec/containers/0/env/9/value
+              value: https://mcp.sandbox2689.opentlc.com
   destination:
     server: https://kubernetes.default.svc
     namespace: demo
