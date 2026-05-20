@@ -16,4 +16,5 @@ spec:
   publicHost: mcp.REPLACE_ME_EXTERNAL_BASE_DOMAIN
   privateHost: rhcl-mcp-gw-istio.openshift-ingress.svc.cluster.local:80
   httpRouteManagement: Enabled
+  backendPingIntervalSeconds: 0
 
