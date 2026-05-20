@@ -2,7 +2,7 @@ apiVersion: mcp.kuadrant.io/v1alpha1
 kind: MCPServerRegistration
 metadata:
   name: ai-bot-espn
-  namespace: rhcl-ai-bot
+  namespace: mcp-system
   annotations:
     argocd.argoproj.io/sync-wave: "26"
     argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
