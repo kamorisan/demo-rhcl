@@ -11,12 +11,10 @@ metadata:
 spec:
   gatewayClassName: istio
   listeners:
-    - name: https-mcp
+    - name: http-mcp
       hostname: 'mcp.sandbox2689.opentlc.com'
-      port: 443
-      protocol: HTTPS
-      tls:
-        mode: Terminate
+      port: 80
+      protocol: HTTP
       allowedRoutes:
         namespaces:
           from: All

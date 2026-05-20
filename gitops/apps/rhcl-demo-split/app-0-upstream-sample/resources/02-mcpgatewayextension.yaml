@@ -13,6 +13,6 @@ spec:
     kind: Gateway
     name: mcp-gateway
     namespace: mcp-system
-    sectionName: https-mcp
+    sectionName: http-mcp
   publicHost: mcp.sandbox2689.opentlc.com
   privateHost: mcp-gateway-istio.mcp-system.svc.cluster.local:80

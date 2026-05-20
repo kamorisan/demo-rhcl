@@ -12,7 +12,7 @@ spec:
     group: gateway.networking.k8s.io
     kind: Gateway
     name: mcp-gateway
-    sectionName: https-mcp
+    sectionName: http-mcp
   issuerRef:
     group: cert-manager.io
     kind: ClusterIssuer
