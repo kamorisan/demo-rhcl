@@ -578,6 +578,18 @@
                       path: /spec/parentRefs/0/name
                       value: rhcl-mcp-gw
 
+                # mcp-gateway-extension: publicHost
+                - target:
+                    group: mcp.kuadrant.io
+                    version: v1alpha1
+                    kind: MCPGatewayExtension
+                    name: rhcl-mcp
+                    namespace: mcp-system
+                  patch: |-
+                    - op: replace
+                      path: /spec/publicHost
+                      value: mcp.{{ external_base_domain }}
+
                 # Phase 4: External Proxy
                 # httproute-external-proxy: gateway only (no hostname)
                 - target:

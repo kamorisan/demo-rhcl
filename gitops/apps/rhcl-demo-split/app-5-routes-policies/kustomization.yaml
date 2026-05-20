@@ -26,8 +26,10 @@ resources:
   - resources/ai-bot-main-authpolicy.yaml
   - resources/ai-bot-main-tokenratelimitpolicy.yaml
   - resources/ai-bot-ai-tokenratelimitpolicy.yaml
+  - resources/mcp-gateway-extension.yaml
   - resources/httproute-mcp-gateway.yaml
   - resources/mcp-authpolicy.yaml
+  - resources/mcp-gateway-referencegrant.yaml
 
   # Phase 4: External Proxy
   - resources/httproute-external-proxy.yaml
