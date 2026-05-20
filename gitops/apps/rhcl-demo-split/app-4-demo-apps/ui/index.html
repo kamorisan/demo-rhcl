@@ -3157,31 +3157,17 @@ spec:
         const stored = String(localStorage.getItem("rhcl_oidc_host") || "").trim();
         if (stored){
           const s = stored.replace(/^https?:\/\//i,"").replace(/\/+$/g,"");
-          const h0 = (location && location.host) ? String(location.host) : "";
-          // If the user stored a "base domain" host but we're on an apps.* cluster hostname, prefer the deterministic oidc-<host>.
-          if (h0.includes(".apps.") && !s.includes(".apps.")) {
-            // ignore stored
-          } else {
-            return s;
-          }
+          return s;
         }
         const h = (location && location.host) ? String(location.host) : "example.com";
-        // If we're on an OpenShift *.apps.* hostname, use the same full domain for OIDC portal.
-        {
-          const parts = h.split(".").filter(Boolean);
-          if (parts.includes("apps")){
-            // For *.apps.cluster-*.*.domain.com, use oidc-rhcl-workshop.apps.cluster-*.*.domain.com
-            const appsIndex = parts.indexOf("apps");
-            if (appsIndex > 0) {
-              const domain = parts.slice(appsIndex).join(".");
-              return `oidc-rhcl-workshop.${domain}`;
-            }
-          }
+        // Transform rhcl-workshop.* to oidc-rhcl-workshop.*
+        if (h.startsWith("rhcl-workshop.")) {
+          return h.replace("rhcl-workshop.", "oidc-rhcl-workshop.");
         }
         if (h.startsWith("oidc-")) return h;
         const configured = "REPLACE_ME_OIDC_HOSTNAME";
         if (configured && !configured.includes("REPLACE_ME")) return configured;
-        // Default: same apps domain as the main demo hostname.
+        // Default: prepend oidc- to hostname
         return `oidc-${h}`;
       }
 
