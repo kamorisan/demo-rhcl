@@ -9,19 +9,14 @@ spec:
   parentRefs:
     - name: rhcl-mcp-gw
       namespace: openshift-ingress
+      sectionName: mcps
   hostnames:
-    - mcp.REPLACE_ME_EXTERNAL_BASE_DOMAIN
+    - ai-bot.mcp.local
   rules:
     - matches:
         - path:
             type: PathPrefix
             value: /
-      filters:
-        - type: RequestHeaderModifier
-          requestHeaderModifier:
-            set:
-              - name: Accept
-                value: "application/json, text/event-stream"
       backendRefs:
         - name: rhcl-ai-bot
           namespace: rhcl-ai-bot

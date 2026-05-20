@@ -166,7 +166,7 @@ spec:
           patch: |-
             - op: replace
               path: /spec/hostnames/0
-              value: mcp.sandbox2689.opentlc.com
+              value: ai-bot.mcp.local
         - target:
             group: gateway.networking.k8s.io
             version: v1
