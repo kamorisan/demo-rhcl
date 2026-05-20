@@ -3,7 +3,7 @@ apiVersion: kuadrant.io/v1
 kind: DNSPolicy
 metadata:
   name: mcp-gateway-dns
-  namespace: mcp-system
+  namespace: openshift-ingress
   annotations:
     argocd.argoproj.io/sync-wave: "17"
     argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true

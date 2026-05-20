@@ -3,7 +3,7 @@ apiVersion: kuadrant.io/v1
 kind: TLSPolicy
 metadata:
   name: mcp-gateway-tls
-  namespace: mcp-system
+  namespace: openshift-ingress
   annotations:
     argocd.argoproj.io/sync-wave: "21"
     argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true

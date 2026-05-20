@@ -12,7 +12,7 @@ spec:
     group: gateway.networking.k8s.io
     kind: Gateway
     name: mcp-gateway
-    namespace: mcp-system
+    namespace: openshift-ingress
     sectionName: http-mcp
   publicHost: mcp.sandbox2689.opentlc.com
-  privateHost: mcp-gateway-istio.mcp-system.svc.cluster.local:80
+  privateHost: mcp-gateway-istio.openshift-ingress.svc.cluster.local:80

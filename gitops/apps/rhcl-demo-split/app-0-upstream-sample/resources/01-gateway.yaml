@@ -3,7 +3,7 @@ apiVersion: gateway.networking.k8s.io/v1
 kind: Gateway
 metadata:
   name: mcp-gateway
-  namespace: mcp-system
+  namespace: openshift-ingress
   labels:
     gateway.io/name: mcp-gateway
   annotations:

@@ -11,7 +11,7 @@ metadata:
 spec:
   parentRefs:
     - name: mcp-gateway
-      namespace: mcp-system
+      namespace: openshift-ingress
   hostnames:
     - 'server1.mcp.local'
   rules:
