@@ -8,6 +8,7 @@ metadata:
     kuadrant.io/gateway: "true"
   annotations:
     argocd.argoproj.io/sync-wave: "15"
+    argocd.argoproj.io/sync-options: "SkipHealthCheck=true"
 spec:
   gatewayClassName: istio
   listeners:
@@ -52,6 +53,7 @@ metadata:
     kuadrant.io/gateway: "true"
   annotations:
     argocd.argoproj.io/sync-wave: "15"
+    argocd.argoproj.io/sync-options: "SkipHealthCheck=true"
 spec:
   gatewayClassName: istio
   listeners:
@@ -84,6 +86,7 @@ metadata:
     kuadrant.io/gateway: "true"
   annotations:
     argocd.argoproj.io/sync-wave: "15"
+    argocd.argoproj.io/sync-options: "SkipHealthCheck=true"
 spec:
   gatewayClassName: istio
   listeners:
