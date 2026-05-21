@@ -4,7 +4,7 @@ metadata:
   name: rhcl-workshop-main-tls
   namespace: openshift-ingress
   annotations:
-    argocd.argoproj.io/sync-wave: "21"
+    argocd.argoproj.io/sync-wave: "15"
 spec:
   targetRef:
     group: gateway.networking.k8s.io
@@ -22,7 +22,7 @@ metadata:
   name: rhcl-workshop-oidc-public-tls
   namespace: openshift-ingress
   annotations:
-    argocd.argoproj.io/sync-wave: "21"
+    argocd.argoproj.io/sync-wave: "15"
 spec:
   targetRef:
     group: gateway.networking.k8s.io
@@ -40,7 +40,7 @@ metadata:
   name: rhcl-external-sandbox-tls
   namespace: openshift-ingress
   annotations:
-    argocd.argoproj.io/sync-wave: "21"
+    argocd.argoproj.io/sync-wave: "15"
 spec:
   targetRef:
     group: gateway.networking.k8s.io
@@ -58,7 +58,7 @@ metadata:
   name: rhcl-ai-sandbox-tls
   namespace: openshift-ingress
   annotations:
-    argocd.argoproj.io/sync-wave: "21"
+    argocd.argoproj.io/sync-wave: "15"
 spec:
   targetRef:
     group: gateway.networking.k8s.io
@@ -76,7 +76,7 @@ metadata:
   name: rhcl-mcp-sandbox-tls
   namespace: openshift-ingress
   annotations:
-    argocd.argoproj.io/sync-wave: "21"
+    argocd.argoproj.io/sync-wave: "15"
 spec:
   targetRef:
     group: gateway.networking.k8s.io

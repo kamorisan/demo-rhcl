@@ -4,7 +4,7 @@ metadata:
   name: rhcl-main-public-dns
   namespace: openshift-ingress
   annotations:
-    argocd.argoproj.io/sync-wave: "17"
+    argocd.argoproj.io/sync-wave: "15"
     argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
 spec:
   targetRef:
@@ -21,7 +21,7 @@ metadata:
   name: rhcl-oidc-public-dns
   namespace: openshift-ingress
   annotations:
-    argocd.argoproj.io/sync-wave: "17"
+    argocd.argoproj.io/sync-wave: "15"
     argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
 spec:
   targetRef:
@@ -38,7 +38,7 @@ metadata:
   name: rhcl-external-public-dns
   namespace: openshift-ingress
   annotations:
-    argocd.argoproj.io/sync-wave: "17"
+    argocd.argoproj.io/sync-wave: "15"
     argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
 spec:
   targetRef:
@@ -55,7 +55,7 @@ metadata:
   name: rhcl-ai-sandbox-dns
   namespace: openshift-ingress
   annotations:
-    argocd.argoproj.io/sync-wave: "17"
+    argocd.argoproj.io/sync-wave: "15"
     argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
 spec:
   targetRef:
@@ -72,7 +72,7 @@ metadata:
   name: rhcl-mcp-sandbox-dns
   namespace: openshift-ingress
   annotations:
-    argocd.argoproj.io/sync-wave: "22"
+    argocd.argoproj.io/sync-wave: "15"
     argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
 spec:
   targetRef:
