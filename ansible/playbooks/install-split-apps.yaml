@@ -354,11 +354,11 @@
                     namespace: rhcl-ai-bot
                   patch: |-
                     - op: replace
-                      path: /spec/template/spec/containers/0/env/9/value
-                      value: https://external-api.{{ external_base_domain }}
+                      path: /spec/template/spec/containers/0/env/8/value
+                      value: http://external-api.{{ external_base_domain }}
                     - op: replace
-                      path: /spec/template/spec/containers/0/env/10/value
-                      value: https://mcp.{{ external_base_domain }}
+                      path: /spec/template/spec/containers/0/env/9/value
+                      value: http://mcp.{{ external_base_domain }}
           destination:
             server: https://kubernetes.default.svc
             namespace: demo
