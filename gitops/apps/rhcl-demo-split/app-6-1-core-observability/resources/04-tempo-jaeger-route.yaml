@@ -1,0 +1,16 @@
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: tempo-jaeger
+  namespace: rhcl-observability
+  annotations:
+    argocd.argoproj.io/sync-wave: "35"
+spec:
+  to:
+    kind: Service
+    name: tempo-simplest-query-frontend
+  port:
+    targetPort: 16686
+  tls:
+    termination: edge
+    insecureEdgeTerminationPolicy: Redirect
