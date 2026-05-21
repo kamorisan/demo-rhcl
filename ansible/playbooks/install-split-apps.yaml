@@ -786,6 +786,30 @@
       changed_when: false
 
     # ============================================================
+    # Application 6-2: Kuadrant Observability Configuration
+    # ============================================================
+
+    - name: Apply Application 6-2 (kuadrant-observability)
+      ansible.builtin.command: oc apply -f gitops/apps/rhcl-demo-split/rhcl-app-6-2-kuadrant-observability.yaml
+      args:
+        chdir: "{{ playbook_dir }}/../.."
+      register: app62_result
+      changed_when: "'configured' in (app62_result.stdout | lower) or 'created' in (app62_result.stdout | lower)"
+
+    - name: Manually sync Application 6-2
+      ansible.builtin.command: oc patch application rhcl-app-6-2-kuadrant-observability -n openshift-gitops --type merge -p '{"operation":{"initiatedBy":{"username":"ansible"},"sync":{}}}'
+      register: app62_sync
+      changed_when: true
+
+    - name: Wait for Application 6-2 to be Synced
+      ansible.builtin.command: oc get application rhcl-app-6-2-kuadrant-observability -n openshift-gitops -o jsonpath='{.status.sync.status}'
+      register: app62_sync_status
+      until: app62_sync_status.stdout == "Synced"
+      retries: 60
+      delay: 10
+      changed_when: false
+
+    # ============================================================
     # Application 6-1: Core Observability (Tempo, OpenTelemetry, Grafana)
     # ============================================================
 
@@ -875,30 +899,6 @@
       changed_when: false
 
     # ============================================================
-    # Application 6-2: Kuadrant Observability Configuration
-    # ============================================================
-
-    - name: Apply Application 6-2 (kuadrant-observability)
-      ansible.builtin.command: oc apply -f gitops/apps/rhcl-demo-split/rhcl-app-6-2-kuadrant-observability.yaml
-      args:
-        chdir: "{{ playbook_dir }}/../.."
-      register: app62_result
-      changed_when: "'configured' in (app62_result.stdout | lower) or 'created' in (app62_result.stdout | lower)"
-
-    - name: Manually sync Application 6-2
-      ansible.builtin.command: oc patch application rhcl-app-6-2-kuadrant-observability -n openshift-gitops --type merge -p '{"operation":{"initiatedBy":{"username":"ansible"},"sync":{}}}'
-      register: app62_sync
-      changed_when: true
-
-    - name: Wait for Application 6-2 to be Synced
-      ansible.builtin.command: oc get application rhcl-app-6-2-kuadrant-observability -n openshift-gitops -o jsonpath='{.status.sync.status}'
-      register: app62_sync_status
-      until: app62_sync_status.stdout == "Synced"
-      retries: 60
-      delay: 10
-      changed_when: false
-
-    # ============================================================
     # Application 6-3: Kuadrant Example Dashboards
     # ============================================================
 
@@ -934,8 +934,8 @@
           - "Application 3 (gateways): deployed"
           - "Application 4 (demo-apps): deployed"
           - "Application 5 (routes-policies): deployed - All 28 resources"
+          - "Application 6-2 (kuadrant-observability): deployed - Grafana Operator + monitoring namespace"
           - "Application 6-1 (core-observability): deployed - Tempo + OpenTelemetry + Grafana"
-          - "Application 6-2 (kuadrant-observability): deployed - ServiceMonitors + PrometheusRules"
           - "Application 6-3 (kuadrant-dashboards): deployed - Grafana ConfigMaps"
           - ""
           - "Workshop URL: https://rhcl-workshop.{{ external_base_domain }}/"
