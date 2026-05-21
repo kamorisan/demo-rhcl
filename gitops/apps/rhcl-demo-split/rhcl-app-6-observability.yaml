@@ -35,3 +35,15 @@ spec:
       kind: OpenTelemetryCollector
       jqPathExpressions:
         - .status
+    - group: grafana.integreatly.org
+      kind: Grafana
+      jqPathExpressions:
+        - .status
+    - group: grafana.integreatly.org
+      kind: GrafanaDatasource
+      jqPathExpressions:
+        - .status
+    - group: grafana.integreatly.org
+      kind: GrafanaDashboard
+      jqPathExpressions:
+        - .status
