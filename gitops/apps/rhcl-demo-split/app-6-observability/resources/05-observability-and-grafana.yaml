@@ -70,7 +70,7 @@ spec:
           args:
             - |
               set -euo pipefail
-              oc apply -k "https://github.com/Kuadrant/kuadrant-operator/config/install/configure/observability?ref=v1.2.0"
+              oc apply -k "https://github.com/Kuadrant/kuadrant-operator/config/install/configure/observability?ref=v1.3.0"
               oc -n openshift-operators patch subscription grafana-operator --type=merge -p '{"spec":{"installPlanApproval":"Automatic"}}' || true
               ip="$(oc -n openshift-operators get subscription grafana-operator -o jsonpath='{.status.installPlanRef.name}' 2>/dev/null || true)"
               if [ -n "${ip:-}" ]; then
