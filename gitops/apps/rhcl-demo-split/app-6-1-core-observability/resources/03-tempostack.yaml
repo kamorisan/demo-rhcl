@@ -18,27 +18,10 @@ spec:
         memory: 1Gi
         cpu: '1'
   tenants:
-    mode: static
+    mode: openshift
     authentication:
       - tenantName: dev
-        tenantId: dev
-    authorization:
-      roles:
-        - name: dev
-          resources:
-            - dev
-          tenants:
-            - dev
-          permissions:
-            - read
-            - write
-      roleBindings:
-        - name: dev
-          subjects:
-            - name: dev
-              kind: user
-          roles:
-            - dev
+        tenantId: "dev"
   template:
     gateway:
       enabled: true
