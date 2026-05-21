@@ -71,6 +71,8 @@ spec:
     exporters:
       otlp/tempo:
         endpoint: tempo-simplest-gateway.rhcl-observability.svc.cluster.local:8090
+        headers:
+          X-Scope-OrgID: dev
         tls:
           insecure: false
           insecure_skip_verify: true
