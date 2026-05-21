@@ -20,7 +20,7 @@ spec:
       kind: Gateway
       name: rhcl-gw
       namespace: openshift-ingress
-      sectionName: https-public
+      sectionName: https-grafana-public
   rules:
     - backendRefs:
         - group: ""

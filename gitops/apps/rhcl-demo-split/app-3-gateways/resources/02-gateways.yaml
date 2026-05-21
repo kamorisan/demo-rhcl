@@ -42,6 +42,18 @@ spec:
       allowedRoutes:
         namespaces:
           from: All
+    - name: https-grafana-public
+      port: 443
+      protocol: HTTPS
+      hostname: grafana-rhcl-workshop.REPLACE_ME_EXTERNAL_BASE_DOMAIN
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - name: rhcl-workshop-grafana-public-tls
+            kind: Secret
+      allowedRoutes:
+        namespaces:
+          from: All
 ---
 # Gateway for External API
 apiVersion: gateway.networking.k8s.io/v1
