@@ -18,17 +18,15 @@ spec:
         memory: 1Gi
         cpu: '1'
   tenants:
-    mode: static
+    mode: openshift
     authentication:
       - tenantName: dev
         tenantId: "dev"
   template:
     gateway:
-      enabled: false
+      enabled: true
+      rbac:
+        enabled: false
     queryFrontend:
       jaegerQuery:
         enabled: true
-        ingress:
-          type: route
-          route:
-            termination: edge

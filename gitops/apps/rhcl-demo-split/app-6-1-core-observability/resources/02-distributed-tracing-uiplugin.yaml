@@ -1,0 +1,11 @@
+apiVersion: observability.openshift.io/v1alpha1
+kind: UIPlugin
+metadata:
+  name: distributed-tracing
+  annotations:
+    argocd.argoproj.io/sync-wave: "32"
+spec:
+  type: DistributedTracing
+  tracingConfig:
+    tempoName: simplest
+    tempoNamespace: rhcl-observability

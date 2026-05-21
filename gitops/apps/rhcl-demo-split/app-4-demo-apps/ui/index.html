@@ -1304,13 +1304,12 @@
 
               <div class="card">
                 <h2>Distributed tracing</h2>
-                <div class="sub">Use the OpenShift Traces view when the console is available. Use Tempo (Jaeger UI) as a fallback.</div>
+                <div class="sub">View distributed traces in the OpenShift Console.</div>
                 <div class="btnGrid" style="margin-top:10px">
                   <a class="btnLink primary" href="#" onclick="openConsoleTraces(); return false;">OpenShift Console (Traces)</a>
-                  <a class="btnLink" href="#" onclick="openTempoJaegerUi(); return false;">Tempo (Jaeger UI)</a>
                 </div>
                 <div class="footer">
-                  If the console link shows 404, the tracing plugin isn’t enabled yet. Tempo UI is the plan B when console login is slow/unavailable.
+                  Requires Distributed Tracing UI plugin to be enabled in the cluster.
                 </div>
               </div>
 
@@ -3838,24 +3837,6 @@ spec:
         window.open(`${base}/observe/traces`, "_blank", "noopener,noreferrer");
       }
 
-      function tempoJaegerUrl(){
-        // Use the OpenShift apps domain injected by Ansible
-        const appsDomain = (OPENSHIFT_APPS_DOMAIN && OPENSHIFT_APPS_DOMAIN !== "REPLACE_ME_APPS_DOMAIN")
-          ? OPENSHIFT_APPS_DOMAIN
-          : "";
-        // Use the dedicated Route for the Jaeger UI.
-        const url = appsDomain ? `https://tempo-jaeger-rhcl-observability.${appsDomain}` : "";
-        return url.replace(/\/+$/g, "");
-      }
-
-      function openTempoJaegerUi(){
-        const url = tempoJaegerUrl();
-        if (!url){
-          toast("Tempo UI URL unknown.");
-          return;
-        }
-        window.open(url, "_blank", "noopener,noreferrer");
-      }
 
       function refreshConsoleGraphLinks(){
         const base = consoleBaseUrl();
