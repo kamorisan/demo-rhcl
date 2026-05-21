@@ -18,17 +18,10 @@ spec:
         memory: 1Gi
         cpu: '1'
   tenants:
-    mode: static
+    mode: openshift
     authentication:
       - tenantName: dev
         tenantId: "dev"
-    authorization:
-      roles:
-        - name: dev-reader
-          permissions:
-            - read
-          tenants:
-            - dev
   template:
     gateway:
       enabled: true

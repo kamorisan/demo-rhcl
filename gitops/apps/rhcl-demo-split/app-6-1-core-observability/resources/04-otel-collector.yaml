@@ -52,6 +52,8 @@ spec:
         protocols:
           grpc: {}
           http: {}
+      zipkin:
+        endpoint: 0.0.0.0:9411
 
     processors:
       k8sattributes:
@@ -79,6 +81,7 @@ spec:
         traces:
           receivers:
             - otlp
+            - zipkin
           processors:
             - k8sattributes
           exporters:
