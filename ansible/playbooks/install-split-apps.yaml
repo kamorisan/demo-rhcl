@@ -288,6 +288,17 @@
                     - op: replace
                       path: /spec/host
                       value: oidc-rhcl-workshop.{{ external_base_domain }}
+
+                - target:
+                    group: route.openshift.io
+                    version: v1
+                    kind: Route
+                    name: rhcl-workshop-gw-grafana
+                    namespace: openshift-ingress
+                  patch: |-
+                    - op: replace
+                      path: /spec/host
+                      value: grafana-rhcl-workshop.{{ external_base_domain }}
           destination:
             server: https://kubernetes.default.svc
             namespace: openshift-ingress
