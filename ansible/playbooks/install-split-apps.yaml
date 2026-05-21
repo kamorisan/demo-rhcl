@@ -861,12 +861,12 @@
       register: app61_result
       changed_when: "'configured' in (app61_result.stdout | lower) or 'created' in (app61_result.stdout | lower)"
 
-    - name: Manually sync Application 6-3
+    - name: Manually sync Application 6-1
       ansible.builtin.command: oc patch application rhcl-app-6-1-core-observability -n openshift-gitops --type merge -p '{"operation":{"initiatedBy":{"username":"ansible"},"sync":{}}}'
       register: app61_sync
       changed_when: true
 
-    - name: Wait for Application 6-3 to be Synced
+    - name: Wait for Application 6-1 to be Synced
       ansible.builtin.command: oc get application rhcl-app-6-1-core-observability -n openshift-gitops -o jsonpath='{.status.sync.status}'
       register: app61_sync_status
       until: app61_sync_status.stdout == "Synced"
@@ -885,12 +885,12 @@
       register: app62_result
       changed_when: "'configured' in (app62_result.stdout | lower) or 'created' in (app62_result.stdout | lower)"
 
-    - name: Manually sync Application 6-3
+    - name: Manually sync Application 6-2
       ansible.builtin.command: oc patch application rhcl-app-6-2-kuadrant-observability -n openshift-gitops --type merge -p '{"operation":{"initiatedBy":{"username":"ansible"},"sync":{}}}'
       register: app62_sync
       changed_when: true
 
-    - name: Wait for Application 6-3 to be Synced
+    - name: Wait for Application 6-2 to be Synced
       ansible.builtin.command: oc get application rhcl-app-6-2-kuadrant-observability -n openshift-gitops -o jsonpath='{.status.sync.status}'
       register: app62_sync_status
       until: app62_sync_status.stdout == "Synced"
@@ -934,7 +934,9 @@
           - "Application 3 (gateways): deployed"
           - "Application 4 (demo-apps): deployed"
           - "Application 5 (routes-policies): deployed - All 28 resources"
+          - "Application 6-1 (core-observability): deployed - Tempo + OpenTelemetry + Grafana"
           - "Application 6-2 (kuadrant-observability): deployed - ServiceMonitors + PrometheusRules"
+          - "Application 6-3 (kuadrant-dashboards): deployed - Grafana ConfigMaps"
           - ""
           - "Workshop URL: https://rhcl-workshop.{{ external_base_domain }}/"
           - "OIDC URL: https://oidc-rhcl-workshop.{{ external_base_domain }}/"
