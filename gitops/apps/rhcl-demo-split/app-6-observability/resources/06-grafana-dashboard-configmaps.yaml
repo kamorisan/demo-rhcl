@@ -4,7 +4,7 @@ metadata:
   name: grafana-app-developer
   namespace: monitoring
   annotations:
-    argocd.argoproj.io/sync-wave: "97"
+    argocd.argoproj.io/sync-wave: "51"
 data:
   app_developer.json: |
     {
@@ -93,7 +93,7 @@ metadata:
   name: grafana-platform-engineer
   namespace: monitoring
   annotations:
-    argocd.argoproj.io/sync-wave: "97"
+    argocd.argoproj.io/sync-wave: "51"
 data:
   platform_engineer.json: |
     {
@@ -196,7 +196,7 @@ metadata:
   name: grafana-business-user
   namespace: monitoring
   annotations:
-    argocd.argoproj.io/sync-wave: "97"
+    argocd.argoproj.io/sync-wave: "51"
 data:
   business_user.json: |
     {

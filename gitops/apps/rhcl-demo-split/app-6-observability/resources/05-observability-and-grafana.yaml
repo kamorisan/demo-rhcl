@@ -4,14 +4,14 @@ metadata:
   name: rhcl-observability-bootstrap
   namespace: openshift-gitops
   annotations:
-    argocd.argoproj.io/sync-wave: "90"
+    argocd.argoproj.io/sync-wave: "40"
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
   name: rhcl-observability-bootstrap
   annotations:
-    argocd.argoproj.io/sync-wave: "90"
+    argocd.argoproj.io/sync-wave: "40"
 subjects:
   - kind: ServiceAccount
     name: rhcl-observability-bootstrap
@@ -29,7 +29,7 @@ metadata:
   annotations:
     argocd.argoproj.io/hook: PostSync
     argocd.argoproj.io/hook-delete-policy: HookSucceeded,HookFailed
-    argocd.argoproj.io/sync-wave: "91"
+    argocd.argoproj.io/sync-wave: "41"
 spec:
   backoffLimit: 1
   template:
@@ -56,7 +56,7 @@ metadata:
   annotations:
     argocd.argoproj.io/hook: PostSync
     argocd.argoproj.io/hook-delete-policy: HookSucceeded,HookFailed
-    argocd.argoproj.io/sync-wave: "92"
+    argocd.argoproj.io/sync-wave: "42"
 spec:
   backoffLimit: 1
   template:
@@ -86,7 +86,7 @@ metadata:
   annotations:
     argocd.argoproj.io/hook: PostSync
     argocd.argoproj.io/hook-delete-policy: HookSucceeded,HookFailed
-    argocd.argoproj.io/sync-wave: "93"
+    argocd.argoproj.io/sync-wave: "43"
 spec:
   backoffLimit: 1
   template:
@@ -109,14 +109,14 @@ metadata:
   name: rhcl-grafana
   namespace: monitoring
   annotations:
-    argocd.argoproj.io/sync-wave: "94"
+    argocd.argoproj.io/sync-wave: "44"
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
   name: rhcl-grafana-cluster-monitoring-view
   annotations:
-    argocd.argoproj.io/sync-wave: "94"
+    argocd.argoproj.io/sync-wave: "44"
 subjects:
   - kind: ServiceAccount
     name: rhcl-grafana
@@ -134,7 +134,7 @@ metadata:
   annotations:
     argocd.argoproj.io/hook: PostSync
     argocd.argoproj.io/hook-delete-policy: HookSucceeded,HookFailed
-    argocd.argoproj.io/sync-wave: "95"
+    argocd.argoproj.io/sync-wave: "45"
 spec:
   backoffLimit: 1
   template:
@@ -167,7 +167,7 @@ metadata:
   labels:
     app: rhcl-grafana
   annotations:
-    argocd.argoproj.io/sync-wave: "96"
+    argocd.argoproj.io/sync-wave: "50"
 spec:
   config:
     auth:
@@ -192,7 +192,7 @@ metadata:
   labels:
     app: rhcl-grafana
   annotations:
-    argocd.argoproj.io/sync-wave: "97"
+    argocd.argoproj.io/sync-wave: "51"
 spec:
   instanceSelector:
     matchLabels:
@@ -226,7 +226,7 @@ metadata:
   name: rhcl-app-developer
   namespace: monitoring
   annotations:
-    argocd.argoproj.io/sync-wave: "98"
+    argocd.argoproj.io/sync-wave: "52"
 spec:
   instanceSelector:
     matchLabels:
@@ -244,7 +244,7 @@ metadata:
   name: rhcl-platform-engineer
   namespace: monitoring
   annotations:
-    argocd.argoproj.io/sync-wave: "98"
+    argocd.argoproj.io/sync-wave: "52"
 spec:
   instanceSelector:
     matchLabels:
@@ -262,7 +262,7 @@ metadata:
   name: rhcl-business-user
   namespace: monitoring
   annotations:
-    argocd.argoproj.io/sync-wave: "98"
+    argocd.argoproj.io/sync-wave: "52"
 spec:
   instanceSelector:
     matchLabels:
