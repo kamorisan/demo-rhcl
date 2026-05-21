@@ -844,7 +844,7 @@
                   patch: |-
                     - op: replace
                       path: /spec/route/spec/host
-                      value: grafana.{{ external_base_domain }}
+                      value: grafana.apps.cluster-{{ cluster_id }}.{{ cluster_id }}.{{ external_base_domain }}
           destination:
             server: https://kubernetes.default.svc
             namespace: rhcl-observability
@@ -943,6 +943,7 @@
           - "External API: https://external-api.{{ external_base_domain }}/"
           - "AI Bot: https://ai.{{ external_base_domain }}/"
           - "MCP: https://mcp.{{ external_base_domain }}/"
+          - "Grafana: https://grafana.apps.cluster-{{ cluster_id }}.{{ cluster_id }}.{{ external_base_domain }}/"
           - ""
           - "OpenAI API Key: {{ 'configured' if (openai_api_key | default('') | trim != '') else 'NOT configured (AI features disabled)' }}"
           - "AWS Credentials: {{ 'configured' if (aws_access_key_id | default('') | trim != '') else 'NOT configured (DNS/TLS disabled)' }}"
