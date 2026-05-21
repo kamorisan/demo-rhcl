@@ -112,10 +112,10 @@
       register: app1_result
       changed_when: "'configured' in (app1_result.stdout | lower) or 'created' in (app1_result.stdout | lower)"
 
-    - name: Wait for Application 1 to be Healthy
-      ansible.builtin.command: oc get application rhcl-app-1-operators -n openshift-gitops -o jsonpath='{.status.health.status}'
-      register: app1_health
-      until: app1_health.stdout == "Healthy"
+    - name: Wait for Application 1 to be Synced
+      ansible.builtin.command: oc get application rhcl-app-1-operators -n openshift-gitops -o jsonpath='{.status.sync.status}'
+      register: app1_sync
+      until: app1_sync.stdout == "Synced"
       retries: 60
       delay: 10
       changed_when: false
@@ -164,11 +164,11 @@
       register: app2_sync
       changed_when: true
 
-    - name: Wait for Application 2 to be Healthy
-      ansible.builtin.command: oc get application rhcl-app-2-platform-crs -n openshift-gitops -o jsonpath='{.status.health.status}'
-      register: app2_health
-      until: app2_health.stdout == "Healthy"
-      retries: 30
+    - name: Wait for Application 2 to be Synced
+      ansible.builtin.command: oc get application rhcl-app-2-platform-crs -n openshift-gitops -o jsonpath='{.status.sync.status}'
+      register: app2_sync_status
+      until: app2_sync_status.stdout == "Synced"
+      retries: 60
       delay: 10
       changed_when: false
 
@@ -309,10 +309,10 @@
       register: app3_sync
       changed_when: true
 
-    - name: Wait for Application 3 to be Healthy
-      ansible.builtin.command: oc get application rhcl-app-3-gateways -n openshift-gitops -o jsonpath='{.status.health.status}'
-      register: app3_health
-      until: app3_health.stdout == "Healthy"
+    - name: Wait for Application 3 to be Synced
+      ansible.builtin.command: oc get application rhcl-app-3-gateways -n openshift-gitops -o jsonpath='{.status.sync.status}'
+      register: app3_sync_status
+      until: app3_sync_status.stdout == "Synced"
       retries: 60
       delay: 10
       changed_when: false
@@ -383,11 +383,11 @@
       register: app4_sync
       changed_when: true
 
-    - name: Wait for Application 4 to be Healthy
-      ansible.builtin.command: oc get application rhcl-app-4-demo-apps -n openshift-gitops -o jsonpath='{.status.health.status}'
-      register: app4_health
-      until: app4_health.stdout == "Healthy"
-      retries: 30
+    - name: Wait for Application 4 to be Synced
+      ansible.builtin.command: oc get application rhcl-app-4-demo-apps -n openshift-gitops -o jsonpath='{.status.sync.status}'
+      register: app4_sync_status
+      until: app4_sync_status.stdout == "Synced"
+      retries: 60
       delay: 10
       changed_when: false
 
@@ -774,11 +774,11 @@
       register: app5_sync
       changed_when: true
 
-    - name: Wait for Application 5 to be Healthy
-      ansible.builtin.command: oc get application rhcl-app-5-routes-policies -n openshift-gitops -o jsonpath='{.status.health.status}'
-      register: app5_health
-      until: app5_health.stdout == "Healthy"
-      retries: 30
+    - name: Wait for Application 5 to be Synced
+      ansible.builtin.command: oc get application rhcl-app-5-routes-policies -n openshift-gitops -o jsonpath='{.status.sync.status}'
+      register: app5_sync_status
+      until: app5_sync_status.stdout == "Synced"
+      retries: 60
       delay: 10
       changed_when: false
 
