@@ -26,16 +26,6 @@ public class McpAcceptHeaderCompatFilter {
     }
 
     String lower = accept.toLowerCase();
-
-    // For streamable endpoint (/mcp), ensure application/json is present
-    // MCP Gateway may send "*/*, text/event-stream" which needs normalization
-    if (path.equals("/mcp") && !lower.contains("application/json")) {
-      // Replace with application/json for streamable transport
-      rc.request().headers().set("accept", "application/json");
-      rc.next();
-      return;
-    }
-
     if (!lower.contains("text/event-stream")) {
       rc.request().headers().set("accept", accept + ", text/event-stream");
     }
