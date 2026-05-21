@@ -649,6 +649,9 @@
                     - op: replace
                       path: /spec/parentRefs/0/name
                       value: rhcl-external-gw
+                    - op: replace
+                      path: /spec/parentRefs/1/name
+                      value: rhcl-external-gw
 
                 # Phase 5: A/B Canary and JWT Demo
                 # httproute-ab-demo: hostname and gateway (ab-canary-external.yaml)
