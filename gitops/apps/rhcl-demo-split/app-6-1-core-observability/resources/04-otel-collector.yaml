@@ -73,6 +73,7 @@ spec:
         endpoint: tempo-simplest-distributor.rhcl-observability.svc.cluster.local:4317
         tls:
           insecure: true
+          insecure_skip_verify: true
       debug:
         verbosity: detailed
 
