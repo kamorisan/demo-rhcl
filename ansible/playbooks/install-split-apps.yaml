@@ -476,6 +476,24 @@
                       path: /spec/parentRefs/0/name
                       value: rhcl-workshop-gw
 
+                # httproute-grafana: hostname and gateway
+                - target:
+                    group: gateway.networking.k8s.io
+                    version: v1
+                    kind: HTTPRoute
+                    name: grafana-rhcl-workshop
+                    namespace: monitoring
+                  patch: |-
+                    - op: replace
+                      path: /spec/hostnames/0
+                      value: grafana-rhcl-workshop.{{ external_base_domain }}
+                    - op: replace
+                      path: /spec/parentRefs/0/name
+                      value: rhcl-workshop-gw
+                    - op: replace
+                      path: /spec/parentRefs/1/name
+                      value: rhcl-workshop-gw
+
                 # httproute-secure-demo: hostname and gateway
                 - target:
                     group: gateway.networking.k8s.io
@@ -832,19 +850,6 @@
             repoURL: https://github.com/kamorisan/demo-rhcl.git
             targetRevision: feature/apps345-espn-tools-verified
             path: gitops/apps/rhcl-demo-split/app-6-1-core-observability
-            kustomize:
-              patches:
-                # Grafana CR: route hostname
-                - target:
-                    group: grafana.integreatly.org
-                    version: v1beta1
-                    kind: Grafana
-                    name: rhcl-grafana
-                    namespace: monitoring
-                  patch: |-
-                    - op: replace
-                      path: /spec/route/spec/host
-                      value: grafana.apps.cluster-{{ cluster_id }}.{{ cluster_id }}.{{ external_base_domain }}
           destination:
             server: https://kubernetes.default.svc
             namespace: rhcl-observability
@@ -943,7 +948,7 @@
           - "External API: https://external-api.{{ external_base_domain }}/"
           - "AI Bot: https://ai.{{ external_base_domain }}/"
           - "MCP: https://mcp.{{ external_base_domain }}/"
-          - "Grafana: https://grafana.apps.cluster-{{ cluster_id }}.{{ cluster_id }}.{{ external_base_domain }}/"
+          - "Grafana: https://grafana-rhcl-workshop.{{ external_base_domain }}/"
           - ""
           - "OpenAI API Key: {{ 'configured' if (openai_api_key | default('') | trim != '') else 'NOT configured (AI features disabled)' }}"
           - "AWS Credentials: {{ 'configured' if (aws_access_key_id | default('') | trim != '') else 'NOT configured (DNS/TLS disabled)' }}"

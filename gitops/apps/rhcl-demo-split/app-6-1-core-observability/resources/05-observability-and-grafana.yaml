@@ -72,12 +72,6 @@ spec:
       org_role: Viewer
     log:
       mode: console
-  route:
-    spec:
-      host: REPLACE_ME_GRAFANA_HOSTNAME
-      tls:
-        termination: edge
-        insecureEdgeTerminationPolicy: Redirect
 ---
 apiVersion: grafana.integreatly.org/v1beta1
 kind: GrafanaDatasource

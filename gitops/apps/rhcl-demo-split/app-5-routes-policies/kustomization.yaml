@@ -6,6 +6,7 @@ resources:
   - resources/httproute-ui.yaml
   - resources/httproute-oidc-portal.yaml
   - resources/httproute-api.yaml
+  - resources/httproute-grafana.yaml
   - resources/ui-authpolicy.yaml
   - resources/oidc-portal-authpolicy.yaml
 
