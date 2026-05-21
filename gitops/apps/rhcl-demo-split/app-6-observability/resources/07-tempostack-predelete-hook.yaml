@@ -1,0 +1,33 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: tempostack-predelete-hook
+  namespace: rhcl-observability
+  annotations:
+    argocd.argoproj.io/hook: PreDelete
+    argocd.argoproj.io/hook-delete-policy: HookSucceeded,BeforeHookCreation
+spec:
+  backoffLimit: 3
+  template:
+    spec:
+      serviceAccountName: rhcl-observability-bootstrap
+      restartPolicy: Never
+      containers:
+        - name: remove-finalizers
+          image: registry.redhat.io/openshift4/ose-cli:latest
+          command: ["/bin/bash", "-c"]
+          args:
+            - |
+              set -euo pipefail
+              echo "Removing TempoStack finalizers to prevent deletion hang..."
+
+              # Check if TempoStack exists
+              if oc get tempostack simplest -n rhcl-observability >/dev/null 2>&1; then
+                echo "TempoStack 'simplest' found. Removing finalizers..."
+                oc patch tempostack simplest -n rhcl-observability --type=json -p='[{"op": "remove", "path": "/metadata/finalizers"}]' || true
+                echo "Finalizers removed successfully."
+              else
+                echo "TempoStack 'simplest' not found. Nothing to do."
+              fi
+
+              echo "PreDelete hook completed."
