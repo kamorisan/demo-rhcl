@@ -7,7 +7,6 @@ metadata:
     argocd.argoproj.io/sync-wave: "26"
     argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
 spec:
-  toolPrefix: ""
   targetRef:
     group: gateway.networking.k8s.io
     kind: HTTPRoute
