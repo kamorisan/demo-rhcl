@@ -446,7 +446,7 @@
         # Get current index.html content
         oc get configmap "$CM_NAME" -n demo -o jsonpath='{.data.index\.html}' > /tmp/index.html.tmp
         # Replace only the constant definition line (not the comparison in code)
-        sed -i 's|ANSIBLE_REPLACE_LINE: const OPENSHIFT_APPS_DOMAIN = "REPLACE_ME_APPS_DOMAIN";|const OPENSHIFT_APPS_DOMAIN = "apps.cluster-{{ cluster_id }}.{{ cluster_id }}.{{ external_base_domain }}";|g' /tmp/index.html.tmp
+        sed -i 's|^\([ ]*\)const OPENSHIFT_APPS_DOMAIN = "REPLACE_ME_APPS_DOMAIN";$|\1const OPENSHIFT_APPS_DOMAIN = "apps.cluster-{{ cluster_id }}.{{ cluster_id }}.{{ external_base_domain }}";|' /tmp/index.html.tmp
         # Patch the ConfigMap
         oc create configmap "$CM_NAME" -n demo --from-file=index.html=/tmp/index.html.tmp --dry-run=client -o yaml | \
           oc apply -f -
