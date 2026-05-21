@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: rhcl-app-6-observability
+  name: rhcl-app-6-1-core-observability
   namespace: openshift-gitops
   annotations:
     argocd.argoproj.io/sync-wave: "6"
@@ -12,7 +12,7 @@ spec:
   source:
     repoURL: https://github.com/kamorisan/demo-rhcl.git
     targetRevision: feature/apps345-espn-tools-verified
-    path: gitops/apps/rhcl-demo-split/app-6-observability
+    path: gitops/apps/rhcl-demo-split/app-6-1-core-observability
   destination:
     server: https://kubernetes.default.svc
     namespace: rhcl-observability
