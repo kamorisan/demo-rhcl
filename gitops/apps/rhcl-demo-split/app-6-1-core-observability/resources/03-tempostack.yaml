@@ -22,6 +22,13 @@ spec:
     authentication:
       - tenantName: dev
         tenantId: "dev"
+    authorization:
+      roles:
+        - name: dev-reader
+          permissions:
+            - read
+          tenants:
+            - dev
   template:
     gateway:
       enabled: true
