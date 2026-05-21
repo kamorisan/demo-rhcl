@@ -12,3 +12,16 @@ spec:
   namespace: istio-system
   updateStrategy:
     type: InPlace
+  values:
+    meshConfig:
+      enableTracing: true
+      defaultConfig:
+        tracing:
+          sampling: 100.0
+          zipkin:
+            address: rhcl-otel-collector-collector.opentelemetry.svc.cluster.local:9411
+      extensionProviders:
+        - name: otel-tracing
+          zipkin:
+            service: rhcl-otel-collector-collector.opentelemetry.svc.cluster.local
+            port: 9411
