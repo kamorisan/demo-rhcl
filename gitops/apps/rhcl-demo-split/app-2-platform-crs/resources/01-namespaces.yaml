@@ -4,6 +4,8 @@ metadata:
   name: demo
   annotations:
     argocd.argoproj.io/sync-wave: "10"
+  labels:
+    istio-injection: enabled
 ---
 apiVersion: v1
 kind: Namespace
@@ -11,6 +13,8 @@ metadata:
   name: demo-ab
   annotations:
     argocd.argoproj.io/sync-wave: "10"
+  labels:
+    istio-injection: enabled
 ---
 apiVersion: v1
 kind: Namespace
@@ -18,6 +22,8 @@ metadata:
   name: demo-jwt
   annotations:
     argocd.argoproj.io/sync-wave: "10"
+  labels:
+    istio-injection: enabled
 ---
 apiVersion: v1
 kind: Namespace
@@ -25,6 +31,8 @@ metadata:
   name: rhcl-ai-bot
   annotations:
     argocd.argoproj.io/sync-wave: "10"
+  labels:
+    istio-injection: enabled
 ---
 apiVersion: v1
 kind: Namespace
@@ -32,6 +40,8 @@ metadata:
   name: rhcl-oidc-portal
   annotations:
     argocd.argoproj.io/sync-wave: "10"
+  labels:
+    istio-injection: enabled
 ---
 apiVersion: v1
 kind: Namespace

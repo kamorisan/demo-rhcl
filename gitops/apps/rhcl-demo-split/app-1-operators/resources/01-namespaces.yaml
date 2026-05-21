@@ -25,6 +25,8 @@ metadata:
   name: mcp-system
   annotations:
     argocd.argoproj.io/sync-wave: "0"
+  labels:
+    istio-injection: enabled
 ---
 apiVersion: v1
 kind: Namespace
@@ -32,6 +34,8 @@ metadata:
   name: rhcl-keycloak
   annotations:
     argocd.argoproj.io/sync-wave: "0"
+  labels:
+    istio-injection: enabled
 ---
 apiVersion: v1
 kind: Namespace
