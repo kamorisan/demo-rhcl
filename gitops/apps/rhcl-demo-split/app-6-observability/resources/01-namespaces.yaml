@@ -17,3 +17,13 @@ metadata:
     argocd.argoproj.io/sync-wave: "30"
   labels:
     name: opentelemetry
+---
+# Namespace for Monitoring (Grafana)
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: monitoring
+  annotations:
+    argocd.argoproj.io/sync-wave: "30"
+  labels:
+    name: monitoring

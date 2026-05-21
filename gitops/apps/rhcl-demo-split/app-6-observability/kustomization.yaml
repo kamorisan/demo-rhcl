@@ -6,3 +6,5 @@ resources:
   - resources/02-minio-tempo-storage.yaml
   - resources/03-tempostack.yaml
   - resources/04-otel-collector.yaml
+  - resources/05-observability-and-grafana.yaml
+  - resources/06-grafana-dashboard-configmaps.yaml

@@ -786,13 +786,66 @@
       changed_when: false
 
     # ============================================================
-    # Application 6: Observability (Tempo, OpenTelemetry)
+    # Application 6: Observability (Tempo, OpenTelemetry, Grafana)
     # ============================================================
 
     - name: Apply Application 6 (observability)
-      ansible.builtin.command: oc apply -f gitops/apps/rhcl-demo-split/rhcl-app-6-observability.yaml
+      ansible.builtin.shell: |
+        set -euo pipefail
+        cat <<'EOF' | oc apply -f -
+        apiVersion: argoproj.io/v1alpha1
+        kind: Application
+        metadata:
+          name: rhcl-app-6-observability
+          namespace: openshift-gitops
+          finalizers:
+            - resources-finalizer.argocd.argoproj.io
+          annotations:
+            argocd.argoproj.io/sync-wave: "6"
+        spec:
+          project: default
+          source:
+            repoURL: https://github.com/kamorisan/demo-rhcl.git
+            targetRevision: feature/apps345-espn-tools-verified
+            path: gitops/apps/rhcl-demo-split/app-6-observability
+            kustomize:
+              patches:
+                # Grafana CR: route hostname
+                - target:
+                    group: grafana.integreatly.org
+                    version: v1beta1
+                    kind: Grafana
+                    name: rhcl-grafana
+                    namespace: monitoring
+                  patch: |-
+                    - op: replace
+                      path: /spec/route/spec/host
+                      value: grafana.{{ external_base_domain }}
+          destination:
+            server: https://kubernetes.default.svc
+            namespace: rhcl-observability
+          syncPolicy:
+            syncOptions:
+              - CreateNamespace=true
+              - RespectIgnoreDifferences=true
+            retry:
+              limit: 10
+              backoff:
+                duration: 30s
+                factor: 2
+                maxDuration: 10m
+          ignoreDifferences:
+            - group: tempo.grafana.com
+              kind: TempoStack
+              jqPathExpressions:
+                - .status
+            - group: opentelemetry.io
+              kind: OpenTelemetryCollector
+              jqPathExpressions:
+                - .status
+        EOF
       args:
-        chdir: "{{ playbook_dir }}/../.."
+        executable: /bin/bash
       register: app6_result
       changed_when: "'configured' in (app6_result.stdout | lower) or 'created' in (app6_result.stdout | lower)"
 
