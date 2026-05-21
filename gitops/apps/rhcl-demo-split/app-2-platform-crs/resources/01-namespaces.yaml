@@ -50,12 +50,3 @@ metadata:
     argocd.argoproj.io/sync-wave: "10"
   labels:
     name: opentelemetry
----
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: monitoring
-  annotations:
-    argocd.argoproj.io/sync-wave: "10"
-  labels:
-    name: monitoring

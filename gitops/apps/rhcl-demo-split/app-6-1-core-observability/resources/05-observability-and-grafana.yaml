@@ -118,7 +118,7 @@ spec:
 apiVersion: grafana.integreatly.org/v1beta1
 kind: GrafanaDashboard
 metadata:
-  name: rhcl-app-developer
+  name: rhcl-workshop-app-developer
   namespace: monitoring
   annotations:
     argocd.argoproj.io/sync-wave: "52"
@@ -130,13 +130,13 @@ spec:
   uid: rhcl-app-dev
   folder: RHCL Workshop
   configMapRef:
-    name: grafana-app-developer
+    name: rhcl-workshop-app-developer
     key: app_developer.json
 ---
 apiVersion: grafana.integreatly.org/v1beta1
 kind: GrafanaDashboard
 metadata:
-  name: rhcl-platform-engineer
+  name: rhcl-workshop-platform-engineer
   namespace: monitoring
   annotations:
     argocd.argoproj.io/sync-wave: "52"
@@ -148,13 +148,13 @@ spec:
   uid: rhcl-platform
   folder: RHCL Workshop
   configMapRef:
-    name: grafana-platform-engineer
+    name: rhcl-workshop-platform-engineer
     key: platform_engineer.json
 ---
 apiVersion: grafana.integreatly.org/v1beta1
 kind: GrafanaDashboard
 metadata:
-  name: rhcl-business-user
+  name: rhcl-workshop-business-user
   namespace: monitoring
   annotations:
     argocd.argoproj.io/sync-wave: "52"
@@ -166,6 +166,6 @@ spec:
   uid: rhcl-business
   folder: RHCL Workshop
   configMapRef:
-    name: grafana-business-user
+    name: rhcl-workshop-business-user
     key: business_user.json
 
