@@ -1376,6 +1376,9 @@
     </dialog>
 
     <script>
+      // OpenShift apps domain - replaced by Ansible at deployment time
+      const OPENSHIFT_APPS_DOMAIN = "REPLACE_ME_APPS_DOMAIN";
+
       const el = (id) => document.getElementById(id);
       const logEl = el("log");
       const apikeyEl = el("apikey");
@@ -3815,8 +3818,10 @@ spec:
       function consoleBaseUrl(){
         let url = String(localStorage.getItem("rhcl_console_url") || "").trim();
         if (!url){
-          const parts = String(location.host || "").split(".");
-          const appsDomain = parts.length > 1 ? parts.slice(1).join(".") : "";
+          // Use the OpenShift apps domain injected by Ansible
+          const appsDomain = (OPENSHIFT_APPS_DOMAIN && OPENSHIFT_APPS_DOMAIN !== "REPLACE_ME_APPS_DOMAIN")
+            ? OPENSHIFT_APPS_DOMAIN
+            : "";
           url = appsDomain ? `https://console-openshift-console.${appsDomain}` : "";
         }
         if (url && !/^https?:\/\//i.test(url)) url = `https://${url}`;
@@ -3833,8 +3838,10 @@ spec:
       }
 
       function tempoJaegerUrl(){
-        const parts = String(location.host || "").split(".");
-        const appsDomain = parts.length > 1 ? parts.slice(1).join(".") : "";
+        // Use the OpenShift apps domain injected by Ansible
+        const appsDomain = (OPENSHIFT_APPS_DOMAIN && OPENSHIFT_APPS_DOMAIN !== "REPLACE_ME_APPS_DOMAIN")
+          ? OPENSHIFT_APPS_DOMAIN
+          : "";
         // Use the dedicated Route for the Jaeger UI.
         const url = appsDomain ? `https://tempo-jaeger-rhcl-observability.${appsDomain}` : "";
         return url.replace(/\/+$/g, "");
