@@ -220,6 +220,9 @@
                     - op: replace
                       path: /spec/listeners/2/hostname
                       value: oidc-rhcl-workshop.{{ external_base_domain }}
+                    - op: replace
+                      path: /spec/listeners/3/hostname
+                      value: grafana-rhcl-workshop.{{ external_base_domain }}
 
                 # Gateway rhcl-external-gw patches
                 - target:
