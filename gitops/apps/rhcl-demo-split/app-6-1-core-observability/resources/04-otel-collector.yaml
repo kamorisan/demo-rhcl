@@ -70,9 +70,10 @@ spec:
 
     exporters:
       otlp/tempo:
-        endpoint: tempo-simplest-distributor.rhcl-observability.svc.cluster.local:4317
+        endpoint: tempo-simplest-gateway.rhcl-observability.svc.cluster.local:8090
         tls:
-          insecure: true
+          insecure: false
+          insecure_skip_verify: true
       debug:
         verbosity: detailed
 
