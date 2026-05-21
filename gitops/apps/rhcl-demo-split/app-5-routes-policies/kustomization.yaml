@@ -9,6 +9,7 @@ resources:
   - resources/httproute-grafana.yaml
   - resources/ui-authpolicy.yaml
   - resources/oidc-portal-authpolicy.yaml
+  - resources/grafana-authpolicy.yaml
 
   # ReferenceGrant for secure-demo HTTPRoute (oidc-portal → demo/external-proxy)
   - resources/referencegrant-oidc-to-external-proxy.yaml
