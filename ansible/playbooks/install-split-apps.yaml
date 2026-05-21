@@ -437,21 +437,15 @@
     - name: Replace OPENSHIFT_APPS_DOMAIN placeholder in UI ConfigMap
       ansible.builtin.shell: |
         set -euo pipefail
-        # Get the ConfigMap name (has hash suffix from kustomize)
-        CM_NAME=$(oc get configmap -n demo -o name | grep '^configmap/rhcl-ui-' | grep -v nginx | tail -1 | cut -d'/' -f2)
-        if [ -z "$CM_NAME" ]; then
-          echo "ERROR: rhcl-ui ConfigMap not found"
-          exit 1
-        fi
-        # Get current index.html content
-        oc get configmap "$CM_NAME" -n demo -o jsonpath='{.data.index\.html}' > /tmp/index.html.tmp
-        # Replace only the constant definition line (not the comparison in code)
-        sed -i 's|^\([ ]*\)const OPENSHIFT_APPS_DOMAIN = "REPLACE_ME_APPS_DOMAIN";$|\1const OPENSHIFT_APPS_DOMAIN = "apps.cluster-{{ cluster_id }}.{{ cluster_id }}.{{ external_base_domain }}";|' /tmp/index.html.tmp
-        # Patch the ConfigMap
-        oc create configmap "$CM_NAME" -n demo --from-file=index.html=/tmp/index.html.tmp --dry-run=client -o yaml | \
+        # Copy template file
+        cp "{{ playbook_dir }}/../../gitops/apps/rhcl-demo-split/app-4-demo-apps/ui/index.html" /tmp/index.html.tmp
+        # Replace the placeholder (macOS-compatible sed)
+        sed -i '' 's|const OPENSHIFT_APPS_DOMAIN = "REPLACE_ME_APPS_DOMAIN";|const OPENSHIFT_APPS_DOMAIN = "apps.cluster-{{ cluster_id }}.{{ cluster_id }}.{{ external_base_domain }}";|g' /tmp/index.html.tmp
+        # Create/update the ConfigMap with fixed name
+        oc create configmap rhcl-ui -n demo --from-file=index.html=/tmp/index.html.tmp --dry-run=client -o yaml | \
           oc apply -f -
         rm -f /tmp/index.html.tmp
-        echo "Replaced OPENSHIFT_APPS_DOMAIN in ConfigMap $CM_NAME"
+        echo "Updated rhcl-ui ConfigMap with domain: apps.cluster-{{ cluster_id }}.{{ cluster_id }}.{{ external_base_domain }}"
       args:
         executable: /bin/bash
       register: ui_configmap_patch
