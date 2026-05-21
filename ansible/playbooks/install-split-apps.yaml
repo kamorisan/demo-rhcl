@@ -453,6 +453,84 @@
       register: openai_secret
       changed_when: "'configured' in (openai_secret.stdout | lower) or 'created' in (openai_secret.stdout | lower)"
 
+
+    # Application 6-1: Core Observability (Tempo, OpenTelemetry, Grafana)
+    # ============================================================
+
+    - name: Apply Application 6-1 (core-observability)
+      ansible.builtin.shell: |
+        set -euo pipefail
+        cat <<'EOF' | oc apply -f -
+        apiVersion: argoproj.io/v1alpha1
+        kind: Application
+        metadata:
+          name: rhcl-app-6-1-core-observability
+          namespace: openshift-gitops
+          finalizers:
+            - resources-finalizer.argocd.argoproj.io
+          annotations:
+            argocd.argoproj.io/sync-wave: "6"
+        spec:
+          project: default
+          source:
+            repoURL: https://github.com/kamorisan/demo-rhcl.git
+            targetRevision: feature/apps345-espn-tools-verified
+            path: gitops/apps/rhcl-demo-split/app-6-1-core-observability
+          destination:
+            server: https://kubernetes.default.svc
+            namespace: rhcl-observability
+          syncPolicy:
+            syncOptions:
+              - CreateNamespace=true
+              - RespectIgnoreDifferences=true
+            retry:
+              limit: 10
+              backoff:
+                duration: 30s
+                factor: 2
+                maxDuration: 10m
+          ignoreDifferences:
+            - group: tempo.grafana.com
+              kind: TempoStack
+              jqPathExpressions:
+                - .status
+            - group: opentelemetry.io
+              kind: OpenTelemetryCollector
+              jqPathExpressions:
+                - .status
+            - group: grafana.integreatly.org
+              kind: Grafana
+              jqPathExpressions:
+                - .status
+            - group: grafana.integreatly.org
+              kind: GrafanaDatasource
+              jqPathExpressions:
+                - .status
+            - group: grafana.integreatly.org
+              kind: GrafanaDashboard
+              jqPathExpressions:
+                - .status
+        EOF
+      args:
+        executable: /bin/bash
+      register: app61_result
+      changed_when: "'configured' in (app61_result.stdout | lower) or 'created' in (app61_result.stdout | lower)"
+
+    - name: Manually sync Application 6-1
+      ansible.builtin.command: oc patch application rhcl-app-6-1-core-observability -n openshift-gitops --type merge -p '{"operation":{"initiatedBy":{"username":"ansible"},"sync":{}}}'
+      register: app61_sync
+      changed_when: true
+
+    - name: Wait for Application 6-1 to be Synced
+      ansible.builtin.command: oc get application rhcl-app-6-1-core-observability -n openshift-gitops -o jsonpath='{.status.sync.status}'
+      register: app61_sync_status
+      until: app61_sync_status.stdout == "Synced"
+      retries: 60
+      delay: 10
+      changed_when: false
+
+    # ============================================================
+
     - name: Apply Application 5 (routes-policies) - Phase 1
       ansible.builtin.shell: |
         set -euo pipefail
@@ -847,82 +925,7 @@
       changed_when: false
 
     # ============================================================
-    # Application 6-1: Core Observability (Tempo, OpenTelemetry, Grafana)
-    # ============================================================
 
-    - name: Apply Application 6-1 (core-observability)
-      ansible.builtin.shell: |
-        set -euo pipefail
-        cat <<'EOF' | oc apply -f -
-        apiVersion: argoproj.io/v1alpha1
-        kind: Application
-        metadata:
-          name: rhcl-app-6-1-core-observability
-          namespace: openshift-gitops
-          finalizers:
-            - resources-finalizer.argocd.argoproj.io
-          annotations:
-            argocd.argoproj.io/sync-wave: "6"
-        spec:
-          project: default
-          source:
-            repoURL: https://github.com/kamorisan/demo-rhcl.git
-            targetRevision: feature/apps345-espn-tools-verified
-            path: gitops/apps/rhcl-demo-split/app-6-1-core-observability
-          destination:
-            server: https://kubernetes.default.svc
-            namespace: rhcl-observability
-          syncPolicy:
-            syncOptions:
-              - CreateNamespace=true
-              - RespectIgnoreDifferences=true
-            retry:
-              limit: 10
-              backoff:
-                duration: 30s
-                factor: 2
-                maxDuration: 10m
-          ignoreDifferences:
-            - group: tempo.grafana.com
-              kind: TempoStack
-              jqPathExpressions:
-                - .status
-            - group: opentelemetry.io
-              kind: OpenTelemetryCollector
-              jqPathExpressions:
-                - .status
-            - group: grafana.integreatly.org
-              kind: Grafana
-              jqPathExpressions:
-                - .status
-            - group: grafana.integreatly.org
-              kind: GrafanaDatasource
-              jqPathExpressions:
-                - .status
-            - group: grafana.integreatly.org
-              kind: GrafanaDashboard
-              jqPathExpressions:
-                - .status
-        EOF
-      args:
-        executable: /bin/bash
-      register: app61_result
-      changed_when: "'configured' in (app61_result.stdout | lower) or 'created' in (app61_result.stdout | lower)"
-
-    - name: Manually sync Application 6-1
-      ansible.builtin.command: oc patch application rhcl-app-6-1-core-observability -n openshift-gitops --type merge -p '{"operation":{"initiatedBy":{"username":"ansible"},"sync":{}}}'
-      register: app61_sync
-      changed_when: true
-
-    - name: Wait for Application 6-1 to be Synced
-      ansible.builtin.command: oc get application rhcl-app-6-1-core-observability -n openshift-gitops -o jsonpath='{.status.sync.status}'
-      register: app61_sync_status
-      until: app61_sync_status.stdout == "Synced"
-      retries: 60
-      delay: 10
-      changed_when: false
-
-    # ============================================================
     # Application 6-3: Kuadrant Example Dashboards
     # ============================================================
 
@@ -958,8 +961,8 @@
           - "Application 2-2 (kuadrant-observability): deployed - Grafana Operator + monitoring namespace"
           - "Application 3 (gateways): deployed"
           - "Application 4 (demo-apps): deployed"
-          - "Application 5 (routes-policies): deployed - All 29 resources"
           - "Application 6-1 (core-observability): deployed - Tempo + OpenTelemetry + Grafana"
+          - "Application 5 (routes-policies): deployed - All 29 resources"
           - "Application 6-3 (kuadrant-dashboards): deployed - Grafana ConfigMaps"
           - ""
           - "Workshop URL: https://rhcl-workshop.{{ external_base_domain }}/"
