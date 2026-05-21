@@ -46,7 +46,7 @@ ansible-playbook ansible/playbooks/setup-gitops.yaml
 
 echo ""
 echo "========================================="
-echo "Step 2: Deploying Applications 1-5"
+echo "Step 2: Deploying Applications 1-6"
 echo "========================================="
 
 # Deploy Applications 1-5
@@ -70,6 +70,7 @@ echo "  2. Platform CRs (ClusterIssuer, Istio, Kuadrant)"
 echo "  3. Gateways (4 Gateways + DNS/TLS Policies)"
 echo "  4. Demo Apps (rhcl-ai-bot, Keycloak, UI, API, etc.)"
 echo "  5. Routes & Policies (28 HTTPRoutes + Auth/OIDC Policies)"
+echo "  6. Observability (Tempo distributed tracing + OpenTelemetry Collector)"
 echo ""
 echo "Application URLs:"
 echo "  Workshop: https://rhcl-workshop.${EXTERNAL_BASE_DOMAIN}/"
