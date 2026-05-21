@@ -382,6 +382,24 @@
             namespace: rhcl-ai-bot
             jqPathExpressions:
             - .spec.template.spec.containers[].image
+          - group: ""
+            kind: ConfigMap
+            name: rhcl-ui
+            namespace: demo
+            jqPathExpressions:
+            - .data
+          - group: ""
+            kind: ConfigMap
+            name: rhcl-oidc-ui
+            namespace: rhcl-oidc-portal
+            jqPathExpressions:
+            - .data
+          - group: ""
+            kind: ConfigMap
+            name: oidc-callback
+            namespace: rhcl-oidc-portal
+            jqPathExpressions:
+            - .data
           source:
             repoURL: https://github.com/kamorisan/demo-rhcl.git
             targetRevision: feature/apps345-espn-tools-verified
