@@ -6,6 +6,7 @@ resources:
   - resources/02-servicemesh-operator.yaml
   - resources/03-cluster-observability-operator.yaml
   - resources/04-rbac.yaml
+  - resources/04-istio-cni.yaml
   - resources/05-istio-cr.yaml
   - resources/06-rhcl-operator.yaml
   - resources/07-kuadrant-cr.yaml
