@@ -19,6 +19,9 @@ spec:
         cpu: '1'
   tenants:
     mode: static
+    authentication:
+      - tenantName: dev
+        tenantId: dev
     authorization:
       roles:
         - name: dev
