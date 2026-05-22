@@ -4,6 +4,7 @@
   gather_facts: no
   vars:
     apps_cluster_domain: "apps.cluster-{{ cluster_id }}.{{ cluster_id }}.{{ external_base_domain }}"
+    git_branch: "feature/stable-apps1-5-espn-working"  # Default branch, override with -e git_branch=your-branch
 
   tasks:
     - name: Validate required parameters
@@ -88,7 +89,7 @@
           project: default
           source:
             repoURL: https://github.com/kamorisan/demo-rhcl.git
-            targetRevision: feature/apps345-espn-tools-verified
+            targetRevision: {{ git_branch }}
             path: gitops/apps/rhcl-demo-split/app-1-operators
           destination:
             server: https://kubernetes.default.svc
@@ -137,7 +138,7 @@
           project: default
           source:
             repoURL: https://github.com/kamorisan/demo-rhcl.git
-            targetRevision: feature/apps345-espn-tools-verified
+            targetRevision: {{ git_branch }}
             path: gitops/apps/rhcl-demo-split/app-2-platform-crs
             # No kustomize patches needed - cert-manager auto-detects hostedZoneID
           destination:
@@ -202,7 +203,7 @@
             - .status
           source:
             repoURL: https://github.com/kamorisan/demo-rhcl.git
-            targetRevision: feature/apps345-espn-tools-verified
+            targetRevision: {{ git_branch }}
             path: gitops/apps/rhcl-demo-split/app-3-gateways
             kustomize:
               patches:
@@ -341,7 +342,7 @@
             - .spec.template.spec.containers[].image
           source:
             repoURL: https://github.com/kamorisan/demo-rhcl.git
-            targetRevision: feature/apps345-espn-tools-verified
+            targetRevision: {{ git_branch }}
             path: gitops/apps/rhcl-demo-split/app-4-demo-apps
             kustomize:
               patches:
@@ -427,7 +428,7 @@
           project: default
           source:
             repoURL: https://github.com/kamorisan/demo-rhcl.git
-            targetRevision: feature/apps345-espn-tools-verified
+            targetRevision: {{ git_branch }}
             path: gitops/apps/rhcl-demo-split/app-5-routes-policies
             kustomize:
               patches:

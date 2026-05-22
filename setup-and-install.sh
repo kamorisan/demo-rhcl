@@ -54,6 +54,7 @@ ansible-playbook ansible/playbooks/install-split-apps.yaml \
   -e env_name="${ENV_NAME}" \
   -e cluster_id="${CLUSTER_ID}" \
   -e external_base_domain="${EXTERNAL_BASE_DOMAIN}" \
+  -e git_branch="${GIT_BRANCH:-feature/stable-apps1-5-espn-working}" \
   -e aws_access_key_id="${AWS_ACCESS_KEY_ID}" \
   -e aws_secret_access_key="${AWS_SECRET_ACCESS_KEY}" \
   -e aws_region="${AWS_REGION}" \
