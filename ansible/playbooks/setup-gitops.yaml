@@ -68,32 +68,9 @@
       register: gitops_rollout
       changed_when: false
 
-    - name: Grant ArgoCD permissions for monitoring namespace
-      ansible.builtin.command: oc adm policy add-role-to-user admin system:serviceaccount:openshift-gitops:openshift-gitops-argocd-application-controller -n monitoring
-      register: monitoring_rbac
-      changed_when: "'added' in (monitoring_rbac.stdout | lower)"
-      failed_when: false
-
-    - name: Grant ArgoCD permissions for kuadrant-system namespace
-      ansible.builtin.command: oc adm policy add-role-to-user edit system:serviceaccount:openshift-gitops:openshift-gitops-argocd-application-controller -n kuadrant-system
-      register: kuadrant_rbac
-      changed_when: "'added' in (kuadrant_rbac.stdout | lower)"
-      failed_when: false
-
-    - name: Verify ArgoCD permissions
-      ansible.builtin.shell: |
-        echo "Checking ArgoCD permissions:"
-        echo -n "  monitoring namespace: "
-        oc auth can-i create deployment -n monitoring --as=system:serviceaccount:openshift-gitops:openshift-gitops-argocd-application-controller
-        echo -n "  kuadrant-system namespace: "
-        oc auth can-i create servicemonitor -n kuadrant-system --as=system:serviceaccount:openshift-gitops:openshift-gitops-argocd-application-controller
-      register: rbac_check
-      changed_when: false
-
     - name: Print GitOps installation status
       ansible.builtin.debug:
         msg:
           - "OpenShift GitOps operator installed successfully"
           - "Namespace: openshift-gitops"
-          - "RBAC permissions granted for monitoring and kuadrant-system namespaces"
           - "Ready to deploy ArgoCD Applications"

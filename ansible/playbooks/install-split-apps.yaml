@@ -72,54 +72,6 @@
       register: aws_dnspolicy_secret
       changed_when: "'configured' in (aws_dnspolicy_secret.stdout | lower) or 'created' in (aws_dnspolicy_secret.stdout | lower)"
 
-    - name: Apply Application 0 (Kuadrant Observability)
-      ansible.builtin.shell: |
-        set -euo pipefail
-        oc apply -f - <<'EOF'
-        apiVersion: argoproj.io/v1alpha1
-        kind: Application
-        metadata:
-          name: rhcl-app-0-kuadrant-observability
-          namespace: openshift-gitops
-          annotations:
-            argocd.argoproj.io/sync-wave: "0"
-          finalizers:
-            - resources-finalizer.argocd.argoproj.io
-        spec:
-          project: default
-          source:
-            repoURL: https://github.com/Kuadrant/kuadrant-operator
-            targetRevision: v1.3.0
-            path: config/install/configure/observability
-          destination:
-            server: https://kubernetes.default.svc
-          syncPolicy:
-            automated:
-              prune: true
-              selfHeal: true
-            syncOptions:
-              - CreateNamespace=true
-              - RespectIgnoreDifferences=true
-            retry:
-              limit: 10
-              backoff:
-                duration: 30s
-                factor: 2
-                maxDuration: 10m
-        EOF
-      args:
-        executable: /bin/bash
-      register: app0_result
-      changed_when: "'configured' in (app0_result.stdout | lower) or 'created' in (app0_result.stdout | lower)"
-
-    - name: Wait for Application 0 to be Synced
-      ansible.builtin.command: oc get application rhcl-app-0-kuadrant-observability -n openshift-gitops -o jsonpath='{.status.sync.status}'
-      register: app0_sync
-      until: app0_sync.stdout == "Synced"
-      retries: 60
-      delay: 10
-      changed_when: false
-
     - name: Cleanup existing Operator CSVs (if any exist from previous deployments)
       ansible.builtin.shell: |
         set -euo pipefail
@@ -168,7 +120,7 @@
           finalizers:
             - resources-finalizer.argocd.argoproj.io
           annotations:
-            argocd.argoproj.io/sync-wave: "1"
+            argocd.argoproj.io/sync-wave: "0"
         spec:
           project: default
           source:
@@ -201,6 +153,54 @@
       ansible.builtin.command: oc get application rhcl-app-1-operators -n openshift-gitops -o jsonpath='{.status.sync.status}'
       register: app1_sync
       until: app1_sync.stdout == "Synced"
+      retries: 60
+      delay: 10
+      changed_when: false
+
+    - name: Apply Application 0 (Kuadrant Observability)
+      ansible.builtin.shell: |
+        set -euo pipefail
+        oc apply -f - <<'EOF'
+        apiVersion: argoproj.io/v1alpha1
+        kind: Application
+        metadata:
+          name: rhcl-app-0-kuadrant-observability
+          namespace: openshift-gitops
+          annotations:
+            argocd.argoproj.io/sync-wave: "1"
+          finalizers:
+            - resources-finalizer.argocd.argoproj.io
+        spec:
+          project: default
+          source:
+            repoURL: https://github.com/Kuadrant/kuadrant-operator
+            targetRevision: v1.3.0
+            path: config/install/configure/observability
+          destination:
+            server: https://kubernetes.default.svc
+          syncPolicy:
+            automated:
+              prune: true
+              selfHeal: true
+            syncOptions:
+              - CreateNamespace=true
+              - RespectIgnoreDifferences=true
+            retry:
+              limit: 10
+              backoff:
+                duration: 30s
+                factor: 2
+                maxDuration: 10m
+        EOF
+      args:
+        executable: /bin/bash
+      register: app0_result
+      changed_when: "'configured' in (app0_result.stdout | lower) or 'created' in (app0_result.stdout | lower)"
+
+    - name: Wait for Application 0 to be Synced
+      ansible.builtin.command: oc get application rhcl-app-0-kuadrant-observability -n openshift-gitops -o jsonpath='{.status.sync.status}'
+      register: app0_sync
+      until: app0_sync.stdout == "Synced"
       retries: 60
       delay: 10
       changed_when: false
