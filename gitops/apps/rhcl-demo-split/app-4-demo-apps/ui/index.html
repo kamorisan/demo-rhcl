@@ -1302,6 +1302,8 @@
                 </div>
               </div>
 
+              <!-- ========== REMOVED 2026-05-22: Distributed tracing card ========== -->
+              <!--
               <div class="card">
                 <h2>Distributed tracing</h2>
                 <div class="sub">Use the OpenShift Traces view when the console is available. Use Tempo (Jaeger UI) as a fallback.</div>
@@ -1313,6 +1315,7 @@
                   If the console link shows 404, the tracing plugin isn’t enabled yet. Tempo UI is the plan B when console login is slow/unavailable.
                 </div>
               </div>
+              -->
 
               <!-- Quick checks removed (no longer part of the demo flow) -->
             </div>
@@ -3823,6 +3826,8 @@ spec:
         return url.replace(/\/+$/g, "");
       }
 
+      // ========== REMOVED 2026-05-22: Distributed tracing functions ==========
+      /*
       function openConsoleTraces(){
         const base = consoleBaseUrl();
         if (!base){
@@ -3848,6 +3853,7 @@ spec:
         }
         window.open(url, "_blank", "noopener,noreferrer");
       }
+      */
 
       function refreshConsoleGraphLinks(){
         const base = consoleBaseUrl();
