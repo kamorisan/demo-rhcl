@@ -72,42 +72,6 @@
       register: aws_dnspolicy_secret
       changed_when: "'configured' in (aws_dnspolicy_secret.stdout | lower) or 'created' in (aws_dnspolicy_secret.stdout | lower)"
 
-    - name: Cleanup existing Operator CSVs (if any exist from previous deployments)
-      ansible.builtin.shell: |
-        set -euo pipefail
-        echo "========================================"
-        echo "CSV CLEANUP: Starting..."
-        echo "========================================"
-
-        csv_deleted=0
-
-        # Delete CSVs from all namespaces that match our operators
-        for csv_pattern in "servicemeshoperator3" "grafana-operator" "cluster-observability-operator" "opentelemetry-operator" "rhbk-operator" "mcp-gateway-operator" "kuadrant-operator"; do
-          echo "Searching for CSVs matching: $csv_pattern"
-          oc get csv --all-namespaces -o json 2>/dev/null | \
-            jq -r ".items[] | select(.metadata.name | contains(\"$csv_pattern\")) | \"\(.metadata.namespace) \(.metadata.name)\"" | \
-            while read ns csv_name; do
-              if [ -n "$ns" ] && [ -n "$csv_name" ]; then
-                echo "  [DELETE] CSV $csv_name from namespace $ns"
-                oc delete csv "$csv_name" -n "$ns" --ignore-not-found=true --timeout=30s || true
-                csv_deleted=$((csv_deleted + 1))
-              fi
-            done
-        done
-
-        echo "========================================"
-        echo "CSV CLEANUP: Completed (deleted: $csv_deleted CSVs)"
-        echo "========================================"
-      args:
-        executable: /bin/bash
-      register: csv_cleanup
-      changed_when: csv_cleanup.stdout | regex_search('DELETE')
-      failed_when: false
-
-    - name: Display CSV cleanup results
-      ansible.builtin.debug:
-        msg: "{{ csv_cleanup.stdout_lines }}"
-
     - name: Apply Application 1 (operators) - no patches needed
       ansible.builtin.shell: |
         set -euo pipefail
