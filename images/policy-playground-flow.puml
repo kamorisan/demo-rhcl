@@ -12,83 +12,82 @@ skinparam defaultTextAlignment center
 skinparam componentStyle rectangle
 skinparam backgroundColor white
 skinparam shadowing false
-skinparam nodesep 80
-skinparam ranksep 100
-left to right direction
+skinparam nodesep 60
+skinparam ranksep 80
 
 title Policy Playground Complete Data Flow\n(DNS → TLS → API Keys → Rate Limiting)
 
 actor "ブラウザ" as browser <<$user>>
 
+cloud "Internet" as internet <<$globe>>
+
 package "AWS" {
   component "Route53" as route53 #Khaki
   component "DNSPolicy" as dnspolicy #Wheat
-}
 
-cloud "Internet" as internet <<$globe>>
+  package "OpenShift Cluster" {
+    component "Router\n(LoadBalancer)" as router #LightBlue
 
-package "OpenShift Cluster" {
-  component "Router\n(LoadBalancer)" as router #LightBlue
+    package "cert-manager" {
+      component "Certificate" as cert <<$lock>> #LightPink
+      component "ClusterIssuer" as issuer #LightPink
+    }
 
-  package "cert-manager" {
-    component "Certificate" as cert <<$lock>> #LightPink
-    component "ClusterIssuer" as issuer #LightPink
-  }
+    package "Gateway\n(openshift-ingress)" {
+      component "Gateway\nrhcl-workshop-gw" as gateway #Orange
+      component "TLSPolicy" as tlspolicy <<$lock>> #LightPink
+      component "AuthPolicy\nrhcl-gw-auth" as gw_auth <<$shield_alt>> #Pink
+    }
 
-  package "Gateway\n(openshift-ingress)" {
-    component "Gateway\nrhcl-workshop-gw" as gateway #Orange
-    component "TLSPolicy" as tlspolicy <<$lock>> #LightPink
-    component "AuthPolicy\nrhcl-gw-auth" as gw_auth <<$shield_alt>> #Pink
-  }
+    package "HTTPRoute\n(demo)" {
+      component "HTTPRoute\ndemo-api" as httproute #LightGreen
+      component "AuthPolicy\napi-key" as route_auth <<$shield_alt>> #Pink
+      component "RateLimitPolicy\nidentity-based" as ratelimit <<$tachometer_alt>> #Yellow
+    }
 
-  package "HTTPRoute\n(demo)" {
-    component "HTTPRoute\ndemo-api" as httproute #LightGreen
-    component "AuthPolicy\napi-key" as route_auth <<$shield_alt>> #Pink
-    component "RateLimitPolicy\nidentity-based" as ratelimit <<$tachometer_alt>> #Yellow
-  }
-
-  package "Backend\n(demo)" {
-    component "Service\ndemo-api" as service #LightCyan
-    component "Pod\ndemo-api" as pod <<$server>> #LightGray
+    package "Backend\n(demo)" {
+      component "Service\ndemo-api" as service #LightCyan
+      component "Pod\ndemo-api" as pod <<$server>> #LightGray
+    }
   }
 }
 
 ' DNS Resolution
-browser -right-> route53 : "①DNS Query"
-route53 -left-> browser : "DNS Response"
+browser -down-> route53 : "①DNS Query"
+route53 -up-> browser : "DNS Response"
 
-' Request flow
-browser -right-> internet : "②HTTPS\nGET /hello"
-internet -right-> router : "To IP:443"
-router -right-> gateway : "③TLS\nPassthrough"
-gateway -right-> httproute : "④Route\nMatch"
-httproute -right-> service : "⑤Forward"
-service -right-> pod
+' Request flow (top to bottom)
+browser -down-> internet : "②HTTPS\nGET /hello"
+internet -down-> router : "To Router IP:443"
+router -down-> gateway : "③TLS\nPassthrough"
+gateway -down-> httproute : "④Route\nMatch"
+httproute -down-> service : "⑤Forward"
+service -down-> pod
 
-' Response flow
-pod -left-> service
-service -left-> httproute
-httproute -left-> gateway
-gateway -left-> router
-router -left-> internet
-internet -left-> browser
+' Response flow (bottom to top)
+pod -up-> service
+service -up-> httproute
+httproute -up-> gateway
+gateway -up-> router
+router -up-> internet
+internet -up-> browser
 
 ' Management relationships
-route53 <-down-> dnspolicy : "管理"
-gateway -up-> dnspolicy
+route53 <-right-> dnspolicy : "管理"
+gateway -left-> dnspolicy
 
 ' TLS Management
-gateway -down-> tlspolicy
-tlspolicy -down-> cert
-cert -down-> issuer
+gateway -right-> tlspolicy
+tlspolicy -right-> cert
+cert -right-> issuer
 
 ' Policy Application
-gateway -down-> gw_auth
-httproute -down-> route_auth
-httproute -down-> ratelimit
+gateway -right-> gw_auth
+httproute -right-> route_auth
+httproute -right-> ratelimit
 
 ' Note - DNS
-note top of route53
+note right of route53
 **Route53 DNS**
 A/AAAA record
 rhcl-workshop.
@@ -97,7 +96,7 @@ rhcl-workshop.
 end note
 
 ' Note - TLS
-note bottom of cert
+note right of cert
 **TLS Certificate**
 Let's Encrypt
 DNS-01 Challenge
@@ -105,14 +104,14 @@ Auto renewal
 end note
 
 ' Note - Gateway Auth
-note bottom of gw_auth
+note right of gw_auth
 **Gateway Policy**
 deny-all (default)
 path != '/health'
 end note
 
 ' Note - Route Auth
-note bottom of route_auth
+note right of route_auth
 **API Key Auth**
 IAMALICE → alice
 IAMBOB → bob
@@ -120,7 +119,7 @@ Invalid → 401/403
 end note
 
 ' Note - Rate Limit
-note bottom of ratelimit
+note right of ratelimit
 **Rate Limit**
 Alice: 5 req/10s
 Bob: 2 req/10s
@@ -128,7 +127,7 @@ Over → 429
 end note
 
 ' Policy Evaluation
-note top of gateway
+note left of gateway
 **Policy評価**
 ①Gateway Auth
 ②Route Auth
@@ -138,7 +137,7 @@ note top of gateway
 end note
 
 ' Legend
-legend bottom left
+legend right
 |= Flow |
 | ① DNS Query → Response |
 | ② HTTPS Request |
@@ -150,6 +149,11 @@ legend bottom left
 | 200 Success |
 | 401/403 Unauthorized |
 | 429 Rate Limit |
+
+|= 構成 |
+| OpenShift Cluster on AWS |
+| Route53: DNS管理 |
+| Router: AWS LoadBalancer |
 endlegend
 
 @enduml
