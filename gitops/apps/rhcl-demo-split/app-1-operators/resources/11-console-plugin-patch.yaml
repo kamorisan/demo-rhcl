@@ -67,8 +67,8 @@ spec:
               set -euo pipefail
 
               echo "Checking current Console plugin configuration..."
-              CURRENT_PLUGINS=$(oc get console cluster -o jsonpath='{.spec.plugins}' 2>/dev/null || echo "[]")
-              echo "Current plugins: $CURRENT_PLUGINS"
+              CURRENT_PLUGINS=$(oc get console cluster -o jsonpath='{.spec.plugins[*]}' 2>/dev/null || echo "")
+              echo "Current plugins: [$CURRENT_PLUGINS]"
 
               # Check if kuadrant-console-plugin is already enabled
               if echo "$CURRENT_PLUGINS" | grep -q "kuadrant-console-plugin"; then
@@ -76,10 +76,29 @@ spec:
                 exit 0
               fi
 
-              echo "Enabling kuadrant-console-plugin..."
-              oc patch console cluster --type merge -p '{"spec":{"plugins":["kuadrant-console-plugin"]}}'
+              echo "Adding kuadrant-console-plugin to existing plugins..."
+              # Build new plugin array preserving existing plugins
+              PLUGIN_ARRAY="["
+              FIRST=true
+              for plugin in $CURRENT_PLUGINS; do
+                if [ "$FIRST" = true ]; then
+                  PLUGIN_ARRAY="${PLUGIN_ARRAY}\"${plugin}\""
+                  FIRST=false
+                else
+                  PLUGIN_ARRAY="${PLUGIN_ARRAY},\"${plugin}\""
+                fi
+              done
+              # Add kuadrant-console-plugin
+              if [ "$FIRST" = false ]; then
+                PLUGIN_ARRAY="${PLUGIN_ARRAY},\"kuadrant-console-plugin\"]"
+              else
+                PLUGIN_ARRAY="[\"kuadrant-console-plugin\"]"
+              fi
+
+              echo "New plugin array: $PLUGIN_ARRAY"
+              oc patch console cluster --type merge -p "{\"spec\":{\"plugins\":$PLUGIN_ARRAY}}"
 
               echo "Verifying plugin was added..."
-              oc get console cluster -o jsonpath='{.spec.plugins}'
+              oc get console cluster -o jsonpath='{.spec.plugins[*]}'
               echo ""
               echo "Successfully enabled kuadrant-console-plugin"
