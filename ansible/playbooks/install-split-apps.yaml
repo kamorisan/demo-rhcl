@@ -79,10 +79,10 @@
         apiVersion: argoproj.io/v1alpha1
         kind: Application
         metadata:
-          name: rhcl-app-2-2-kuadrant-observability
+          name: rhcl-app-0-kuadrant-observability
           namespace: openshift-gitops
           annotations:
-            argocd.argoproj.io/sync-wave: "2"
+            argocd.argoproj.io/sync-wave: "0"
           finalizers:
             - resources-finalizer.argocd.argoproj.io
         spec:
@@ -113,7 +113,7 @@
       changed_when: "'configured' in (app2_2_result.stdout | lower) or 'created' in (app2_2_result.stdout | lower)"
 
     - name: Wait for Application 2-2 to be Synced
-      ansible.builtin.command: oc get application rhcl-app-2-2-kuadrant-observability -n openshift-gitops -o jsonpath='{.status.sync.status}'
+      ansible.builtin.command: oc get application rhcl-app-0-kuadrant-observability -n openshift-gitops -o jsonpath='{.status.sync.status}'
       register: app2_2_sync
       until: app2_2_sync.stdout == "Synced"
       retries: 60
@@ -520,10 +520,10 @@
         apiVersion: argoproj.io/v1alpha1
         kind: Application
         metadata:
-          name: rhcl-app-6-1-core-observability
+          name: rhcl-app-5-core-observability
           namespace: openshift-gitops
           annotations:
-            argocd.argoproj.io/sync-wave: "6"
+            argocd.argoproj.io/sync-wave: "5"
           finalizers:
             - resources-finalizer.argocd.argoproj.io
         spec:
@@ -531,7 +531,7 @@
           source:
             repoURL: https://github.com/kamorisan/demo-rhcl.git
             targetRevision: {{ git_branch }}
-            path: gitops/apps/rhcl-demo-split/app-6-1-core-observability
+            path: gitops/apps/rhcl-demo-split/app-5-core-observability
           destination:
             server: https://kubernetes.default.svc
             namespace: monitoring
@@ -565,12 +565,12 @@
       changed_when: "'configured' in (app6_1_result.stdout | lower) or 'created' in (app6_1_result.stdout | lower)"
 
     - name: Manually sync Application 6-1
-      ansible.builtin.command: oc patch application rhcl-app-6-1-core-observability -n openshift-gitops --type merge -p '{"operation":{"initiatedBy":{"username":"ansible"},"sync":{}}}'
+      ansible.builtin.command: oc patch application rhcl-app-5-core-observability -n openshift-gitops --type merge -p '{"operation":{"initiatedBy":{"username":"ansible"},"sync":{}}}'
       register: app6_1_sync_trigger
       changed_when: true
 
     - name: Wait for Application 6-1 to be Synced
-      ansible.builtin.command: oc get application rhcl-app-6-1-core-observability -n openshift-gitops -o jsonpath='{.status.sync.status}'
+      ansible.builtin.command: oc get application rhcl-app-5-core-observability -n openshift-gitops -o jsonpath='{.status.sync.status}'
       register: app6_1_sync
       until: app6_1_sync.stdout == "Synced"
       retries: 60
@@ -584,18 +584,18 @@
         apiVersion: argoproj.io/v1alpha1
         kind: Application
         metadata:
-          name: rhcl-app-5-routes-policies
+          name: rhcl-app-6-routes-policies
           namespace: openshift-gitops
           finalizers:
             - resources-finalizer.argocd.argoproj.io
           annotations:
-            argocd.argoproj.io/sync-wave: "5"
+            argocd.argoproj.io/sync-wave: "6"
         spec:
           project: default
           source:
             repoURL: https://github.com/kamorisan/demo-rhcl.git
             targetRevision: {{ git_branch }}
-            path: gitops/apps/rhcl-demo-split/app-5-routes-policies
+            path: gitops/apps/rhcl-demo-split/app-6-routes-policies
             kustomize:
               patches:
                 # httproute-ui: hostname and gateway
@@ -955,12 +955,12 @@
       changed_when: "'configured' in (app5_result.stdout | lower) or 'created' in (app5_result.stdout | lower)"
 
     - name: Manually sync Application 5
-      ansible.builtin.command: oc patch application rhcl-app-5-routes-policies -n openshift-gitops --type merge -p '{"operation":{"initiatedBy":{"username":"ansible"},"sync":{}}}'
+      ansible.builtin.command: oc patch application rhcl-app-6-routes-policies -n openshift-gitops --type merge -p '{"operation":{"initiatedBy":{"username":"ansible"},"sync":{}}}'
       register: app5_sync
       changed_when: true
 
     - name: Wait for Application 5 to be Synced
-      ansible.builtin.command: oc get application rhcl-app-5-routes-policies -n openshift-gitops -o jsonpath='{.status.sync.status}'
+      ansible.builtin.command: oc get application rhcl-app-6-routes-policies -n openshift-gitops -o jsonpath='{.status.sync.status}'
       register: app5_sync_status
       until: app5_sync_status.stdout == "Synced"
       retries: 60

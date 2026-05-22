@@ -1,10 +1,10 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: rhcl-app-5-routes-policies
+  name: rhcl-app-6-routes-policies
   namespace: openshift-gitops
   annotations:
-    argocd.argoproj.io/sync-wave: "5"
+    argocd.argoproj.io/sync-wave: "6"
   finalizers:
     - resources-finalizer.argocd.argoproj.io
 spec:
@@ -12,7 +12,7 @@ spec:
   source:
     repoURL: https://github.com/kamorisan/demo-rhcl.git
     targetRevision: feature/apps345-espn-tools-verified
-    path: gitops/apps/rhcl-demo-split/app-5-routes-policies
+    path: gitops/apps/rhcl-demo-split/app-6-routes-policies
     kustomize:
       patches:
         - target:
