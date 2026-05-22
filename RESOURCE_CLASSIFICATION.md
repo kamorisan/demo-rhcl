@@ -1,109 +1,109 @@
-# RHCL 分割アプリケーションのリソース分類
+# RHCL Split Application Resource分類
 
-このドキュメントは、GitOps分割アプリケーションアーキテクチャにおける各Applicationのリソース構成を説明します。
+このドキュメントは、GitOps split application architectureにおける各Applicationのresource構成を説明します。
 
 ## 概要
 
-デプロイメントは7つの独立したArgoCD Applicationに分割され、sync-wave順に実行されます：
+Deploymentは7つの独立したArgoCD Applicationに分割され、sync-wave順に実行されます：
 
 | Application | Sync Wave | 目的 |
 |------------|-----------|------|
-| App0 (Kuadrant Observability) | 0 | Kuadrantアップストリームオブザーバビリティ（Grafana Operator） |
-| App1 (Operators) | 0 | オペレータ、RBAC、コンソールプラグイン自動有効化 |
-| App2 (Platform CRs) | 2 | プラットフォームカスタムリソース |
+| App0 (Kuadrant Observability) | 0 | Kuadrant upstream observability（Grafana Operator） |
+| App1 (Operators) | 0 | Operators、RBAC、console plugin自動有効化 |
+| App2 (Platform CRs) | 2 | Platform Custom Resources |
 | App3 (Gateways) | 3 | Gateway、DNSPolicy、TLSPolicy、Routes |
-| App4 (Demo Apps) | 3 | デモアプリケーション |
-| App5 (Core Observability) | 3 | Grafanaインスタンスとダッシュボード |
+| App4 (Demo Apps) | 3 | Demo applications |
+| App5 (Core Observability) | 3 | Grafana instance + dashboards |
 | App6 (Routes & Policies) | 4 | HTTPRoute、AuthPolicy、RateLimitPolicy |
 
 ---
 
 ## Application 0: Kuadrant Observability (wave 0)
 
-Kuadrantアップストリームリポジトリから直接デプロイされるオブザーバビリティ基盤。
+Kuadrant upstream repositoryから直接deployされるobservability基盤。
 
-### ソース
-- リポジトリ: `https://github.com/Kuadrant/kuadrant-operator`
-- リビジョン: `v1.3.0`
-- パス: `config/install/configure/observability`
+### Source
+- Repository: `https://github.com/Kuadrant/kuadrant-operator`
+- Revision: `v1.3.0`
+- Path: `config/install/configure/observability`
 
-### デプロイされるリソース
-- **Grafana Operator**: Grafanaインスタンスを管理するオペレータ
-- **基本設定**: Grafanaオペレータの初期設定
+### Deployされるresources
+- **Grafana Operator**: Grafana instancesを管理するoperator
+- **基本設定**: Grafana operatorの初期設定
 
-このApplicationはApp1と並行して実行され（両方ともwave 0）、後続のアプリケーションがGrafanaリソースを作成できるようにします。
+このApplicationはApp1と並行して実行され（両方ともwave 0）、後続のapplicationsがGrafana resourcesを作成できるようにします。
 
 ---
 
 ## Application 1: Operators (wave 0)
 
-オペレータのインストール、RBAC設定、コンソールプラグインの自動有効化を含みます。
+Operatorsのinstall、RBAC設定、console pluginの自動有効化を含みます。
 
-### パス
+### Path
 `gitops/apps/rhcl-demo-split/app-1-operators/`
 
-### リソース（sync-wave順）
+### Resources（sync-wave順）
 
 #### Wave 0 - Namespaces
-**ファイル**: `resources/01-namespaces.yaml`
-- `kuadrant-system` - Kuadrantコアシステム
-- `gateway-system` - Gateway APIコントローラー
+**File**: `resources/01-namespaces.yaml`
+- `kuadrant-system` - Kuadrant core system
+- `gateway-system` - Gateway API controller
 - `istio-system` - Service Mesh（Istio）
-- `openshift-ingress` - Ingressリソース
+- `openshift-ingress` - Ingress resources
 - `mcp-system` - MCP Gateway
 
 #### Wave 1 - Service Mesh Operator
-**ファイル**: `resources/02-servicemesh-operator.yaml`
+**File**: `resources/02-servicemesh-operator.yaml`
 - OperatorGroup: `openshift-operators`
 - Subscription: `servicemeshoperator`（Service Mesh 3.x）
 
 #### Wave 2 - RBAC
-**ファイル**: `resources/04-rbac.yaml`
+**File**: `resources/04-rbac.yaml`
 - ClusterRole: `gateway-admin`
 - ClusterRoleBinding: Gateway管理者権限の割り当て
 
 #### Wave 3 - Istio CR
-**ファイル**: `resources/05-istio-cr.yaml`
-- Istio Custom Resource（Service Meshコントロールプレーン）
+**File**: `resources/05-istio-cr.yaml`
+- Istio Custom Resource（Service Mesh control plane）
 
 #### Wave 4 - RHCL Operator
-**ファイル**: `resources/06-rhcl-operator.yaml`
+**File**: `resources/06-rhcl-operator.yaml`
 - OperatorGroup: `kuadrant-system`
 - Subscription: `rhcl-operator`（Red Hat Connectivity Link）
 
 #### Wave 5 - Kuadrant CR
-**ファイル**: `resources/07-kuadrant-cr.yaml`
-- Kuadrant Custom Resource（コアKuadrantインスタンス）
+**File**: `resources/07-kuadrant-cr.yaml`
+- Kuadrant Custom Resource（core Kuadrant instance）
 
 #### Wave 6 - MCP Gateway Operator
-**ファイル**: `resources/08-mcp-gateway-operator.yaml`
+**File**: `resources/08-mcp-gateway-operator.yaml`
 - OperatorGroup: `mcp-system`
 - Subscription: `mcp-gateway-operator`
 
 #### Wave 7 - Red Hat Build of Keycloak Operator
-**ファイル**: `resources/09-rhbk-operator.yaml`
+**File**: `resources/09-rhbk-operator.yaml`
 - Subscription: `rhbk-operator`
 
 #### Wave 9 - Console Banner
-**ファイル**: `resources/10-console-banner.yaml`
-- ConsoleNotification: デモ環境通知バナー
+**File**: `resources/10-console-banner.yaml`
+- ConsoleNotification: Demo環境通知banner
 
 #### Wave 10 - Console Plugin自動有効化（PostSync Hook）
-**ファイル**: `resources/11-console-plugin-patch.yaml`
+**File**: `resources/11-console-plugin-patch.yaml`
 
-PostSync Hookとして実行されるJob。Kuadrantコンソールプラグインを自動的に有効化します。
+PostSync Hookとして実行されるJob。Kuadrant console pluginを自動的に有効化します。
 
-**含まれるリソース**:
+**含まれるresources**:
 - ServiceAccount: `console-plugin-patcher`
-- ClusterRole: `console-plugin-patcher`（Console CRへのパッチ権限）
-- ClusterRoleBinding: ServiceAccountへの権限バインディング
+- ClusterRole: `console-plugin-patcher`（Console CRへのpatch権限）
+- ClusterRoleBinding: ServiceAccountへの権限binding
 - Job: `enable-kuadrant-console-plugin`
-  - 現在のプラグインリストを取得
+  - 現在のplugin listを取得
   - `kuadrant-console-plugin`が存在するか確認
-  - 存在しない場合、既存プラグインを保持しながら追加
-  - `console.operator.openshift.io`リソースにパッチ適用
+  - 存在しない場合、既存pluginsを保持しながら追加
+  - `console.operator.openshift.io` resourceにpatch適用
 
-**アノテーション**:
+**Annotations**:
 ```yaml
 argocd.argoproj.io/hook: PostSync
 argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
@@ -111,38 +111,38 @@ argocd.argoproj.io/sync-wave: "10"
 ```
 
 **動作**:
-1. App1のメインリソースがデプロイ完了後に実行
-2. 既存のコンソールプラグイン（monitoring-plugin等）を保持
+1. App1のmain resourcesがdeploy完了後に実行
+2. 既存のconsole plugins（monitoring-plugin等）を保持
 3. `kuadrant-console-plugin`を配列に追加
-4. 冪等性：既に有効化されている場合はスキップ
+4. Idempotency：既に有効化されている場合はskip
 
 ---
 
 ## Application 2: Platform CRs (wave 2)
 
-プラットフォームレベルのカスタムリソース。
+Platform levelのCustom Resources。
 
-### パス
+### Path
 `gitops/apps/rhcl-demo-split/app-2-platform-crs/`
 
-### リソース
+### Resources
 
 #### Wave 0 - Namespaces
-**ファイル**: `resources/01-namespaces.yaml`
-- `demo` - メインデモアプリケーション
-- `demo-ab` - A/Bテストデモ
-- `demo-jwt` - JWTデモ
-- `rhcl-ai-bot` - AIチャットボット
-- `rhcl-keycloak` - Keycloakアイデンティティプロバイダ
-- `rhcl-oidc-portal` - OIDCポータルデモ
+**File**: `resources/01-namespaces.yaml`
+- `demo` - メインdemo application
+- `demo-ab` - A/B test demo
+- `demo-jwt` - JWT demo
+- `rhcl-ai-bot` - AI chatbot
+- `rhcl-keycloak` - Keycloak identity provider
+- `rhcl-oidc-portal` - OIDC portal demo
 
 #### Wave 1 - ClusterIssuer
-**ファイル**: `resources/02-clusterissuer.yaml`
-- ClusterIssuer: cert-manager用の証明書発行者（環境に応じて設定）
+**File**: `resources/02-clusterissuer.yaml`
+- ClusterIssuer: cert-manager用のcertificate issuer（環境に応じて設定）
 
 #### Wave 2 - RBAC
-**ファイル**: `resources/03-rbac.yaml`
-- RoleBinding: `mcp-system`が`rhcl-ai-bot`イメージをPullできるよう権限付与
+**File**: `resources/03-rbac.yaml`
+- RoleBinding: `mcp-system`が`rhcl-ai-bot` imageをpullできるよう権限付与
 
 ---
 
@@ -150,106 +150,106 @@ argocd.argoproj.io/sync-wave: "10"
 
 Gateway、DNSPolicy、TLSPolicy、Routeの設定。
 
-### パス
+### Path
 `gitops/apps/rhcl-demo-split/app-3-gateways/`
 
-### リソース
+### Resources
 
 #### Wave 0 - Gateways
-**ファイル**: `resources/02-gateways.yaml`
+**File**: `resources/02-gateways.yaml`
 - Gateway: `rhcl-workshop-gw`（メインGateway、`openshift-ingress`）
-- Gateway: `rhcl-ai-gw`（AIボット専用Gateway、`openshift-ingress`）
+- Gateway: `rhcl-ai-gw`（AI bot専用Gateway、`openshift-ingress`）
 - Gateway: `rhcl-external-gw`（外部API公開Gateway、`openshift-ingress`）
 - Gateway: `rhcl-mcp-gw`（MCP Gateway、`openshift-ingress`）
 
 #### Wave 1 - DNSPolicy
-**ファイル**: `resources/03-dnspolicy.yaml`
+**File**: `resources/03-dnspolicy.yaml`
 - DNSPolicy: 各GatewayのDNS自動設定（Route53対応）
 
 #### Wave 2 - TLSPolicy
-**ファイル**: `resources/04-tls-policies.yaml`
-- TLSPolicy: 各Gatewayリスナーの証明書自動管理
+**File**: `resources/04-tls-policies.yaml`
+- TLSPolicy: 各Gateway listenerのcertificate自動管理
 
 #### Wave 3 - Routes
-**ファイル**: `resources/05-routes.yaml`
-- Route: `rhcl-workshop`（パススルー、メインGatewayへ）
-- Route: `rhcl-ai`（パススルー、AI Gatewayへ）
-- Route: `rhcl-external`（パススルー、外部API Gatewayへ）
-- Route: `rhcl-mcp`（パススルー、MCP Gatewayへ）
-- Route: `rhcl-oidc-workshop`（パススルー、OIDCポータルへ）
-- Route: `http-to-https-redirect`（HTTPからHTTPSへのリダイレクト）
+**File**: `resources/05-routes.yaml`
+- Route: `rhcl-workshop`（passthrough、メインGatewayへ）
+- Route: `rhcl-ai`（passthrough、AI Gatewayへ）
+- Route: `rhcl-external`（passthrough、外部API Gatewayへ）
+- Route: `rhcl-mcp`（passthrough、MCP Gatewayへ）
+- Route: `rhcl-oidc-workshop`（passthrough、OIDC portalへ）
+- Route: `http-to-https-redirect`（HTTPからHTTPSへのredirect）
 
 #### Wave 4 - ReferenceGrants
-**ファイル**: `resources/06-referencegrants.yaml`
-- ReferenceGrant: クロスNamespace参照の許可設定
+**File**: `resources/06-referencegrants.yaml`
+- ReferenceGrant: Cross-namespace参照の許可設定
 
 #### Wave 5 - Telemetry
-**ファイル**: `resources/07-telemetry.yaml`
-- Telemetry: Istio/Gateway メトリクス設定
+**File**: `resources/07-telemetry.yaml`
+- Telemetry: Istio/Gateway metrics設定
 
 #### Wave 10 - MCP Gateway AuthPolicy
-**ファイル**: `resources/mcp-gateway-authpolicy.yaml`
-- AuthPolicy: MCP Gateway全体のデフォルト拒否ポリシー
+**File**: `resources/mcp-gateway-authpolicy.yaml`
+- AuthPolicy: MCP Gateway全体のdefault deny policy
 
 ---
 
 ## Application 4: Demo Apps (wave 3)
 
-デモアプリケーションのDeployment、Service、ConfigMap等。
+Demo applicationsのDeployment、Service、ConfigMap等。
 
-### パス
+### Path
 `gitops/apps/rhcl-demo-split/app-4-demo-apps/`
 
-### リソース
+### Resources
 
-すべてのリソースはwave 0でデプロイされます（App4全体がwave 3として実行）。
+すべてのresourcesはwave 0でdeployされます（App4全体がwave 3として実行）。
 
-#### A/Bカナリアデモ
-**ファイル**: `resources/ab-canary.yaml`
+#### A/B Canary Demo
+**File**: `resources/ab-canary.yaml`
 - ConfigMap: `ab-canary-v1-html`、`ab-canary-v2-html`
 - Deployment: `ab-canary-v1`、`ab-canary-v2`
 - Service: `ab-canary-v1`、`ab-canary-v2`
 
-#### AIボット
-**ファイル**: `resources/ai-bot.yaml`
+#### AI Bot
+**File**: `resources/ai-bot.yaml`
 - ImageStream: `rhcl-ai-bot`
-- BuildConfig: `rhcl-ai-bot`（Dockerビルド）
+- BuildConfig: `rhcl-ai-bot`（Docker build）
 - Deployment: `rhcl-ai-bot`
 - Service: `rhcl-ai-bot`
 
-#### デモAPI
-**ファイル**: `resources/demo-api.yaml`
+#### Demo API
+**File**: `resources/demo-api.yaml`
 - Deployment: `demo-api`
 - Service: `demo-api`
 
-#### 外部プロキシ（ESPN API）
-**ファイル**: `resources/external-proxy.yaml`
+#### External Proxy（ESPN API）
+**File**: `resources/external-proxy.yaml`
 - ConfigMap: `external-proxy-nginx-conf`
 - Deployment: `external-proxy`
 - Service: `external-proxy`、`external-proxy-internal`
 
 #### Keycloak
-**ファイル**: `resources/keycloak.yaml`
+**File**: `resources/keycloak.yaml`
 - Secret: `keycloak-admin-credentials`
 - PersistentVolumeClaim: `keycloak-data`
 - Deployment: `keycloak`
 - Service: `keycloak`
 
-#### OIDCコールバック
-**ファイル**: `resources/oidc-callback-configmap.yaml`、`resources/oidc-callback.yaml`
-- ConfigMap: `oidc-callback-js`（Node.jsコールバックサーバー）
+#### OIDC Callback
+**File**: `resources/oidc-callback-configmap.yaml`、`resources/oidc-callback.yaml`
+- ConfigMap: `oidc-callback-js`（Node.js callback server）
 - Deployment: `oidc-callback`
 - Service: `oidc-callback`
 
 #### OIDC UI
-**ファイル**: `resources/oidc-ui-configmap.yaml`、`resources/oidc-ui.yaml`
+**File**: `resources/oidc-ui-configmap.yaml`、`resources/oidc-ui.yaml`
 - ConfigMap: `oidc-ui-html`（静的HTML UI）
 - Deployment: `oidc-ui`
 - Service: `oidc-ui`
 
-#### メインUI
-**ファイル**: `resources/ui-configmap.yaml`、`resources/ui.yaml`
-- ConfigMap: `rhcl-ui-html`（メインデモUI）
+#### Main UI
+**File**: `resources/ui-configmap.yaml`、`resources/ui.yaml`
+- ConfigMap: `rhcl-ui-html`（メインdemo UI）
 - Deployment: `rhcl-ui`
 - Service: `rhcl-ui`
 
@@ -257,38 +257,38 @@ Gateway、DNSPolicy、TLSPolicy、Routeの設定。
 
 ## Application 5: Core Observability (wave 3)
 
-Grafanaインスタンスとダッシュボードの設定。
+Grafana instanceとdashboardsの設定。
 
-### パス
+### Path
 `gitops/apps/rhcl-demo-split/app-5-core-observability/`
 
-### リソース
+### Resources
 
 #### Wave 0 - Grafana設定
-**ファイル**: `resources/05-observability-and-grafana.yaml`
+**File**: `resources/05-observability-and-grafana.yaml`
 
-含まれるリソース:
-- **ServiceAccount**: `grafana-sa`（Prometheusトークンアクセス用）
+含まれるresources:
+- **ServiceAccount**: `grafana-sa`（Prometheus token access用）
 - **ClusterRole**: `grafana-prometheus-reader`
-- **ClusterRoleBinding**: ServiceAccountへの権限バインディング
-- **Secret**: `grafana-thanos-token`（Prometheusアクセストークン）
+- **ClusterRoleBinding**: ServiceAccountへの権限binding
+- **Secret**: `grafana-thanos-token`（Prometheus access token）
 - **Grafana**: `grafana-instance`
-  - 匿名アクセス有効
-  - デフォルトロール: Admin
-  - Prometheusデータソース設定
+  - Anonymous access有効
+  - Default role: Admin
+  - Prometheus datasource設定
 - **GrafanaDatasource**: `prometheus-grafanadatasource`
   - OpenShift User Workload Monitoringへの接続
-  - ServiceAccountトークン認証
+  - ServiceAccount token authentication
 
-#### Wave 1 - Grafanaダッシュボード
-**ファイル**: `resources/06-grafana-dashboard-configmaps.yaml`
+#### Wave 1 - Grafana Dashboards
+**File**: `resources/06-grafana-dashboard-configmaps.yaml`
 
-含まれるダッシュボード:
-- **開発者ダッシュボード**: HTTPコード別リクエスト、レイテンシパーセンタイル（P90/P95/P99）
-- **プラットフォームダッシュボード**: トップサービス、SRE視点のメトリクス
-- **ビジネスダッシュボード**: トラフィックサマリー、総リクエスト数
+含まれるdashboards:
+- **Developer Dashboard**: HTTPコード別requests、latency percentiles（P90/P95/P99）
+- **Platform Dashboard**: Top services、SRE視点のmetrics
+- **Business Dashboard**: Traffic summary、総requests数
 
-各ダッシュボードはConfigMapとして定義され、Grafanaインスタンスに自動インポートされます。
+各dashboardはConfigMapとして定義され、Grafana instanceに自動importされます。
 
 ---
 
@@ -296,104 +296,104 @@ Grafanaインスタンスとダッシュボードの設定。
 
 HTTPRoute、AuthPolicy、RateLimitPolicy、TokenRateLimitPolicyの設定。
 
-### パス
+### Path
 `gitops/apps/rhcl-demo-split/app-6-routes-policies/`
 
-### リソース
+### Resources
 
-すべてのリソースはwave 0でデプロイされます（App6全体がwave 4として実行）。
+すべてのresourcesはwave 0でdeployされます（App6全体がwave 4として実行）。
 
 #### HTTPRoutes
 - `resources/rhcl-ui.yaml` - メインUI HTTPRoute
-- `resources/oidc-portal.yaml` - OIDCポータル HTTPRoute
-- `resources/demo-api.yaml` - デモAPI HTTPRoute
-- `resources/secure-demo.yaml` - セキュアデモ HTTPRoute
+- `resources/oidc-portal.yaml` - OIDC portal HTTPRoute
+- `resources/demo-api.yaml` - Demo API HTTPRoute
+- `resources/secure-demo.yaml` - Secure demo HTTPRoute
 - `resources/keycloak.yaml` - Keycloak HTTPRoute
-- `resources/oidc-portal-callback.yaml` - OIDCコールバック HTTPRoute
-- `resources/oidc-portal-whoami.yaml` - OIDCアイデンティティ HTTPRoute
-- `resources/ai-bot-main.yaml` - AIボットメイン HTTPRoute
-- `resources/ai-bot-ai.yaml` - AIボット専用 HTTPRoute（ai.ドメイン）
+- `resources/oidc-portal-callback.yaml` - OIDC callback HTTPRoute
+- `resources/oidc-portal-whoami.yaml` - OIDC identity HTTPRoute
+- `resources/ai-bot-main.yaml` - AI bot main HTTPRoute
+- `resources/ai-bot-ai.yaml` - AI bot専用 HTTPRoute（ai.domain）
 - `resources/rhcl-mcp-gateway.yaml` - MCP Gateway HTTPRoute
-- `resources/ai-bot-mcp-server.yaml` - AIボット用MCPサーバー HTTPRoute
-- `resources/external-proxy.yaml` - 内部外部プロキシ HTTPRoute
-- `resources/external-proxy-public.yaml` - 公開外部プロキシ HTTPRoute
-- `resources/ab-demo.yaml` - A/Bテストデモ HTTPRoute
-- `resources/jwt-demo.yaml` - JWTデモ HTTPRoute
-- `resources/http-to-https.yaml` - HTTPからHTTPSリダイレクト HTTPRoute
+- `resources/ai-bot-mcp-server.yaml` - AI bot用MCP server HTTPRoute
+- `resources/external-proxy.yaml` - 内部external proxy HTTPRoute
+- `resources/external-proxy-public.yaml` - 公開external proxy HTTPRoute
+- `resources/ab-demo.yaml` - A/B test demo HTTPRoute
+- `resources/jwt-demo.yaml` - JWT demo HTTPRoute
+- `resources/http-to-https.yaml` - HTTPからHTTPS redirect HTTPRoute
 
 #### AuthPolicy
-- `resources/gateway-authpolicy.yaml` - Gateway全体のデフォルト拒否
-- `resources/rhcl-gw-auth.yaml` - メインGateway認証ポリシー
-- `resources/ab-authpolicy.yaml` - A/Bデモ認証
-- `resources/ai-bot-main-authpolicy.yaml` - AIボットメイン認証
-- `resources/ai-bot-mcp-authpolicy.yaml` - AIボットMCP認証
-- `resources/external-proxy-authpolicy.yaml` - 外部プロキシ認証
-- `resources/jwt-demo-jwt.yaml` - JWTデモJWT検証
-- `resources/secure-demo-jwt.yaml` - セキュアデモJWT検証
+- `resources/gateway-authpolicy.yaml` - Gateway全体のdefault deny
+- `resources/rhcl-gw-auth.yaml` - メインGateway auth policy
+- `resources/ab-authpolicy.yaml` - A/B demo auth
+- `resources/ai-bot-main-authpolicy.yaml` - AI bot main auth
+- `resources/ai-bot-mcp-authpolicy.yaml` - AI bot MCP auth
+- `resources/external-proxy-authpolicy.yaml` - External proxy auth
+- `resources/jwt-demo-jwt.yaml` - JWT demo JWT validation
+- `resources/secure-demo-jwt.yaml` - Secure demo JWT validation
 
 #### OIDCPolicy
-- `resources/secure-demo-oidc.yaml` - OIDCブラウザログインポリシー
+- `resources/secure-demo-oidc.yaml` - OIDC browser login policy
 
 #### RateLimitPolicy
-- `resources/demo-api-ratelimit.yaml` - デモAPIレート制限（アイデンティティベース）
+- `resources/demo-api-ratelimit.yaml` - Demo API rate limiting（identity-based）
 
 #### TokenRateLimitPolicy
-- `resources/ai-bot-ai-tokenratelimitpolicy.yaml` - AIボット専用ドメイントークンレート制限
-- `resources/ai-bot-main-tokenratelimitpolicy.yaml` - AIボットメインドメイントークンレート制限
+- `resources/ai-bot-ai-tokenratelimitpolicy.yaml` - AI bot専用domain token rate limiting
+- `resources/ai-bot-main-tokenratelimitpolicy.yaml` - AI bot main domain token rate limiting
 
 #### Secrets
-- `resources/api-keys.yaml` - APIキーシークレット（`IAMALICE`、`IAMBOB`）
+- `resources/api-keys.yaml` - API key secrets（`IAMALICE`、`IAMBOB`）
 
 #### MCP関連
-- `resources/ai-bot-mcp-httproute.yaml` - AIボット用MCP HTTPRoute
-- `resources/ai-bot-mcpserverregistration.yaml` - MCPサーバー登録
-- `resources/rhcl-mcp-tools-internal.yaml` - 内部MCPツール
+- `resources/ai-bot-mcp-httproute.yaml` - AI bot用MCP HTTPRoute
+- `resources/ai-bot-mcpserverregistration.yaml` - MCP server registration
+- `resources/rhcl-mcp-tools-internal.yaml` - 内部MCP tools
 
 #### MCPGatewayExtension
-- `resources/rhcl-mcp.yaml` - MCP Gateway拡張設定
+- `resources/rhcl-mcp.yaml` - MCP Gateway extension設定
 
 ---
 
-## Kustomizeパッチ
+## Kustomize Patches
 
-各Application manifestは、Kustomizeパッチを使用して環境固有の値（ホスト名、Gateway名等）を動的に注入します。
+各Application manifestは、Kustomize patchesを使用して環境固有の値（hostname、Gateway名等）を動的に注入します。
 
-### パッチ対象
+### Patch対象
 - **HTTPRoute**: `spec.hostnames`、`spec.parentRefs[].name`
 - **MCPGatewayExtension**: `spec.publicHost`
 - **OIDCPolicy**: `spec.provider.issuerURL`、`spec.provider.authorizationEndpoint`、`spec.provider.tokenEndpoint`、`spec.provider.redirectURI`
 - **AuthPolicy（JWT）**: `spec.defaults.rules.authentication.jwt.jwt.issuerUrl`
 
-パッチは`rhcl-app-6-routes-policies.yaml` Applicationマニフェスト内で定義されます。
+Patchesは`rhcl-app-6-routes-policies.yaml` Application manifest内で定義されます。
 
 ---
 
 ## Sync Wave戦略
 
-分割アプリケーションアーキテクチャは、以下のsync-wave戦略を使用：
+Split application architectureは、以下のsync-wave戦略を使用：
 
 1. **Wave 0** (並行実行):
-   - App0: Grafana Operatorインストール
-   - App1: 全オペレータインストール + RBAC
+   - App0: Grafana Operator install
+   - App1: 全Operators install + RBAC
 
 2. **Wave 2**:
-   - App2: プラットフォームCR（Namespaces、ClusterIssuer）
+   - App2: Platform CR（Namespaces、ClusterIssuer）
 
 3. **Wave 3** (並行実行):
    - App3: Gateways + DNSPolicy + TLSPolicy
-   - App4: デモアプリケーション
-   - App5: Grafanaインスタンス + ダッシュボード
+   - App4: Demo applications
+   - App5: Grafana instance + dashboards
 
 4. **Wave 4**:
    - App6: HTTPRoutes + Policies（App3-5完了後）
 
-この戦略により、依存関係を尊重しながら可能な限り並行デプロイを実現し、全体のデプロイ時間を短縮します。
+この戦略により、依存関係を尊重しながら可能な限り並行deployを実現し、全体のdeploy時間を短縮します。
 
 ---
 
-## 自動化されたSync再試行
+## 自動化されたSync Retry
 
-すべてのApplicationは以下の自動Syncポリシーを持ちます：
+すべてのApplicationsは以下の自動sync policyを持ちます：
 
 ```yaml
 syncPolicy:
@@ -408,13 +408,13 @@ syncPolicy:
       maxDuration: 10m
 ```
 
-これにより、一時的な失敗（リソース作成中のタイミング問題等）は自動的に再試行され、手動介入が不要になります。
+これにより、一時的な失敗（resource作成中のtiming問題等）は自動的にretryされ、手動介入が不要になります。
 
 ---
 
 ## 注意事項
 
-- すべてのファイルパスは`gitops/apps/rhcl-demo-split/`を基準としています
-- 各Applicationは独立してデプロイ可能（依存関係を尊重する限り）
-- Kustomizeパッチは環境固有の値を動的に注入するため、同じマニフェストを複数環境で再利用可能
-- Console Plugin自動有効化により、手動でのプラグイン有効化が不要
+- すべてのfile pathsは`gitops/apps/rhcl-demo-split/`を基準としています
+- 各Applicationは独立してdeploy可能（依存関係を尊重する限り）
+- Kustomize patchesは環境固有の値を動的に注入するため、同じmanifestを複数環境で再利用可能
+- Console plugin自動有効化により、手動でのplugin有効化が不要
