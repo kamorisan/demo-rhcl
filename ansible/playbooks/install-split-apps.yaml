@@ -454,6 +454,28 @@
       delay: 10
       changed_when: false
 
+    - name: Patch UI ConfigMap with correct OpenShift apps domain
+      ansible.builtin.shell: |
+        set -euo pipefail
+        # Extract current index.html from ConfigMap
+        oc get configmap rhcl-ui -n demo -o jsonpath='{.data.index\.html}' > /tmp/index.html.tmp
+        # Replace the placeholder (macOS-compatible sed)
+        sed -i '' 's|const OPENSHIFT_APPS_DOMAIN = "REPLACE_ME_APPS_DOMAIN";|const OPENSHIFT_APPS_DOMAIN = "apps.cluster-{{ cluster_id }}.{{ cluster_id }}.{{ external_base_domain }}";|g' /tmp/index.html.tmp
+        # Create/update the ConfigMap with fixed name
+        oc create configmap rhcl-ui -n demo --from-file=index.html=/tmp/index.html.tmp --dry-run=client -o yaml | \
+          oc apply -f -
+        rm -f /tmp/index.html.tmp
+        echo "Updated rhcl-ui ConfigMap with domain: apps.cluster-{{ cluster_id }}.{{ cluster_id }}.{{ external_base_domain }}"
+      args:
+        executable: /bin/bash
+      register: ui_configmap_patch
+      changed_when: true
+
+    - name: Restart UI deployment to pick up ConfigMap changes
+      ansible.builtin.command: oc rollout restart deployment/rhcl-ui -n demo
+      register: ui_restart
+      changed_when: true
+
     - name: Create OpenAI API key Secret for rhcl-ai-bot (if provided)
       ansible.builtin.shell: |
         set -euo pipefail
