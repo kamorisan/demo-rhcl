@@ -131,7 +131,7 @@
           name: rhcl-app-0-kuadrant-observability
           namespace: openshift-gitops
           annotations:
-            argocd.argoproj.io/sync-wave: "1"
+            argocd.argoproj.io/sync-wave: "0"
           finalizers:
             - resources-finalizer.argocd.argoproj.io
         spec:
