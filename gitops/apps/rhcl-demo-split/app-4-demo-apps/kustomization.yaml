@@ -10,21 +10,6 @@ resources:
   - resources/external-proxy.yaml
   - resources/ab-canary.yaml
   - resources/keycloak.yaml
-
-configMapGenerator:
-  - name: rhcl-ui
-    namespace: demo
-    files:
-      - index.html=ui/index.html
-  - name: rhcl-oidc-ui
-    namespace: rhcl-oidc-portal
-    files:
-      - index.html=oidc-ui/index.html
-  - name: oidc-callback
-    namespace: rhcl-oidc-portal
-    files:
-      - server.js=oidc-callback/server.js
-
-generatorOptions:
-  annotations:
-    argocd.argoproj.io/sync-wave: "11"
+  - resources/ui-configmap.yaml
+  - resources/oidc-ui-configmap.yaml
+  - resources/oidc-callback-configmap.yaml
