@@ -15,7 +15,7 @@ spec:
     path: gitops/apps/rhcl-demo-split/app-6-1-core-observability
   destination:
     server: https://kubernetes.default.svc
-    namespace: rhcl-observability
+    namespace: monitoring
   syncPolicy:
     syncOptions:
       - CreateNamespace=true
