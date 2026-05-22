@@ -1,5 +1,5 @@
 ---
-- name: Install RHCL split applications (app-1, app-2, app-3)
+- name: Install RHCL split applications (App0-6)
   hosts: localhost
   gather_facts: no
   vars:
@@ -72,7 +72,7 @@
       register: aws_dnspolicy_secret
       changed_when: "'configured' in (aws_dnspolicy_secret.stdout | lower) or 'created' in (aws_dnspolicy_secret.stdout | lower)"
 
-    - name: Apply Application 2-2 (Kuadrant Observability)
+    - name: Apply Application 0 (Kuadrant Observability)
       ansible.builtin.shell: |
         set -euo pipefail
         oc apply -f - <<'EOF'
@@ -109,13 +109,13 @@
         EOF
       args:
         executable: /bin/bash
-      register: app2_2_result
-      changed_when: "'configured' in (app2_2_result.stdout | lower) or 'created' in (app2_2_result.stdout | lower)"
+      register: app0_result
+      changed_when: "'configured' in (app0_result.stdout | lower) or 'created' in (app0_result.stdout | lower)"
 
-    - name: Wait for Application 2-2 to be Synced
+    - name: Wait for Application 0 to be Synced
       ansible.builtin.command: oc get application rhcl-app-0-kuadrant-observability -n openshift-gitops -o jsonpath='{.status.sync.status}'
-      register: app2_2_sync
-      until: app2_2_sync.stdout == "Synced"
+      register: app0_sync
+      until: app0_sync.stdout == "Synced"
       retries: 60
       delay: 10
       changed_when: false
@@ -538,7 +538,7 @@
       register: openai_secret
       changed_when: "'configured' in (openai_secret.stdout | lower) or 'created' in (openai_secret.stdout | lower)"
 
-    - name: Apply Application 6-1 (Core Observability - Grafana)
+    - name: Apply Application 5 (Core Observability - Grafana)
       ansible.builtin.shell: |
         set -euo pipefail
         oc apply -f - <<'EOF'
@@ -586,23 +586,23 @@
         EOF
       args:
         executable: /bin/bash
-      register: app6_1_result
-      changed_when: "'configured' in (app6_1_result.stdout | lower) or 'created' in (app6_1_result.stdout | lower)"
+      register: app5_observability_result
+      changed_when: "'configured' in (app5_observability_result.stdout | lower) or 'created' in (app5_observability_result.stdout | lower)"
 
-    - name: Manually sync Application 6-1
+    - name: Manually sync Application 5
       ansible.builtin.command: oc patch application rhcl-app-5-core-observability -n openshift-gitops --type merge -p '{"operation":{"initiatedBy":{"username":"ansible"},"sync":{}}}'
-      register: app6_1_sync_trigger
+      register: app5_observability_sync_trigger
       changed_when: true
 
-    - name: Wait for Application 6-1 to be Synced
+    - name: Wait for Application 5 to be Synced
       ansible.builtin.command: oc get application rhcl-app-5-core-observability -n openshift-gitops -o jsonpath='{.status.sync.status}'
-      register: app6_1_sync
-      until: app6_1_sync.stdout == "Synced"
+      register: app5_observability_sync
+      until: app5_observability_sync.stdout == "Synced"
       retries: 60
       delay: 10
       changed_when: false
 
-    - name: Apply Application 5 (routes-policies) - Phase 1
+    - name: Apply Application 6 (routes-policies) - Phase 1
       ansible.builtin.shell: |
         set -euo pipefail
         cat <<'EOF' | oc apply -f -
@@ -976,18 +976,18 @@
         EOF
       args:
         executable: /bin/bash
-      register: app5_result
-      changed_when: "'configured' in (app5_result.stdout | lower) or 'created' in (app5_result.stdout | lower)"
+      register: app6_result
+      changed_when: "'configured' in (app6_result.stdout | lower) or 'created' in (app6_result.stdout | lower)"
 
-    - name: Manually sync Application 5
+    - name: Manually sync Application 6
       ansible.builtin.command: oc patch application rhcl-app-6-routes-policies -n openshift-gitops --type merge -p '{"operation":{"initiatedBy":{"username":"ansible"},"sync":{}}}'
-      register: app5_sync
+      register: app6_sync
       changed_when: true
 
-    - name: Wait for Application 5 to be Synced
+    - name: Wait for Application 6 to be Synced
       ansible.builtin.command: oc get application rhcl-app-6-routes-policies -n openshift-gitops -o jsonpath='{.status.sync.status}'
-      register: app5_sync_status
-      until: app5_sync_status.stdout == "Synced"
+      register: app6_sync_status
+      until: app6_sync_status.stdout == "Synced"
       retries: 60
       delay: 10
       changed_when: false
