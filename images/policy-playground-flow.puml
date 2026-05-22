@@ -17,143 +17,172 @@ skinparam ranksep 80
 
 title Policy Playground Complete Data Flow\n(DNS → TLS → API Keys → Rate Limiting)
 
-actor "ブラウザ" as browser <<$user>>
-
+actor "Browser" as browser <<$user>>
 cloud "Internet" as internet <<$globe>>
+cloud "Route53\n(Public DNS)" as route53 #Khaki
 
 package "AWS" {
-  component "Route53" as route53 #Khaki
-  component "DNSPolicy" as dnspolicy #Wheat
+  component "AWS Load\nBalancer" as awslb #Orange
 
   package "OpenShift Cluster" {
-    component "Router\n(LoadBalancer)" as router #LightBlue
+    component "OpenShift Router\nIngress Controller\n(SNI passthrough)" as router #LightBlue
 
     package "cert-manager" {
+      component "ClusterIssuer\n(Let's Encrypt)" as issuer <<$lock>> #LightPink
       component "Certificate" as cert <<$lock>> #LightPink
-      component "ClusterIssuer" as issuer #LightPink
+      component "TLS Secret" as secret <<$lock>> #LightPink
     }
 
     package "Gateway\n(openshift-ingress)" {
-      component "Gateway\nrhcl-workshop-gw" as gateway #Orange
-      component "TLSPolicy" as tlspolicy <<$lock>> #LightPink
-      component "AuthPolicy\nrhcl-gw-auth" as gw_auth <<$shield_alt>> #Pink
+      component "Gateway\nrhcl-workshop-gw\n(TLS termination)" as gateway #LightGreen
+      component "TLSPolicy" as tlspolicy #Wheat
+      component "AuthPolicy\nrhcl-gw-auth\n(default deny)" as gw_auth <<$shield_alt>> #Pink
     }
 
     package "HTTPRoute\n(demo)" {
-      component "HTTPRoute\ndemo-api" as httproute #LightGreen
-      component "AuthPolicy\napi-key" as route_auth <<$shield_alt>> #Pink
+      component "HTTPRoute\ndemo-api" as httproute #LightCyan
+      component "AuthPolicy\napi-key\n(route-specific)" as route_auth <<$shield_alt>> #Pink
       component "RateLimitPolicy\nidentity-based" as ratelimit <<$tachometer_alt>> #Yellow
     }
 
+    component "DNSPolicy" as dnspolicy #Wheat
+
     package "Backend\n(demo)" {
-      component "Service\ndemo-api" as service #LightCyan
+      component "Service\ndemo-api" as service #LightSteelBlue
       component "Pod\ndemo-api" as pod <<$server>> #LightGray
     }
   }
 }
 
-' DNS Resolution
-browser -down-> route53 : "①DNS Query"
-route53 -up-> browser : "DNS Response"
+' ===== Data Plane: Runtime Request/Response Path (Solid lines) =====
 
-' Request flow (top to bottom)
-browser -down-> internet : "②HTTPS\nGET /hello"
-internet -down-> router : "To Router IP:443"
-router -down-> gateway : "③TLS\nPassthrough"
-gateway -down-> httproute : "④Route\nMatch"
-httproute -down-> service : "⑤Forward"
+' Step 1: DNS Resolution
+browser -down-> route53 : "①DNS Query\nrhcl-workshop.sandbox2689.opentlc.com"
+route53 -up-> browser : "DNS Response\n→ AWS LB IP"
+
+' Step 2-6: HTTPS Request Path
+browser -down-> internet : "②HTTPS Request\nGET /hello\nAPIKEY IAMALICE"
+internet -down-> awslb : "To LB IP:443"
+awslb -down-> router : "③SNI routing"
+router -down-> gateway : "④TLS passthrough"
+gateway -down-> httproute : "⑤Route match\n/hello"
+httproute -down-> service : "⑥Forward"
 service -down-> pod
 
-' Response flow (bottom to top)
-pod -up-> service
+' Response Path
+pod -up-> service : "Response"
 service -up-> httproute
 httproute -up-> gateway
 gateway -up-> router
-router -up-> internet
-internet -up-> browser
+router -up-> awslb
+awslb -up-> internet
+internet -up-> browser : "200/401/403/429"
 
-' Management relationships
-route53 <-right-> dnspolicy : "管理"
-gateway -left-> dnspolicy
+' ===== Control Plane: Policy/Management (Dashed lines) =====
+
+' DNS Management
+dnspolicy .down.> route53 : "Manages DNS\nvia Route53 API"
+dnspolicy .down.> gateway : "Watches Gateway\nhostname/address"
 
 ' TLS Management
-gateway -right-> tlspolicy
-tlspolicy -right-> cert
-cert -right-> issuer
+tlspolicy .right.> cert : "Requests\ncertificate"
+cert .up.> issuer : "References\nissuer"
+issuer .down.> cert : "Issues\ncertificate"
+cert .right.> secret : "Stores\ncert/key"
+secret .down.> gateway : "certificateRefs"
 
 ' Policy Application
-gateway -right-> gw_auth
-httproute -right-> route_auth
-httproute -right-> ratelimit
+tlspolicy .down.> gateway : "Applies to"
+gw_auth .down.> gateway : "Applies to"
+route_auth .down.> httproute : "Applies to"
+ratelimit .down.> httproute : "Applies to"
 
-' Note - DNS
+' Notes
 note right of route53
 **Route53 DNS**
-A/AAAA record
-rhcl-workshop.
-  sandbox2689.opentlc.com
-→ Router IP
+- Browser queries public DNS
+- DNSPolicy does NOT handle
+  runtime DNS queries
+- DNSPolicy manages DNS records
+  via Route53 API (Control Plane)
 end note
 
-' Note - TLS
-note right of cert
-**TLS Certificate**
-Let's Encrypt
-DNS-01 Challenge
-Auto renewal
+note right of router
+**SNI Passthrough**
+- Router does NOT terminate TLS
+- SNI-based routing to Gateway
+- TLS remains encrypted
 end note
 
-' Note - Gateway Auth
+note right of gateway
+**TLS Termination**
+- Gateway/Envoy terminates TLS
+- Uses Secret from cert-manager
+- Decrypts HTTPS traffic
+
+**Policy Evaluation**
+①Gateway AuthPolicy (default deny)
+②Route AuthPolicy (API key)
+③RateLimitPolicy (identity-based)
+end note
+
 note right of gw_auth
-**Gateway Policy**
-deny-all (default)
-path != '/health'
+**Gateway-level Policy**
+- Default protection
+- deny-all by default
+- Applies to all HTTPRoutes
+- Can be overridden by
+  route-specific policies
 end note
 
-' Note - Route Auth
 note right of route_auth
-**API Key Auth**
-IAMALICE → alice
-IAMBOB → bob
-Invalid → 401/403
+**Route-level Policy**
+- Route-specific auth
+- API Key validation:
+  - IAMALICE → alice
+  - IAMBOB → bob
+- Missing/invalid key → 401
+- Authenticated but denied → 403
 end note
 
-' Note - Rate Limit
 note right of ratelimit
 **Rate Limit**
-Alice: 5 req/10s
-Bob: 2 req/10s
-Over → 429
+- Counter: auth.identity.userid
+- Alice: 5 req/10s
+- Bob: 2 req/10s
+- Limit exceeded → 429
 end note
 
-' Policy Evaluation
-note left of gateway
-**Policy評価**
-①Gateway Auth
-②Route Auth
-③Rate Limit
-④Pass→Backend
-⑤Fail→Error
+note right of cert
+**cert-manager**
+- Certificate references
+  ClusterIssuer
+- Obtains cert from
+  Let's Encrypt
+- DNS-01 challenge
+- Stores in Secret
+- Auto renewal
 end note
 
 ' Legend
-legend right
-|= Flow |
-| ① DNS Query → Response |
-| ② HTTPS Request |
-| ③ TLS Passthrough (SNI) |
-| ④ Route Matching |
-| ⑤ Forward to Backend |
+legend bottom left
+**Flow Types:**
+━━━ Solid line = Runtime request/response path (Data Plane)
+┄┄┄ Dashed line = Policy attachment/management (Control Plane)
 
-|= Response |
-| 200 Success |
-| 401/403 Unauthorized |
-| 429 Rate Limit |
+**Response Codes:**
+• 200 = Success (valid key, under limit)
+• 401 = Unauthorized (missing/invalid API key)
+• 403 = Forbidden (authenticated but denied)
+• 429 = Too Many Requests (rate limit exceeded)
 
-|= 構成 |
-| OpenShift Cluster on AWS |
-| Route53: DNS管理 |
-| Router: AWS LoadBalancer |
+**Steps:**
+① DNS Query → Response (Route53)
+② HTTPS Request
+③ SNI routing (AWS LB → Router)
+④ TLS passthrough (Router → Gateway)
+⑤ Route matching (Gateway → HTTPRoute)
+⑥ Forward to Backend
 endlegend
 
 @enduml
