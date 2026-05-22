@@ -1,0 +1,19 @@
+apiVersion: kuadrant.io/v1
+kind: AuthPolicy
+metadata:
+  name: grafana-rhcl-workshop-allow
+  namespace: monitoring
+  annotations:
+    argocd.argoproj.io/sync-wave: "30"
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
+spec:
+  targetRef:
+    group: gateway.networking.k8s.io
+    kind: HTTPRoute
+    name: grafana-rhcl-workshop
+  defaults:
+    rules:
+      authorization:
+        allow-all:
+          opa:
+            rego: "allow = true"

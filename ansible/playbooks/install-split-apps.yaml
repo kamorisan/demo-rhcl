@@ -269,6 +269,9 @@
                     - op: replace
                       path: /spec/listeners/2/hostname
                       value: oidc-rhcl-workshop.{{ external_base_domain }}
+                    - op: replace
+                      path: /spec/listeners/3/hostname
+                      value: grafana-rhcl-workshop.{{ external_base_domain }}
 
                 # Gateway rhcl-external-gw patches
                 - target:
@@ -334,6 +337,17 @@
                     - op: replace
                       path: /spec/host
                       value: oidc-rhcl-workshop.{{ external_base_domain }}
+
+                - target:
+                    group: route.openshift.io
+                    version: v1
+                    kind: Route
+                    name: rhcl-workshop-gw-grafana
+                    namespace: openshift-ingress
+                  patch: |-
+                    - op: replace
+                      path: /spec/host
+                      value: grafana-rhcl-workshop.{{ external_base_domain }}
           destination:
             server: https://kubernetes.default.svc
             namespace: openshift-ingress
@@ -634,6 +648,21 @@
                     - op: replace
                       path: /spec/hostnames/0
                       value: rhcl-workshop.{{ external_base_domain }}
+                    - op: replace
+                      path: /spec/parentRefs/0/name
+                      value: rhcl-workshop-gw
+
+                # httproute-grafana: hostname and gateway
+                - target:
+                    group: gateway.networking.k8s.io
+                    version: v1
+                    kind: HTTPRoute
+                    name: grafana-rhcl-workshop
+                    namespace: monitoring
+                  patch: |-
+                    - op: replace
+                      path: /spec/hostnames/0
+                      value: grafana-rhcl-workshop.{{ external_base_domain }}
                     - op: replace
                       path: /spec/parentRefs/0/name
                       value: rhcl-workshop-gw
