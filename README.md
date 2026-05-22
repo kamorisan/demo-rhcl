@@ -1,124 +1,127 @@
-# Red Hat Connectivity Link (RHCL) Workshop Demo — GitOps-ready
+# Red Hat Connectivity Link (RHCL) デモワークショップ — GitOps対応
 
-This repository is a **live-demo-friendly** workshop showing how **Red Hat Connectivity Link (Kuadrant)** applies policies to **Gateway API** traffic on **OpenShift 4.20**.
+このリポジトリは、**OpenShift 4.20** 上で **Red Hat Connectivity Link (Kuadrant)** が **Gateway API** トラフィックにポリシーを適用する方法を示す、**ライブデモ対応**のワークショップです。
 
-The goal is simple: one UI, a few modules, and each module highlights **one policy benefit** you can explain in under a minute.
+目的はシンプルです：1つのUI、いくつかのモジュール、各モジュールは**1分以内**で説明できる**1つのポリシーのメリット**を強調します。
 
-## What you get (modules, policies, benefits)
+## 機能（モジュール、ポリシー、メリット）
 
-### Policies playground (API keys + rate limiting)
-- **Policies**: `AuthPolicy` (API keys), `RateLimitPolicy` (identity-aware), `AuthPolicy` on the Gateway (default deny-all)
-- **Benefit**: you can demonstrate **zero-trust by default** and then show how teams safely expose only what they need, with **per-identity limits** (e.g. Bob hits `429` sooner than Alice).
+### ポリシープレイグラウンド（APIキー + レート制限）
+- **ポリシー**: `AuthPolicy`（APIキー）、`RateLimitPolicy`（アイデンティティベース）、Gateway上の`AuthPolicy`（デフォルト拒否）
+- **メリット**: **ゼロトラストをデフォルト**で実装し、チームが必要なものだけを安全に公開できることを実演。**アイデンティティごとの制限**（例：BobはAliceより早く`429`に到達）
 
-### Traffic shaping (A/B + canary)
-- **Policies/objects**: `HTTPRoute` weighted backends
-- **Benefit**: progressive delivery without changing application code.
-  - **A/B**: random split **80/20** (`/ab`)
-  - **Canary**: rollout split **90/10** (`/canary`)
-  - **Canary opt-in**: header `x-rhcl-canary: always` → **force 100% v2** (great for “internal testers” story)
+### トラフィックシェイピング（A/B + カナリア）
+- **ポリシー/オブジェクト**: `HTTPRoute`の重み付けバックエンド
+- **メリット**: アプリケーションコードを変更せずにプログレッシブデリバリー
+  - **A/B**: ランダム分割 **80/20** (`/ab`)
+  - **カナリア**: ロールアウト分割 **90/10** (`/canary`)
+  - **カナリアオプトイン**: ヘッダー `x-rhcl-canary: always` → **強制100% v2**（「内部テスター」シナリオに最適）
 
-### External API (ESPN proxy)
-- **Objects**: `Gateway` listener + `DNSPolicy` (Route53) + `Certificate` SANs + `HTTPRoute` + `AuthPolicy`
-- **Benefit**: publish a third‑party API behind the Gateway on a **dedicated hostname** (`external-api.<domain>`), so you can apply the same policies (auth/rate-limit/traffic) even when the data originates outside the cluster.
+### 外部API（ESPNプロキシ）
+- **オブジェクト**: `Gateway`リスナー + `DNSPolicy`（Route53）+ `Certificate` SANs + `HTTPRoute` + `AuthPolicy`
+- **メリット**: サードパーティAPIをGateway経由で**専用ホスト名**（`external-api.<domain>`）で公開し、データがクラスタ外から来る場合でも同じポリシー（認証/レート制限/トラフィック）を適用可能
 
-### Observability (Grafana + OpenShift Console graphs)
-- **Objects**: OpenShift **User Workload Monitoring**, Kuadrant `ServiceMonitor`/`PodMonitor`, **Grafana** (anonymous), preloaded dashboards
-- **Benefit**: show **usage, errors, and latency** for the *same endpoints* you demo in the UI:
-  - **Developer**: requests by HTTP code (200/401/403/404/429/5xx) + latency percentiles (P90/P95/P99)
-  - **Platform**: top services, requests-by-code, latency (simple “SRE view”)
-  - **Business**: traffic summary + total requests over a selected time range
-- The main UI focuses on **Grafana dashboards** for quick, audience-friendly observability.
+### オブザーバビリティ（Grafana + OpenShiftコンソールグラフ）
+- **オブジェクト**: OpenShift **ユーザーワークロード監視**、Kuadrant `ServiceMonitor`/`PodMonitor`、**Grafana**（匿名）、事前ロード済みダッシュボード
+- **メリット**: UIでデモする*同じエンドポイント*の**使用状況、エラー、レイテンシ**を表示：
+  - **開発者**: HTTPコード別リクエスト数（200/401/403/404/429/5xx）+ レイテンシパーセンタイル（P90/P95/P99）
+  - **プラットフォーム**: トップサービス、コード別リクエスト、レイテンシ（シンプルな「SRE視点」）
+  - **ビジネス**: トラフィックサマリー + 選択期間の総リクエスト数
+- メインUIは**Grafanaダッシュボード**に焦点を当て、迅速でオーディエンスフレンドリーなオブザーバビリティを提供
 
-### AI chatbot (ESPN tool + token budget)
-- **Policies**: `TokenRateLimitPolicy`
-- **Benefit**: rate limiting based on **token usage** (not just requests), which maps better to LLM cost and abuse prevention.
-  - Demo budget is intentionally small (currently **400 tokens / 15s**) so you can trigger `429` reliably.
-  - Chat completions run on a **dedicated AI hostname** (`ai.<base-domain>`) so `TokenRateLimitPolicy` (and Traffic Analysis) can be scoped to the AI Gateway.
-  - When the bot needs external data, it calls tools via the **RHCL MCP Gateway** (`mcp.<base-domain>`).
-  - The UI calls MCP tool helpers via a same-origin proxy (`/ai/mcp/*`) so the browser never needs to do cross-origin requests to the MCP hostname.
-  - If you need to install the MCP Gateway, see [Installing the MCP Gateway](https://docs.redhat.com/en/documentation/red_hat_connectivity_link/1.3/html/installing_the_mcp_gateway/mcp-gateway-install).
+### AIチャットボット（ESPNツール + トークン予算）
+- **ポリシー**: `TokenRateLimitPolicy`
+- **メリット**: **トークン使用量**に基づくレート制限（単なるリクエスト数ではない）、LLMコストと不正使用防止に適合
+  - デモ予算は意図的に小さく設定（現在**400トークン / 15秒**）、`429`を確実にトリガー可能
+  - チャット補完は**専用AIホスト名**（`ai.<base-domain>`）で実行されるため、`TokenRateLimitPolicy`（およびトラフィック分析）をAI Gatewayにスコープ可能
+  - ボットが外部データを必要とする場合、**RHCL MCP Gateway**（`mcp.<base-domain>`）経由でツールを呼び出し
+  - UIは同一オリジンプロキシ（`/ai/mcp/*`）経由でMCPツールヘルパーを呼び出すため、ブラウザはMCPホスト名へのクロスオリジンリクエストが不要
+  - MCP Gatewayのインストールについては、[MCP Gatewayのインストール](https://docs.redhat.com/en/documentation/red_hat_connectivity_link/1.3/html/installing_the_mcp_gateway/mcp-gateway-install)を参照
 
-### AuthPolicy (Keycloak JWT) — token, decode, call with/without
-- **Policies**: `AuthPolicy` (JWT validation)
-- **Benefit**: the Gateway validates **JWTs issued by Keycloak** and enforces API access without changing backend code.
-  - The UI can fetch a token, show/decode it, and call a protected endpoint **with and without** the token.
+### AuthPolicy（Keycloak JWT）— トークン取得、デコード、有無での呼び出し
+- **ポリシー**: `AuthPolicy`（JWT検証）
+- **メリット**: Gatewayが**KeycloakによるJWT**を検証し、バックエンドコードを変更せずにAPIアクセスを強制
+  - UIはトークンを取得、表示/デコードし、保護されたエンドポイントをトークンの**有無で**呼び出し可能
 
-### OIDC portal (separate hostname, browser login)
-- **Policies**: `OIDCPolicy` (browser login), `DNSPolicy` (optional Route53 record)
-- **Benefit**: a clean “browser login through the Gateway” story:
-  - unauthenticated → **302 to Keycloak**
-  - authenticated → cookie set → portal can fetch protected content
+### OIDCポータル（別ホスト名、ブラウザログイン）
+- **ポリシー**: `OIDCPolicy`（ブラウザログイン）、`DNSPolicy`（オプションのRoute53レコード）
+- **メリット**: クリーンな「Gateway経由のブラウザログイン」シナリオ：
+  - 未認証 → **Keycloakへ302リダイレクト**
+  - 認証済み → Cookieセット → ポータルは保護されたコンテンツを取得可能
 
-## Architecture (high level)
+## アーキテクチャ（概要）
 
-- **OpenShift Route (passthrough)** → **Gateway** (`Gateway API`)
-- **Connectivity Link / Kuadrant** applies policies to:
-  - the **Gateway** (guardrails like deny-by-default)
-  - individual **HTTPRoutes** (auth, rate limits, traffic shaping)
-- TLS is handled via `cert-manager` and Gateway listener Secrets.
-  - This repo supports both:
-    - **Direct `Certificate` objects** (explicit secrets referenced by listeners)
-    - **Kuadrant `TLSPolicy`** (recommended) to manage cert-manager Certificates for specific listeners/hostnames.
+- **OpenShift Route（パススルー）** → **Gateway**（`Gateway API`）
+- **Connectivity Link / Kuadrant**が以下にポリシーを適用：
+  - **Gateway**（デフォルト拒否などのガードレール）
+  - 個別の**HTTPRoutes**（認証、レート制限、トラフィックシェイピング）
+- TLSは`cert-manager`とGatewayリスナーSecretsで処理
+  - このリポジトリは以下の両方をサポート：
+    - **直接`Certificate`オブジェクト**（リスナーが参照する明示的なシークレット）
+    - **Kuadrant `TLSPolicy`**（推奨）特定のリスナー/ホスト名のcert-manager Certificatesを管理
 
-### Connectivity Link changes in this repo (demo wiring)
+### このリポジトリのConnectivity Link変更（デモ配線）
 
-- **External API published hostname**:
-  - `Gateway` listener: `https-external-public` → `external-api.<base-domain>`
-  - `DNSPolicy`: creates/updates the Route53 record for `external-api.<base-domain>`
-  - `Certificate`: `rhcl-gw-public-tls` includes `external-api.<base-domain>` as a SAN
-  - `HTTPRoute`: `demo/external-proxy-public` publishes clean paths:
-    - `GET /nba`, `/epl`, `/laliga`, `/nfl`, `/nhl`
-  - `AuthPolicy`: `demo/external-proxy-public-allow` (route-level allow) so the default deny-all does not block the demo
+- **外部API公開ホスト名**：
+  - `Gateway`リスナー: `https-external-public` → `external-api.<base-domain>`
+  - `DNSPolicy`: `external-api.<base-domain>`のRoute53レコードを作成/更新
+  - `Certificate`: `rhcl-gw-public-tls`に`external-api.<base-domain>`をSANとして含む
+  - `HTTPRoute`: `demo/external-proxy-public`がクリーンなパスを公開：
+    - `GET /nba`、`/epl`、`/laliga`、`/nfl`、`/nhl`
+  - `AuthPolicy`: `demo/external-proxy-public-allow`（ルートレベル許可）でデフォルト拒否をブロックしない
 
-- **MCP tools + UI/bot access (stable across environments)**:
-  - `Gateway`: `openshift-ingress/rhcl-mcp-gw` publishes a dedicated MCP hostname `mcp.<base-domain>`
-  - `HTTPRoute`: `mcp-system/rhcl-mcp-gateway` exposes `/mcp` on that hostname
-  - `AuthPolicy`: `openshift-ingress/rhcl-mcp-gw-auth` (deny-all) + `mcp-system/rhcl-mcp-allow` (allow `/mcp`)
-  - The bot calls tools through `https://mcp.<base-domain>/mcp`, and tools consume ESPN via `https://external-api.<base-domain>`
+- **MCPツール + UI/ボットアクセス（環境間で安定）**：
+  - `Gateway`: `openshift-ingress/rhcl-mcp-gw`が専用MCPホスト名`mcp.<base-domain>`を公開
+  - `HTTPRoute`: `mcp-system/rhcl-mcp-gateway`がそのホスト名で`/mcp`を公開
+  - `AuthPolicy`: `openshift-ingress/rhcl-mcp-gw-auth`（拒否全て）+ `mcp-system/rhcl-mcp-allow`（`/mcp`を許可）
+  - ボットは`https://mcp.<base-domain>/mcp`経由でツールを呼び出し、ツールは`https://external-api.<base-domain>`経由でESPNを消費
 
-> Note: NGINX is just an implementation detail for serving static UI / proxying upstream JSON. The workshop value is the **Gateway API + Kuadrant policies** wiring, not the web server choice.
+> 注意: NGINXは静的UI提供/上流JSONプロキシの実装詳細に過ぎません。ワークショップの価値は**Gateway API + Kuadrantポリシー**の配線であり、Webサーバーの選択ではありません。
 
-## Prerequisites
+## 前提条件
 
-- You are logged into the cluster with **cluster-admin**
-- `oc` CLI available
-- `python3` available
-- OpenShift GitOps **will be installed automatically** if missing (by the installer)
-- A working `ClusterIssuer` in your cluster (the installer can auto-pick one; or set it explicitly)
+- **cluster-admin**でクラスタにログイン済み
+- `oc` CLI利用可能
+- `python3`利用可能
+- OpenShift GitOpsは**自動的にインストール**されます（インストーラーによって、存在しない場合）
+- クラスタに動作する`ClusterIssuer`（インストーラーが自動選択可能、または明示的に設定）
 
-## Install (recommended)
+## インストール（推奨）
 
-### Installer (multi-environment)
+### インストーラー（setup-and-install.sh）
 
-Run:
+実行:
 
 ```bash
-./install.sh
+./setup-and-install.sh
 ```
 
-Compatibility: `./tools/install-rhcl-workshop.sh` still exists and just delegates to `./install.sh`.
+オプションの環境変数で`GIT_BRANCH`を指定可能（デフォルト: `main`）：
 
-Defaults:
-- **main demo host**: `rhcl-workshop.<appsDomain>`
-- **OIDC portal host**: `oidc-rhcl-workshop.<appsDomain>`
-- **Grafana host**: `grafana.<appsDomain>` (anonymous)
+```bash
+GIT_BRANCH=feature/my-branch ./setup-and-install.sh
+```
 
-Useful overrides:
-- **`APPS_DOMAIN`**: set the cluster apps domain (if autodiscovery fails)
-- **`DEMO_HOSTNAME`**: set the main hostname
-- **`OIDC_HOSTNAME`**: set the OIDC portal hostname
-- **`GRAFANA_HOSTNAME`**: set the Grafana hostname (optional)
-- **`CLUSTER_ISSUER`**: set the cert-manager `ClusterIssuer` name
-- **`DEFAULT_INGRESS_CERT_SECRET`**: set the wildcard cert secret used for `*.appsDomain` listeners
-- **`EXTERNAL_BASE_DOMAIN`**: base domain for dedicated public hosts (defaults to last 2–3 labels of `APPS_DOMAIN`)
-- **`EXTERNAL_API_HOSTNAME`**: override the external API hostname (defaults to `external-api.<EXTERNAL_BASE_DOMAIN>`)
-- **`REPO_URL` / `REVISION` / `APP_PATH`**: point Argo CD to a fork/branch/path
+デフォルト:
+- **メインデモホスト**: `rhcl-workshop.<appsDomain>`
+- **OIDCポータルホスト**: `oidc-rhcl-workshop.<appsDomain>`
+- **Grafanaホスト**: `grafana.<appsDomain>`（匿名）
 
-### Optional: Route53 DNS automation (DNSPolicy)
+便利なオーバーライド:
+- **`APPS_DOMAIN`**: クラスタappsドメインを設定（自動検出が失敗した場合）
+- **`DEMO_HOSTNAME`**: メインホスト名を設定
+- **`OIDC_HOSTNAME`**: OIDCポータルホスト名を設定
+- **`GRAFANA_HOSTNAME`**: Grafanaホスト名を設定（オプション）
+- **`CLUSTER_ISSUER`**: cert-manager `ClusterIssuer`名を設定
+- **`DEFAULT_INGRESS_CERT_SECRET`**: `*.appsDomain`リスナー用のワイルドカード証明書シークレットを設定
+- **`EXTERNAL_BASE_DOMAIN`**: 専用公開ホスト用のベースドメイン（デフォルト: `APPS_DOMAIN`の末尾2-3ラベル）
+- **`EXTERNAL_API_HOSTNAME`**: 外部APIホスト名をオーバーライド（デフォルト: `external-api.<EXTERNAL_BASE_DOMAIN>`）
 
-If you want `DNSPolicy` to manage Route53 records:
-- Ensure the **AWS CLI is installed** and your environment is already configured so `aws sts get-caller-identity` works.
-- Export:
+### オプション: Route53 DNS自動化（DNSPolicy）
+
+`DNSPolicy`にRoute53レコードを管理させたい場合:
+- **AWS CLIがインストール済み**で、環境が既に設定されており`aws sts get-caller-identity`が動作することを確認
+- エクスポート:
 
 ```bash
 export AWS_ACCESS_KEY_ID=...
@@ -126,29 +129,29 @@ export AWS_SECRET_ACCESS_KEY=...
 export AWS_REGION=...
 ```
 
-Then rerun the installer; it will validate AWS auth and create/update `Secret/route53-credentials` (type `kuadrant.io/aws`) in `openshift-ingress` (and `demo`).
+その後インストーラーを再実行。AWS認証を検証し、`openshift-ingress`（および`demo`）に`Secret/route53-credentials`（タイプ`kuadrant.io/aws`）を作成/更新します。
 
-## Post-install: enable the Connectivity Link console plugin
+## インストール後: Connectivity Linkコンソールプラグインの有効化
 
-The Connectivity Link operator installs the OpenShift console dynamic plugin, but it can be disabled by default.
+Connectivity Linkオペレータは、OpenShiftコンソール動的プラグインをインストールしますが、デフォルトで無効化されている場合があります。
 
-This workshop includes a GitOps job that **enables** `kuadrant-console-plugin` automatically during sync.
+このワークショップには、同期中に`kuadrant-console-plugin`を**自動的に有効化**するGitOps Jobが含まれています。
 
-### If you need to enable it manually
-- OpenShift console → **Administrator** → **Home → Overview**
-- **Dynamic Plugins → View all**
-- Enable **`kuadrant-console-plugin`**
-- Refresh the console → you should see **Connectivity Link** in the left nav
+### 手動で有効化する必要がある場合
+- OpenShiftコンソール → **管理者** → **ホーム → 概要**
+- **動的プラグイン → すべて表示**
+- **`kuadrant-console-plugin`**を有効化
+- コンソールを更新 → 左側ナビに**Connectivity Link**が表示されるはず
 
-For details, see [Enabling the Connectivity Link dynamic plug-in](https://docs.redhat.com/en/documentation/red_hat_connectivity_link/1.0/html/installing_connectivity_link_on_openshift/enable-openshift-dynamic-plugin_connectivity-link).
+詳細は、[Connectivity Link動的プラグインの有効化](https://docs.redhat.com/en/documentation/red_hat_connectivity_link/1.0/html/installing_connectivity_link_on_openshift/enable-openshift-dynamic-plugin_connectivity-link)を参照。
 
-## Configure the AI bot (optional)
+## AIボットの設定（オプション）
 
-The AI bot uses an OpenAI-compatible endpoint (LiteLLM) and a model.
+AIボットはOpenAI互換エンドポイント（LiteLLM）とモデルを使用します。
 
-### Set the API key (GitOps-friendly)
+### APIキーの設定（GitOpsフレンドリー）
 
-Create a secret in `rhcl-ai-bot`:
+`rhcl-ai-bot`にシークレットを作成:
 
 ```bash
 oc -n rhcl-ai-bot create secret generic rhcl-ai-bot-llm \
@@ -156,79 +159,106 @@ oc -n rhcl-ai-bot create secret generic rhcl-ai-bot-llm \
   --dry-run=client -o yaml | oc apply -f -
 ```
 
-### Via the installer (recommended)
+### インストーラー経由（推奨）
 
-Export an environment variable before running `./install.sh`:
+`./setup-and-install.sh`を実行する前に環境変数をエクスポート:
 
 ```bash
 export RHCL_AI_OPENAI_API_KEY='YOUR_KEY'
-./install.sh
+./setup-and-install.sh
 ```
 
-### Direct env var (quick for testing)
+### 直接環境変数（テスト用クイック方法）
 
 ```bash
 oc -n rhcl-ai-bot set env deployment/rhcl-ai-bot RHCL_AI_OPENAI_API_KEY='YOUR_KEY'
 ```
 
-## URLs
+## URL
 
-- Main UI: `https://<DEMO_HOSTNAME>/`
-- OIDC portal: `https://<OIDC_HOSTNAME>/`
-- Grafana (anonymous): `https://<GRAFANA_HOSTNAME>/`
-- External API hostname: `https://external-api.<appsDomain>/epl` (also `/nba`, `/laliga`, `/nfl`, `/nhl`)
+- メインUI: `https://<DEMO_HOSTNAME>/`
+- OIDCポータル: `https://<OIDC_HOSTNAME>/`
+- Grafana（匿名）: `https://<GRAFANA_HOSTNAME>/`
+- 外部APIホスト名: `https://external-api.<appsDomain>/epl`（他に`/nba`、`/laliga`、`/nfl`、`/nhl`）
 
-## Suggested live-demo flow (5–8 minutes)
+## 推奨ライブデモフロー（5〜8分）
 
-### 1) Zero-trust baseline + API keys
-- Call `GET /hello` with no key → expect **401/403**
-- Add API key (`IAMALICE`, `IAMBOB`) → expect **200**
-- Keep clicking Bob → hit **429** faster (identity-based `RateLimitPolicy`)
+### 1) ゼロトラストベースライン + APIキー
+- キーなしで`GET /hello`を呼び出し → **401/403**を期待
+- APIキーを追加（`IAMALICE`、`IAMBOB`）→ **200**を期待
+- Bobをクリックし続ける → より早く**429**に到達（アイデンティティベース`RateLimitPolicy`）
 
-### 2) Traffic shaping
-- Sample A/B → show observed **80/20**
-- Sample canary → show observed **90/10**
-- Force canary (header) → show **0/100** (v2 only)
+### 2) トラフィックシェイピング
+- A/Bサンプル → 観測された**80/20**を表示
+- カナリアサンプル → 観測された**90/10**を表示
+- カナリア強制（ヘッダー）→ **0/100**（v2のみ）を表示
 
 ### 3) Keycloak JWT
-- Click **Get token** → show the JWT + decoded claims
-- Call protected API without token → **401**
-- Call with token → **200**
+- **トークン取得**をクリック → JWTとデコードされたクレームを表示
+- トークンなしで保護されたAPIを呼び出し → **401**
+- トークンありで呼び出し → **200**
 
-### 4) OIDC portal
-- Open portal (separate hostname) → unauthenticated **302** to Keycloak
-- Login → portal shows protected content
+### 4) OIDCポータル
+- ポータルを開く（別ホスト名）→ 未認証で**302**からKeycloakへ
+- ログイン → ポータルが保護されたコンテンツを表示
 
-### 5) AI bot + token budget
-- Ask a question → show `usage.total_tokens`
-- Run “Hit 429” → show `429` enforced by `TokenRateLimitPolicy`
+### 5) AIボット + トークン予算
+- 質問をする → `usage.total_tokens`を表示
+- 「Hit 429」を実行 → `TokenRateLimitPolicy`による`429`を表示
 
-### 6) Observability (fast, audience-friendly)
-- In the main UI → **Observability**:
-  - Click **Generate sample traffic** (creates a short burst so graphs move immediately)
-  - Open **Developer / Platform / Business** dashboards and refresh
+### 6) オブザーバビリティ（高速、オーディエンスフレンドリー）
+- メインUIで → **オブザーバビリティ**:
+  - **サンプルトラフィック生成**をクリック（短いバーストを作成し、グラフがすぐに動く）
+  - **開発者 / プラットフォーム / ビジネス**ダッシュボードを開いて更新
 
-## GitOps layout
+## GitOpsレイアウト
 
-- Base: `gitops/apps/rhcl-demo/base`
-- Overlays:
-  - `gitops/apps/rhcl-demo/overlays/ephemeral` (demo app only; assumes Connectivity Link is already installed)
-  - `gitops/apps/rhcl-demo/overlays/full-install` (installs RHCL via OLM and deploys the demo)
-- Example Argo CD Application: `gitops/argocd/application-rhcl-demo.yaml`
-- **ApplicationSet (multi-app split)**: `gitops/argocd/applicationset-rhcl-workshop.yaml`
-  - Creates 4 apps: `infra`, `demo`, `keycloak`, `oidc-portal`
-  - Useful to show **clear ownership boundaries** (platform vs app vs identity vs portal)
+このリポジトリは**分割アプリケーションアーキテクチャ**を使用し、7つの独立したArgoCD Applicationとして展開されます：
 
-## Notes (why the dashboards work)
+### Application構成（sync-wave順）
 
-- **Metrics source**: dashboards use Prometheus (OpenShift monitoring + user workload monitoring) and Connectivity Link / Kuadrant metrics.
-- **Tracing (optional)**: distributed tracing is not required for the core workshop, but if enabled you can also inspect
-  gateway-level traces for policy-enforced responses (e.g. 401/403/429) because those responses are generated at the Gateway.
+- **App0** (`rhcl-app-0-kuadrant-observability`, wave 0): Kuadrantアップストリームオブザーバビリティ（Grafana Operator + 基本設定）
+- **App1** (`rhcl-app-1-operators`, wave 0): オペレータ + RBAC + コンソールプラグイン自動有効化
+- **App2** (`rhcl-app-2-platform-crs`, wave 2): プラットフォームカスタムリソース（Namespaces、ClusterIssuer、RBAC）
+- **App3** (`rhcl-app-3-gateways`, wave 3): Gateways（Gateway、DNSPolicy、TLSPolicy、Routes）
+- **App4** (`rhcl-app-4-demo-apps`, wave 3): デモアプリケーション
+- **App5** (`rhcl-app-5-core-observability`, wave 3): コアオブザーバビリティ（Grafanaインスタンス + ダッシュボード）
+- **App6** (`rhcl-app-6-routes-policies`, wave 4): ルートとポリシー（HTTPRoutes、AuthPolicy、RateLimitPolicy）
 
-## References
+### パス構造
 
-- Red Hat Connectivity Link install: [Installing Connectivity Link on OpenShift](https://docs.redhat.com/en/documentation/red_hat_connectivity_link/1.3/html-single/installing_on_openshift_container_platform/index)
+```
+gitops/apps/rhcl-demo-split/
+├── rhcl-app-0-kuadrant-observability.yaml  # Application manifest
+├── rhcl-app-1-operators.yaml               # Application manifest
+├── rhcl-app-2-platform-crs.yaml            # Application manifest
+├── rhcl-app-3-gateways.yaml                # Application manifest
+├── rhcl-app-4-demo-apps.yaml               # Application manifest
+├── rhcl-app-5-core-observability.yaml      # Application manifest
+├── rhcl-app-6-routes-policies.yaml         # Application manifest
+├── app-1-operators/                        # App1リソース
+├── app-2-platform-crs/                     # App2リソース
+├── app-3-gateways/                         # App3リソース
+├── app-4-demo-apps/                        # App4リソース
+├── app-5-core-observability/               # App5リソース
+└── app-6-routes-policies/                  # App6リソース
+```
+
+### Ansibleプレイブック
+
+- `ansible/playbooks/setup-gitops.yaml`: OpenShift GitOpsセットアップ
+- `ansible/playbooks/install-split-apps.yaml`: 7つのApplicationを順次デプロイ
+
+詳細なリソース分類については、[RESOURCE_CLASSIFICATION.md](RESOURCE_CLASSIFICATION.md)を参照してください。
+
+## 注意事項（なぜダッシュボードが機能するか）
+
+- **メトリクスソース**: ダッシュボードはPrometheus（OpenShift監視 + ユーザーワークロード監視）とConnectivity Link / Kuadrantメトリクスを使用
+- **トレーシング（オプション）**: 分散トレーシングはコアワークショップには不要ですが、有効にすると、Gateway レベルのトレースをポリシー適用レスポンス（例：401/403/429）について検査可能（これらのレスポンスはGatewayで生成されるため）
+
+## 参考資料
+
+- Red Hat Connectivity Linkインストール: [Installing Connectivity Link on OpenShift](https://docs.redhat.com/en/documentation/red_hat_connectivity_link/1.3/html-single/installing_on_openshift_container_platform/index)
 - MCP Gateway: [Installing the MCP Gateway](https://docs.redhat.com/en/documentation/red_hat_connectivity_link/1.3/html/installing_the_mcp_gateway/mcp-gateway-install)
-- Policies: [Configuring and deploying Gateway policies](https://docs.redhat.com/en/documentation/red_hat_connectivity_link/1.3/html-single/configuring_and_deploying_gateway_policies/configuring_and_deploying_gateway_policies)
-- Observability: [Observability and Troubleshooting](https://docs.redhat.com/en/documentation/red_hat_connectivity_link/1.3/html/observability_and_troubleshooting/index)
-
+- ポリシー: [Configuring and deploying Gateway policies](https://docs.redhat.com/en/documentation/red_hat_connectivity_link/1.3/html-single/configuring_and_deploying_gateway_policies/configuring_and_deploying_gateway_policies)
+- オブザーバビリティ: [Observability and Troubleshooting](https://docs.redhat.com/en/documentation/red_hat_connectivity_link/1.3/html/observability_and_troubleshooting/index)
