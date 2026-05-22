@@ -20,86 +20,114 @@ cloud "Internet" as internet <<$globe>>
 package "OpenShift Cluster" {
   component "OpenShift Route\n(Passthrough TLS)" as route #LightBlue
 
-  package "Gateway API + RHCL Policies" {
-    component "Gateway\nrhcl-workshop-gw\n(openshift-ingress)" as gateway #Orange
+  package "Gateway (openshift-ingress)" {
+    component "Gateway\nrhcl-workshop-gw" as gateway #Orange
 
-    component "AuthPolicy (Gateway)\nrhcl-gw-auth\nDeny-by-Default" as gateway_auth <<$shield_alt>> #Pink
-
-    component "HTTPRoute\ndemo-api\n(demo ns)" as httproute #LightGreen
-
-    component "AuthPolicy (Route)\ndemo-api-auth\nAPI Key Validation" as route_auth <<$shield_alt>> #Pink
-
-    component "RateLimitPolicy\ndemo-api-rlp\nIdentity-based Limits" as ratelimit <<$tachometer_alt>> #Yellow
+    component "AuthPolicy\nrhcl-gw-auth\n(deny-by-default)" as gateway_auth <<$shield_alt>> #Pink
   }
 
-  package "Backend Services" {
+  package "HTTPRoute (demo namespace)" {
+    component "HTTPRoute\ndemo-api\n(path: /hello)" as httproute #LightGreen
+
+    component "AuthPolicy\ndemo-api-auth\n(API Key)" as route_auth <<$shield_alt>> #Pink
+
+    component "RateLimitPolicy\ndemo-api-rlp\n(identity-based)" as ratelimit <<$tachometer_alt>> #Yellow
+  }
+
+  package "Backend (demo namespace)" {
     component "Service\ndemo-api" as service #LightCyan
     component "Pod\ndemo-api" as pod <<$server>> #LightGray
   }
 }
 
-' Flow connections
+' Main traffic flow (vertical)
 browser -down-> internet : "HTTPS Request\nGET /hello\nHeader: APIKEY IAMALICE"
 internet -down-> route : "TLS Passthrough"
-route -down-> gateway : "HTTPS\nrhcl-workshop.sandbox2689.opentlc.com"
-
-gateway -down-> gateway_auth : "1. Check Gateway Policy"
-gateway_auth -down-> httproute : "2. Match HTTPRoute\n/hello → demo-api"
-
-httproute -down-> route_auth : "3. Validate API Key\n(IAMALICE or IAMBOB)"
-route_auth -down-> ratelimit : "4. Check Rate Limit\nIdentity: alice or bob"
-
-ratelimit -down-> service : "5. Forward Request\n(if allowed)"
+route -down-> gateway : "HTTPS Request\nrhcl-workshop.sandbox2689.opentlc.com"
+gateway -down-> httproute : "Route Matching\n/hello → demo-api"
+httproute -down-> service : "Forward Request"
 service -down-> pod : "Backend Processing"
 
+' Policy application (horizontal)
+gateway -right-> gateway_auth : "適用"
+httproute -right-> route_auth : "適用"
+httproute -right-> ratelimit : "適用"
+
 ' Response flow
-pod -up-> service : "Response: 200 OK"
-service -up-> ratelimit : "Response"
-ratelimit -up-> route_auth : "Response"
-route_auth -up-> httproute : "Response"
+pod -up-> service : "Response"
+service -up-> httproute : "Response"
 httproute -up-> gateway : "Response"
 gateway -up-> route : "Response"
 route -up-> internet : "Response"
 internet -up-> browser : "Response"
 
-' Notes
+' Notes for Gateway Policy
 note right of gateway_auth
-  **Gateway Policy (defaults)**
-  - すべてのrouteに適用
+  **Gateway-level Policy (defaults)**
+  - すべてのHTTPRouteに適用
   - Default: deny-all (403)
-  - /health pathは除外
+  - Condition: request.path != '/health'
+  - このデモでは、Route-level Policyで
+    overrideされる
 end note
 
+' Notes for Route Auth Policy
 note right of route_auth
-  **Route Policy (overrides)**
+  **Route-level Policy (overrides)**
   - Gateway policyをoverride
   - API Key検証:
+    - Header: APIKEY <key>
     - Secret: api-keys
     - IAMALICE → userid: alice
     - IAMBOB → userid: bob
   - 無効なkey → 401/403
 end note
 
+' Notes for Rate Limit Policy
 note right of ratelimit
   **Rate Limit Rules**
-  - Alice: 5 req / 10s
-  - Bob: 2 req / 10s
   - Counter: auth.identity.userid
+  - Alice: 5 requests / 10s
+  - Bob: 2 requests / 10s
   - 超過時 → 429 Too Many Requests
+
+  **デモポイント**:
+  - Bobの方が制限が厳しい
+  - Bobをクリックし続けると
+    早く429に到達
+end note
+
+' Evaluation flow annotation
+note left of gateway
+  **Policy評価フロー**
+  1. Gateway Policy評価
+     (deny-by-default)
+  2. Route Policy評価
+     (API key validation)
+  3. Rate Limit評価
+     (identity-based counting)
+  4. すべてPass → Backend転送
+  5. いずれか失敗 → Error応答
 end note
 
 ' Legend
 legend right
   |= Component |= 説明 |
   | Gateway | Istio Gateway (entry point) |
+  | HTTPRoute | Routing rules (path matching) |
   | AuthPolicy | 認証・認可 Policy |
   | RateLimitPolicy | Rate limiting Policy |
-  | HTTPRoute | Routing rules |
+  | Service/Pod | Backend application |
 
   |= Response Codes |
-  | 200 | Success (API key valid, under limit) |
-  | 401/403 | Unauthorized (invalid API key) |
-  | 429 | Too Many Requests (rate limit exceeded) |
+  | 200 | Success (valid key, under limit) |
+  | 401/403 | Unauthorized (invalid key) |
+  | 429 | Too Many Requests (limit exceeded) |
+
+  |= Policy適用 |
+  | Gateway → AuthPolicy | Gateway-level policy |
+  | HTTPRoute → Policy | Route-level policy |
+  | 「適用」 | Policyが対象に適用されている |
 endlegend
 
 @enduml
