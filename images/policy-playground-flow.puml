@@ -6,22 +6,38 @@
 !include ICONURL/font-awesome-5/server.puml
 !include ICONURL/font-awesome-5/shield_alt.puml
 !include ICONURL/font-awesome-5/tachometer_alt.puml
+!include ICONURL/font-awesome-5/lock.puml
+!include ICONURL/font-awesome-5/network_wired.puml
 
 skinparam defaultTextAlignment center
 skinparam componentStyle rectangle
 skinparam backgroundColor white
 skinparam shadowing false
 
-title Policy Playground Data Flow\n(API Keys + Rate Limiting)
+title Policy Playground Complete Data Flow\n(DNS → TLS → API Keys → Rate Limiting)
 
 actor "ブラウザ" as browser <<$user>>
+
+package "AWS" {
+  component "Route53\nDNS Service" as route53 #Khaki
+
+  component "DNSPolicy\nrhcl-workshop-dns\n(openshift-ingress)" as dnspolicy #Wheat
+}
+
 cloud "Internet" as internet <<$globe>>
 
 package "OpenShift Cluster" {
-  component "OpenShift Route\n(Passthrough TLS)" as route #LightBlue
+  component "OpenShift Router\n(LoadBalancer)" as router #LightBlue
+
+  package "cert-manager" {
+    component "Certificate\nrhcl-workshop-cert" as certificate <<$lock>> #LightPink
+    component "ClusterIssuer\n(Let's Encrypt)" as clusterissuer #LightPink
+  }
 
   package "Gateway (openshift-ingress)" {
-    component "Gateway\nrhcl-workshop-gw" as gateway #Orange
+    component "Gateway\nrhcl-workshop-gw\n(TLS Termination)" as gateway #Orange
+
+    component "TLSPolicy\nrhcl-workshop-tls" as tlspolicy <<$lock>> #LightPink
 
     component "AuthPolicy\nrhcl-gw-auth\n(deny-by-default)" as gateway_auth <<$shield_alt>> #Pink
   }
@@ -40,50 +56,95 @@ package "OpenShift Cluster" {
   }
 }
 
-' Main traffic flow (vertical)
-browser -down-> internet : "HTTPS Request\nGET /hello\nHeader: APIKEY IAMALICE"
-internet -down-> route : "TLS Passthrough"
-route -down-> gateway : "HTTPS Request\nrhcl-workshop.sandbox2689.opentlc.com"
-gateway -down-> httproute : "Route Matching\n/hello → demo-api"
-httproute -down-> service : "Forward Request"
-service -down-> pod : "Backend Processing"
+' Step 1: DNS Resolution
+browser -down-> route53 : "1. DNS Query\nrhcl-workshop.sandbox2689.opentlc.com"
+route53 -down-> browser : "DNS Response\nIP: <Router LoadBalancer IP>"
 
-' Policy application (horizontal)
-gateway -right-> gateway_auth : "適用"
-httproute -right-> route_auth : "適用"
-httproute -right-> ratelimit : "適用"
+' Step 2: HTTPS Request
+browser -down-> internet : "2. HTTPS Request\nGET /hello\nHeader: APIKEY IAMALICE"
+internet -down-> router : "HTTPS to IP\n(port 443)"
+
+' Step 3: TLS Passthrough to Gateway
+router -down-> gateway : "3. TLS Passthrough\nSNI: rhcl-workshop.sandbox2689.opentlc.com"
+
+' Step 4: Route matching
+gateway -down-> httproute : "4. Route Matching\npath: /hello → demo-api"
+
+' Step 5: Forward to backend
+httproute -down-> service : "5. Forward Request"
+service -down-> pod : "Backend Processing"
 
 ' Response flow
 pod -up-> service : "Response"
 service -up-> httproute : "Response"
 httproute -up-> gateway : "Response"
-gateway -up-> route : "Response"
-route -up-> internet : "Response"
+gateway -up-> router : "Response"
+router -up-> internet : "Response"
 internet -up-> browser : "Response"
 
-' Notes for Gateway Policy
+' DNS/TLS Policy relationships
+route53 <-left- dnspolicy : "管理"
+gateway -up-> dnspolicy : "適用"
+
+gateway -right-> tlspolicy : "適用"
+tlspolicy -down-> certificate : "参照"
+certificate -down-> clusterissuer : "発行元"
+
+' Gateway/Route Policy relationships
+gateway -right-> gateway_auth : "適用"
+httproute -right-> route_auth : "適用"
+httproute -right-> ratelimit : "適用"
+
+' Notes for DNS
+note right of route53
+  **AWS Route53 DNS Record**
+  - Hostname: rhcl-workshop.sandbox2689.opentlc.com
+  - Type: A/AAAA
+  - Value: OpenShift Router LoadBalancer IP
+  - TTL: 60s
+
+  **DNSPolicyによる自動管理**:
+  - Gateway作成時に自動でDNS record作成
+  - Gateway削除時に自動でDNS record削除
+  - Routing Strategy: simple
+end note
+
+' Notes for TLS
+note left of certificate
+  **TLS Certificate管理**
+  - cert-managerがLet's Encryptから証明書取得
+  - DNS-01 Challenge (Route53経由)
+  - 自動renewal（期限前に更新）
+  - Secret: rhcl-workshop-tls
+
+  **TLSPolicyによる自動化**:
+  - Gatewayのlistener hostnameを検出
+  - Certificate resourceを自動作成
+  - Gateway listenerにSecret自動bind
+end note
+
+' Notes for Gateway Auth
 note right of gateway_auth
   **Gateway-level Policy (defaults)**
   - すべてのHTTPRouteに適用
   - Default: deny-all (403)
   - Condition: request.path != '/health'
-  - このデモでは、Route-level Policyで
-    overrideされる
+  - Route-level Policyでoverride可能
 end note
 
-' Notes for Route Auth Policy
+' Notes for Route Auth
 note right of route_auth
   **Route-level Policy (overrides)**
   - Gateway policyをoverride
   - API Key検証:
     - Header: APIKEY <key>
-    - Secret: api-keys
+    - Secret: api-keys (demo ns)
     - IAMALICE → userid: alice
     - IAMBOB → userid: bob
   - 無効なkey → 401/403
 end note
 
-' Notes for Rate Limit Policy
+' Notes for Rate Limit
 note right of ratelimit
   **Rate Limit Rules**
   - Counter: auth.identity.userid
@@ -93,11 +154,10 @@ note right of ratelimit
 
   **デモポイント**:
   - Bobの方が制限が厳しい
-  - Bobをクリックし続けると
-    早く429に到達
+  - Bobをクリックし続けると早く429到達
 end note
 
-' Evaluation flow annotation
+' Policy evaluation flow
 note left of gateway
   **Policy評価フロー**
   1. Gateway Policy評価
@@ -112,12 +172,12 @@ end note
 
 ' Legend
 legend right
-  |= Component |= 説明 |
-  | Gateway | Istio Gateway (entry point) |
-  | HTTPRoute | Routing rules (path matching) |
-  | AuthPolicy | 認証・認可 Policy |
-  | RateLimitPolicy | Rate limiting Policy |
-  | Service/Pod | Backend application |
+  |= Step |= 説明 |
+  | 1. DNS Query | ブラウザがRoute53にDNS問い合わせ |
+  | 2. HTTPS Request | Router LoadBalancer IPへHTTPS接続 |
+  | 3. TLS Passthrough | SNIでGatewayへrouting |
+  | 4. Route Matching | HTTPRoute pathマッチング |
+  | 5. Forward | Backend Serviceへ転送 |
 
   |= Response Codes |
   | 200 | Success (valid key, under limit) |
@@ -125,9 +185,10 @@ legend right
   | 429 | Too Many Requests (limit exceeded) |
 
   |= Policy適用 |
-  | Gateway → AuthPolicy | Gateway-level policy |
-  | HTTPRoute → Policy | Route-level policy |
-  | 「適用」 | Policyが対象に適用されている |
+  | DNSPolicy | Gateway → Route53 record管理 |
+  | TLSPolicy | Gateway → Certificate自動管理 |
+  | AuthPolicy | Gateway/Route → 認証・認可 |
+  | RateLimitPolicy | Route → Rate limiting |
 endlegend
 
 @enduml
