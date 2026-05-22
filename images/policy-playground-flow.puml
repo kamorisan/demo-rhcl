@@ -1,0 +1,105 @@
+@startuml policy-playground-flow
+!define ICONURL https://raw.githubusercontent.com/tupadr3/plantuml-icon-font-sprites/v2.4.0
+!include ICONURL/common.puml
+!include ICONURL/font-awesome-5/user.puml
+!include ICONURL/font-awesome-5/globe.puml
+!include ICONURL/font-awesome-5/server.puml
+!include ICONURL/font-awesome-5/shield_alt.puml
+!include ICONURL/font-awesome-5/tachometer_alt.puml
+
+skinparam defaultTextAlignment center
+skinparam componentStyle rectangle
+skinparam backgroundColor white
+skinparam shadowing false
+
+title Policy Playground Data Flow\n(API Keys + Rate Limiting)
+
+actor "ブラウザ" as browser <<$user>>
+cloud "Internet" as internet <<$globe>>
+
+package "OpenShift Cluster" {
+  component "OpenShift Route\n(Passthrough TLS)" as route #LightBlue
+
+  package "Gateway API + RHCL Policies" {
+    component "Gateway\nrhcl-workshop-gw\n(openshift-ingress)" as gateway #Orange
+
+    component "AuthPolicy (Gateway)\nrhcl-gw-auth\nDeny-by-Default" as gateway_auth <<$shield_alt>> #Pink
+
+    component "HTTPRoute\ndemo-api\n(demo ns)" as httproute #LightGreen
+
+    component "AuthPolicy (Route)\ndemo-api-auth\nAPI Key Validation" as route_auth <<$shield_alt>> #Pink
+
+    component "RateLimitPolicy\ndemo-api-rlp\nIdentity-based Limits" as ratelimit <<$tachometer_alt>> #Yellow
+  }
+
+  package "Backend Services" {
+    component "Service\ndemo-api" as service #LightCyan
+    component "Pod\ndemo-api" as pod <<$server>> #LightGray
+  }
+}
+
+' Flow connections
+browser -down-> internet : "HTTPS Request\nGET /hello\nHeader: APIKEY IAMALICE"
+internet -down-> route : "TLS Passthrough"
+route -down-> gateway : "HTTPS\nrhcl-workshop.sandbox2689.opentlc.com"
+
+gateway -down-> gateway_auth : "1. Check Gateway Policy"
+gateway_auth -down-> httproute : "2. Match HTTPRoute\n/hello → demo-api"
+
+httproute -down-> route_auth : "3. Validate API Key\n(IAMALICE or IAMBOB)"
+route_auth -down-> ratelimit : "4. Check Rate Limit\nIdentity: alice or bob"
+
+ratelimit -down-> service : "5. Forward Request\n(if allowed)"
+service -down-> pod : "Backend Processing"
+
+' Response flow
+pod -up-> service : "Response: 200 OK"
+service -up-> ratelimit : "Response"
+ratelimit -up-> route_auth : "Response"
+route_auth -up-> httproute : "Response"
+httproute -up-> gateway : "Response"
+gateway -up-> route : "Response"
+route -up-> internet : "Response"
+internet -up-> browser : "Response"
+
+' Notes
+note right of gateway_auth
+  **Gateway Policy (defaults)**
+  - すべてのrouteに適用
+  - Default: deny-all (403)
+  - /health pathは除外
+end note
+
+note right of route_auth
+  **Route Policy (overrides)**
+  - Gateway policyをoverride
+  - API Key検証:
+    - Secret: api-keys
+    - IAMALICE → userid: alice
+    - IAMBOB → userid: bob
+  - 無効なkey → 401/403
+end note
+
+note right of ratelimit
+  **Rate Limit Rules**
+  - Alice: 5 req / 10s
+  - Bob: 2 req / 10s
+  - Counter: auth.identity.userid
+  - 超過時 → 429 Too Many Requests
+end note
+
+' Legend
+legend right
+  |= Component |= 説明 |
+  | Gateway | Istio Gateway (entry point) |
+  | AuthPolicy | 認証・認可 Policy |
+  | RateLimitPolicy | Rate limiting Policy |
+  | HTTPRoute | Routing rules |
+
+  |= Response Codes |
+  | 200 | Success (API key valid, under limit) |
+  | 401/403 | Unauthorized (invalid API key) |
+  | 429 | Too Many Requests (rate limit exceeded) |
+endlegend
+
+@enduml

@@ -9,3 +9,5 @@
 .venv*/
 talk/
 *.crt
+images/plantuml/
+images/svg/

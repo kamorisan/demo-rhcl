@@ -10,6 +10,8 @@
 - **Policy**: `AuthPolicy`（APIキー）、`RateLimitPolicy`（identity-based）、Gateway上の`AuthPolicy`（deny-by-default）
 - **メリット**: **zero-trust by default**を実装し、チームが必要なものだけを安全に公開できることを実演。**per-identity limits**（例：BobはAliceより早く`429`に到達）
 
+![Policy Playground Flow](images/policy-playground-flow.svg)
+
 ### Traffic Shaping（A/B + Canary）
 - **Policy/Objects**: `HTTPRoute`の重み付けbackend
 - **メリット**: アプリケーションコードを変更せずにprogressive delivery
