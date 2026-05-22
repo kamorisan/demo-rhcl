@@ -34,6 +34,9 @@ if [ ${#MISSING_VARS[@]} -gt 0 ]; then
   echo "  export AWS_SECRET_ACCESS_KEY=..."
   echo "  export AWS_REGION=us-east-2"
   echo "  export RHCL_AI_OPENAI_API_KEY=sk-..."
+  echo ""
+  echo "Optional variables:"
+  echo "  export GIT_BRANCH=feature/observability-implementation  # Default: feature/stable-apps1-5-espn-working"
   exit 1
 fi
 
