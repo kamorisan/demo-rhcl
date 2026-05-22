@@ -1,0 +1,366 @@
+@startuml ai-chatbot-flow
+!define ICONURL https://raw.githubusercontent.com/tupadr3/plantuml-icon-font-sprites/v2.4.0
+!include ICONURL/common.puml
+!include ICONURL/font-awesome-5/user.puml
+!include ICONURL/font-awesome-5/globe.puml
+!include ICONURL/font-awesome-5/server.puml
+!include ICONURL/font-awesome-5/lock.puml
+!include ICONURL/font-awesome-5/shield_alt.puml
+!include ICONURL/font-awesome-5/robot.puml
+!include ICONURL/font-awesome-5/tachometer_alt.puml
+!include ICONURL/font-awesome-5/football_ball.puml
+
+skinparam defaultTextAlignment center
+skinparam componentStyle rectangle
+skinparam backgroundColor white
+skinparam shadowing false
+skinparam nodesep 60
+skinparam ranksep 80
+
+title AI Chatbot Complete Data Flow\n(DNS → TLS → Token Rate Limiting → LLM → MCP Tools → ESPN API)
+
+actor "Browser\n(UI)" as browser <<$user>>
+cloud "External\nLLM API\n(OpenAI-compatible)" as llm_api <<$robot>> #Purple
+cloud "External\nESPN API" as espn_api <<$football_ball>> #Orange
+
+package "AWS" {
+  cloud "Route53\n(Public DNS)" as route53 #Khaki
+
+  component "AWS Load\nBalancer" as awslb #Orange
+
+  package "OpenShift Cluster" {
+    component "OpenShift Router\nIngress Controller\n(SNI passthrough)" as router #LightBlue
+
+    package "cert-manager" {
+      component "ClusterIssuer\n(Let's Encrypt)" as issuer <<$lock>> #LightPink
+      component "Certificate" as cert <<$lock>> #LightPink
+      component "TLS Secret" as secret <<$lock>> #LightPink
+    }
+
+    package "AI Gateway\n(ai.<domain>)" {
+      component "Gateway\nrhcl-ai-gw\n(TLS termination)" as ai_gateway #LightGreen
+      component "HTTPRoute\nai-chat" as ai_httproute #LightCyan
+      component "TokenRateLimitPolicy\n400 tokens / 15s" as token_ratelimit <<$tachometer_alt>> #Yellow
+      component "TLSPolicy" as ai_tlspolicy #Wheat
+    }
+
+    package "MCP Gateway\n(mcp.<domain>)" {
+      component "Gateway\nrhcl-mcp-gw\n(TLS termination)" as mcp_gateway #LightGreen
+      component "HTTPRoute\nmcp-gateway\n(/mcp)" as mcp_httproute #LightCyan
+      component "AuthPolicy\nrhcl-mcp-gw-auth\n(deny-all)" as mcp_gw_auth <<$shield_alt>> #Pink
+      component "AuthPolicy\nrhcl-mcp-allow\n(route-level allow)" as mcp_route_auth <<$shield_alt>> #LightGreen
+      component "TLSPolicy" as mcp_tlspolicy #Wheat
+      component "MCPGatewayExtension\nrhcl-mcp-extension" as mcp_gw_ext #Wheat
+      component "MCPServerRegistration\nespn-mcp-server" as mcp_sr #Wheat
+    }
+
+    package "External API Gateway\n(external-api.<domain>)" {
+      component "Gateway\nrhcl-workshop-gw\nListener: https-external-public" as ext_gateway #LightGreen
+      component "HTTPRoute\nexternal-proxy-public\n(/nba, /epl, etc.)" as ext_httproute #LightCyan
+    }
+
+    component "DNSPolicy" as dnspolicy #Wheat
+
+    package "AI Bot Backend\n(rhcl-ai-bot)" {
+      component "Service\nrhcl-ai-bot" as ai_service #LightSteelBlue
+      component "Pod\nrhcl-ai-bot" as ai_pod <<$server>> #LightGray
+    }
+
+    package "MCP Tools\n(mcp-system)" {
+      component "Service\nmcp-tools" as mcp_service #LightSteelBlue
+      component "Pod\nESPN MCP Tool" as mcp_pod <<$server>> #LightGray
+    }
+
+    package "ESPN Proxy\n(demo)" {
+      component "Service\nespn-proxy" as espn_service #LightSteelBlue
+      component "Pod\nespn-proxy" as espn_pod <<$server>> #LightGray
+    }
+  }
+}
+
+' ===== Data Plane: Runtime Request/Response Path (Solid lines) =====
+
+' Step 1: Browser → AI Gateway (Chat Completion)
+browser -down-> route53 : "①DNS Query\nai.sandbox2689.opentlc.com"
+route53 -up-> browser : "DNS Response"
+browser -down-> awslb : "②Chat Request\nPOST /chat\n{message, history}"
+awslb -down-> router : "SNI: ai.<domain>"
+router -down-> ai_gateway : "③TLS passthrough\n→ AI Gateway"
+ai_gateway -down-> ai_httproute : "④Route match\n/chat"
+ai_httproute -down-> ai_service : "⑤Forward\n(token budget check)"
+
+' Step 2: AI Bot → External LLM
+ai_service -down-> ai_pod
+ai_pod -down-> llm_api : "⑥LLM Request\nPOST /chat/completions\n(prompt + tools)"
+llm_api -up-> ai_pod : "LLM Response\n(tool_calls or answer)\n+ usage.total_tokens"
+
+' Step 3: Token Budget Check
+note right of ai_pod
+**Token Budget Tracking**
+- Response includes:
+  usage.total_tokens
+- Gateway tracks token consumption
+- 400 tokens / 15s limit
+- Exceeded → 429
+end note
+
+' Step 4: If LLM needs tool (ESPN data)
+ai_pod -down-> awslb : "⑦Tool Call (if needed)\nPOST /mcp/tools/espn"
+awslb -down-> router : "SNI: mcp.<domain>"
+router -down-> mcp_gateway : "⑧TLS passthrough\n→ MCP Gateway"
+mcp_gateway -down-> mcp_httproute : "⑨Route match\n/mcp"
+mcp_httproute -down-> mcp_service : "⑩Forward\n(auth allowed)"
+mcp_service -down-> mcp_pod
+
+' Step 5: MCP Tool → ESPN Proxy
+mcp_pod -down-> awslb : "⑪ESPN API Request\nGET external-api.<domain>/nba"
+awslb -down-> router : "SNI: external-api.<domain>"
+router -down-> ext_gateway : "⑫TLS passthrough\n→ External API Gateway"
+ext_gateway -down-> ext_httproute : "⑬Route match\n/nba"
+ext_httproute -down-> espn_service
+espn_service -down-> espn_pod
+
+' Step 6: ESPN Proxy → External ESPN API
+espn_pod -down-> espn_api : "⑭External ESPN API\nGET ESPN API"
+espn_api -up-> espn_pod : "ESPN data"
+espn_pod -up-> espn_service
+espn_service -up-> ext_httproute
+ext_httproute -up-> ext_gateway
+ext_gateway -up-> router
+router -up-> awslb
+awslb -up-> mcp_pod : "ESPN data"
+
+' Step 7: MCP Tool response → AI Bot
+mcp_pod -up-> mcp_service : "Tool result\n(ESPN data)"
+mcp_service -up-> mcp_httproute
+mcp_httproute -up-> mcp_gateway
+mcp_gateway -up-> router
+router -up-> awslb
+awslb -up-> ai_pod : "Tool result"
+
+' Step 8: AI Bot → LLM (with tool result)
+ai_pod -down-> llm_api : "⑮Second LLM call\n(with tool result)"
+llm_api -up-> ai_pod : "Final answer\n+ usage.total_tokens"
+
+' Step 9: Response to Browser
+ai_pod -up-> ai_service : "Chat response\n+ token usage"
+ai_service -up-> ai_httproute
+ai_httproute -up-> ai_gateway
+ai_gateway -up-> router
+router -up-> awslb
+awslb -up-> browser : "200 OK or 429\n(chat response + usage)"
+
+' ===== Control Plane: Policy/Management (Dashed lines) =====
+
+' DNS Management
+dnspolicy .down.> route53 : "Manages DNS records\nvia Route53 API"
+dnspolicy .down.> ai_gateway : "Watches AI Gateway"
+dnspolicy .down.> mcp_gateway : "Watches MCP Gateway"
+dnspolicy .down.> ext_gateway : "Watches External Gateway"
+
+' TLS Management
+ai_tlspolicy .down.> ai_gateway : "Applies to"
+mcp_tlspolicy .down.> mcp_gateway : "Applies to"
+
+' Policy Application
+token_ratelimit .down.> ai_httproute : "Applies to"
+mcp_gw_auth .down.> mcp_gateway : "Applies to"
+mcp_route_auth .down.> mcp_httproute : "Applies to\n(overrides deny)"
+
+' MCP Gateway CRD Resources
+mcp_gw_ext .down.> mcp_gateway : "Extends\n(deploys broker-router)"
+mcp_sr .down.> mcp_pod : "Registers\n(tool federation)"
+
+' Notes
+note right of route53
+**Route53 Public DNS**
+- Three dedicated hostnames:
+  • ai.<domain> (AI Gateway)
+  • mcp.<domain> (MCP Gateway)
+  • external-api.<domain> (External API)
+
+**DNSPolicy (Control Plane)**
+- Manages DNS records via Route53 API
+- Watches all Gateway hostnames
+end note
+
+note right of ai_gateway
+**AI Gateway (ai.<domain>)**
+- Dedicated hostname for AI chat
+- TLS termination at Gateway/Envoy
+- TokenRateLimitPolicy applies here
+
+**Benefits of Dedicated Hostname:**
+- Scope TokenRateLimitPolicy to AI traffic
+- Separate traffic analysis for LLM usage
+- Independent scaling/monitoring
+end note
+
+note right of token_ratelimit
+**TokenRateLimitPolicy**
+- Token-based rate limiting
+  (NOT request count)
+- Limit: 400 tokens / 15s
+- Intentionally low for demo
+  (easy to trigger 429)
+
+**How it works:**
+①LLM returns usage.total_tokens
+②Gateway tracks token consumption
+③Cumulative count per time window
+④Exceeded → 429 Too Many Requests
+
+**Why token-based:**
+- LLM cost is token-based
+- Prevents expensive queries
+- Fair usage enforcement
+end note
+
+note right of ai_pod
+**AI Bot Backend**
+- Proxies chat requests to LLM
+- Handles tool calls (MCP)
+- Returns token usage to UI
+
+**LLM Configuration:**
+- OpenAI-compatible endpoint
+  (LiteLLM or OpenAI)
+- Model: configurable
+- Tools: ESPN MCP tool
+
+**Flow:**
+①Receive chat message
+②Call LLM with tools
+③If tool_call → MCP Gateway
+④Second LLM call with result
+⑤Return final answer + usage
+end note
+
+note right of mcp_gateway
+**MCP Gateway (mcp.<domain>)**
+- Dedicated hostname for MCP tools
+- TLS termination at Gateway/Envoy
+- AuthPolicy (deny-all + route allow)
+
+**MCPGatewayExtension:**
+- Extends Gateway for MCP protocol
+- Deploys broker-router components
+- Configures EnvoyFilter
+- Aggregates tools from upstream servers
+
+**Purpose:**
+- Centralized tool access
+- Same Gateway policies apply
+- Secure tool invocation
+end note
+
+note right of mcp_gw_auth
+**MCP Gateway AuthPolicy**
+- Gateway-level: deny-all
+- Route-level: allow for /mcp
+- Same override pattern as
+  External API Gateway
+end note
+
+note right of mcp_pod
+**ESPN MCP Tool**
+- MCP (Model Context Protocol) tool
+- Provides sports data to LLM
+- Calls External API Gateway
+
+**MCPServerRegistration:**
+- Registers this ESPN tool
+- Prefix: espn_ (e.g. espn_nba_scoreboard)
+- Category: sports, data
+- Broker discovers tools via HTTPRoute
+
+**Tool Function:**
+- get_nba_scores()
+- get_epl_scores()
+- etc.
+
+**Architecture:**
+- MCP tool → External API Gateway
+  → ESPN Proxy → External ESPN API
+end note
+
+note right of ext_gateway
+**External API Gateway**
+- Reused from External API demo
+- Hostname: external-api.<domain>
+- Provides ESPN proxy endpoints
+
+**MCP Tool Usage:**
+- MCP tools consume these endpoints
+- Same Gateway policies
+- Centralized external API access
+end note
+
+note right of espn_api
+**External ESPN API**
+- Third-party service
+- Outside OpenShift Cluster
+- Provides sports data
+end note
+
+note right of cert
+**cert-manager**
+- Certificate uses ClusterIssuer
+- Creates TLS Secrets for:
+  • ai.<domain>
+  • mcp.<domain>
+  • external-api.<domain>
+- DNS-01 challenge via Route53
+- Auto renewal
+end note
+
+' Legend
+legend bottom left
+**Flow Types:**
+━━━ Solid line = Data Plane (runtime request/response)
+┄┄┄ Dashed line = Control Plane (policy/management/reconcile)
+
+**Response Codes:**
+• 200 = Success (chat response with token usage)
+• 429 = Too Many Requests (token budget exceeded)
+
+**Architecture:**
+• Three dedicated hostnames:
+  - ai.<domain> (AI chat with TokenRateLimitPolicy)
+  - mcp.<domain> (MCP tools with AuthPolicy)
+  - external-api.<domain> (ESPN proxy)
+• AWS Load Balancer: Outside OpenShift Cluster
+• OpenShift Router: SNI routing to correct Gateway
+• Multiple Gateways: AI, MCP, External API
+
+**AI Chat Flow:**
+① Browser → AI Gateway (/chat)
+② AI Bot → External LLM (chat completion)
+③ LLM response includes usage.total_tokens
+④ TokenRateLimitPolicy tracks token consumption
+⑤ If exceeded → 429
+
+**Tool Call Flow:**
+⑥ LLM requests tool_call (ESPN data)
+⑦ AI Bot → MCP Gateway (/mcp/tools/espn)
+⑧ MCP Tool → External API Gateway (/nba)
+⑨ ESPN Proxy → External ESPN API
+⑩ Data flows back to AI Bot
+⑪ AI Bot → LLM (second call with tool result)
+⑫ Final answer → Browser
+
+**Key Concepts:**
+• Token-based rate limiting (not request count)
+• Dedicated hostnames for different concerns
+• MCP Gateway for centralized tool access
+• Reuse of External API Gateway
+• Multi-hop data flow (Browser → AI → LLM → MCP → ESPN)
+
+**MCP Gateway CRD Resources:**
+• MCPGatewayExtension: Extends Gateway for MCP protocol
+• MCPServerRegistration: Registers upstream MCP servers
+• Tool federation with prefix (espn_nba_scoreboard)
+• Broker aggregates tools, router handles requests
+endlegend
+
+@enduml

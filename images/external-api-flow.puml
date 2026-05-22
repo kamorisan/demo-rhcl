@@ -1,12 +1,12 @@
-@startuml policy-playground-flow
+@startuml external-api-flow
 !define ICONURL https://raw.githubusercontent.com/tupadr3/plantuml-icon-font-sprites/v2.4.0
 !include ICONURL/common.puml
 !include ICONURL/font-awesome-5/user.puml
 !include ICONURL/font-awesome-5/globe.puml
 !include ICONURL/font-awesome-5/server.puml
-!include ICONURL/font-awesome-5/shield_alt.puml
-!include ICONURL/font-awesome-5/tachometer_alt.puml
 !include ICONURL/font-awesome-5/lock.puml
+!include ICONURL/font-awesome-5/shield_alt.puml
+!include ICONURL/font-awesome-5/football_ball.puml
 
 skinparam defaultTextAlignment center
 skinparam componentStyle rectangle
@@ -15,10 +15,11 @@ skinparam shadowing false
 skinparam nodesep 60
 skinparam ranksep 80
 
-title Policy Playground Complete Data Flow\n(DNS → TLS → API Keys → Rate Limiting)
+title External API (ESPN Proxy) Complete Data Flow\n(DNS → TLS → Gateway Policy Override → External API Proxy)
 
 actor "Browser" as browser <<$user>>
 cloud "Internet" as internet <<$globe>>
+cloud "External\nESPN API" as espn_api <<$football_ball>> #Orange
 
 package "AWS" {
   cloud "Route53\n(Public DNS)" as route53 #Khaki
@@ -30,27 +31,26 @@ package "AWS" {
 
     package "cert-manager" {
       component "ClusterIssuer\n(Let's Encrypt)" as issuer <<$lock>> #LightPink
-      component "Certificate" as cert <<$lock>> #LightPink
+      component "Certificate\nrhcl-gw-public-tls" as cert <<$lock>> #LightPink
       component "TLS Secret" as secret <<$lock>> #LightPink
     }
 
     package "Gateway\n(openshift-ingress)" {
-      component "Gateway\nrhcl-workshop-gw\n(TLS termination)" as gateway #LightGreen
+      component "Gateway\nrhcl-workshop-gw\nListener: https-external-public\n(TLS termination)" as gateway #LightGreen
       component "TLSPolicy" as tlspolicy #Wheat
       component "AuthPolicy\nrhcl-gw-auth\n(default deny)" as gw_auth <<$shield_alt>> #Pink
     }
 
     package "HTTPRoute\n(demo)" {
-      component "HTTPRoute\ndemo-api" as httproute #LightCyan
-      component "AuthPolicy\napi-key\n(route-specific)" as route_auth <<$shield_alt>> #Pink
-      component "RateLimitPolicy\nidentity-based" as ratelimit <<$tachometer_alt>> #Yellow
+      component "HTTPRoute\nexternal-proxy-public\n(/nba, /epl, /laliga, /nfl, /nhl)" as httproute #LightCyan
+      component "AuthPolicy\nexternal-proxy-public-allow\n(route-level allow)" as route_auth <<$shield_alt>> #LightGreen
     }
 
     component "DNSPolicy" as dnspolicy #Wheat
 
-    package "Backend\n(demo)" {
-      component "Service\ndemo-api" as service #LightSteelBlue
-      component "Pod\ndemo-api" as pod <<$server>> #LightGray
+    package "Backend\n(ESPN Proxy)" {
+      component "Service\nespn-proxy" as service #LightSteelBlue
+      component "Pod\nespn-proxy" as pod <<$server>> #LightGray
     }
   }
 }
@@ -58,26 +58,32 @@ package "AWS" {
 ' ===== Data Plane: Runtime Request/Response Path (Solid lines) =====
 
 ' Step 1: DNS Resolution
-browser -down-> route53 : "①DNS Query\nrhcl-workshop.sandbox2689.opentlc.com"
+browser -down-> route53 : "①DNS Query\nexternal-api.sandbox2689.opentlc.com"
 route53 -up-> browser : "DNS Response\n→ AWS LB IP"
 
 ' Step 2-6: HTTPS Request Path
-browser -down-> internet : "②HTTPS Request\nGET /hello\nAPIKEY IAMALICE"
+browser -down-> internet : "②HTTPS Request\nGET /nba or /epl"
 internet -down-> awslb : "To LB IP:443"
 awslb -down-> router : "③SNI routing"
 router -down-> gateway : "④TLS passthrough\nvia OpenShift Route\n→ Gateway Service"
-gateway -down-> httproute : "⑤Route match\n/hello"
-httproute -down-> service : "⑥Forward"
+gateway -down-> httproute : "⑤Route match\n/nba, /epl, etc."
+httproute -down-> service : "⑥Forward\n(auth allowed)"
 service -down-> pod
 
+' Step 7: External API Call
+pod -down-> internet : "⑦Proxy request\nto ESPN API"
+internet -down-> espn_api : "GET ESPN API\n(external)"
+espn_api -up-> internet : "ESPN API response\n(JSON data)"
+internet -up-> pod : "Receive external\nAPI response"
+
 ' Response Path
-pod -up-> service : "Response"
+pod -up-> service : "Response\n(ESPN data)"
 service -up-> httproute
 httproute -up-> gateway
 gateway -up-> router
 router -up-> awslb
 awslb -up-> internet
-internet -up-> browser : "200/401/403/429"
+internet -up-> browser : "200 OK\n(ESPN data)"
 
 ' ===== Control Plane: Policy/Management (Dashed lines) =====
 
@@ -95,15 +101,15 @@ secret .down.> gateway : "certificateRefs\nin listener"
 ' Policy Application
 tlspolicy .down.> gateway : "Applies to"
 gw_auth .down.> gateway : "Applies to"
-route_auth .down.> httproute : "Applies to"
-ratelimit .down.> httproute : "Applies to"
+route_auth .down.> httproute : "Applies to\n(overrides deny)"
 
 ' Notes
 note right of route53
 **Route53 Public DNS**
 - Browser queries Route53 for DNS
 - Returns AWS LB IP
-- NOT queried via DNSPolicy
+- Dedicated hostname:
+  external-api.<domain>
 
 **DNSPolicy (Control Plane)**
 - Manages DNS records via Route53 API
@@ -134,16 +140,20 @@ note right of gateway
 - Uses Secret from cert-manager
 - Decrypts HTTPS traffic
 
-**Policy Evaluation (in order)**
+**Listener: https-external-public**
+- Dedicated listener for external API
+- Hostname: external-api.<domain>
+- Certificate SAN includes:
+  external-api.<domain>
+
+**Policy Evaluation**
 ①Gateway AuthPolicy (default deny)
-②Route AuthPolicy (API key)
-③RateLimitPolicy (identity-based)
-④All pass → Backend forward
-⑤Any fail → Error response
+②Route AuthPolicy (allow) → Override
+③Allow request to backend
 end note
 
 note right of gw_auth
-**Gateway-level Policy**
+**Gateway-level AuthPolicy**
 - Default protection
 - deny-all by default
 - Applies to all HTTPRoutes
@@ -152,21 +162,56 @@ note right of gw_auth
 end note
 
 note right of route_auth
-**Route-level Policy**
-- Route-specific authentication
-- API Key validation:
-  - IAMALICE → alice
-  - IAMBOB → bob
-- Missing/invalid key → 401
-- Authenticated but denied → 403
+**Route-level AuthPolicy**
+- Route-specific allow
+- Overrides Gateway deny-all
+- Allows public access to
+  external API endpoints
+- No authentication required
+  for these specific paths
+
+**Purpose:**
+- Selective override of deny-all
+- Public access to ESPN proxy
+- Gateway still protects other routes
 end note
 
-note right of ratelimit
-**Rate Limit**
-- Counter: auth.identity.userid
-- Alice: 5 req/10s
-- Bob: 2 req/10s
-- Limit exceeded → 429
+note right of httproute
+**HTTPRoute: external-proxy-public**
+- Paths:
+  • /nba (NBA scores)
+  • /epl (Premier League)
+  • /laliga (La Liga)
+  • /nfl (NFL scores)
+  • /nhl (NHL scores)
+
+**Features:**
+- Clean path mapping
+- Public access (no auth)
+- Proxies to external ESPN API
+end note
+
+note right of service
+**Backend: ESPN Proxy**
+- Proxies requests to external ESPN API
+- Handles external API authentication
+  (if required)
+- Transforms/formats responses
+- Caches data (optional)
+
+**Benefits:**
+- Single entry point for external data
+- Can apply Gateway policies
+  (rate-limit, traffic shaping)
+- Decouples external API from clients
+end note
+
+note right of espn_api
+**External ESPN API**
+- Third-party service
+- Outside OpenShift Cluster
+- Provides sports data
+- Pod makes outbound HTTPS request
 end note
 
 note right of cert
@@ -177,6 +222,8 @@ note right of cert
 - Creates TLS Secret
 - DNS-01 challenge via Route53
 - Auto renewal
+- SAN includes:
+  external-api.<domain>
 end note
 
 ' Legend
@@ -186,24 +233,36 @@ legend bottom left
 ┄┄┄ Dashed line = Control Plane (policy/management/reconcile)
 
 **Response Codes:**
-• 200 = Success (valid key, under limit)
-• 401 = Unauthorized (missing/invalid API key)
-• 403 = Forbidden (authenticated but denied)
-• 429 = Too Many Requests (rate limit exceeded)
+• 200 = Success (ESPN data returned)
+• 403 = Forbidden (if route-level allow not configured)
+• 404 = Not Found (invalid path)
+• 502 = Bad Gateway (ESPN API unavailable)
 
 **Architecture:**
 • AWS Load Balancer: Outside OpenShift Cluster
 • Route53: AWS managed DNS service
 • OpenShift Router: Inside OpenShift Cluster
 • Gateway/HTTPRoute/Backend: Inside OpenShift Cluster
+• ESPN API: External third-party service
+
+**Key Concepts:**
+• Dedicated hostname: external-api.<domain>
+• Gateway deny-all + Route allow = selective override
+• Backend proxies to external API
+• Same Gateway policies can apply (auth/rate-limit/traffic)
+• Clean separation of internal vs external data sources
 
 **Steps:**
 ① DNS Query → Response (Route53)
-② HTTPS Request
+② HTTPS Request to external-api hostname
 ③ SNI routing (AWS LB → Router)
 ④ TLS passthrough (Router → Gateway via OpenShift Route)
 ⑤ Route matching (Gateway → HTTPRoute)
-⑥ Forward to Backend
+⑥ Gateway deny-all → Route allow (override)
+⑦ Forward to ESPN Proxy backend
+⑧ Backend makes external API call
+⑨ ESPN API responds
+⑩ Backend returns data to browser
 endlegend
 
 @enduml

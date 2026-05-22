@@ -1,0 +1,80 @@
+@startuml arch-oidc-portal
+!define RECTANGLE class
+
+skinparam component {
+  BackgroundColor<<browser>> LightBlue
+  BackgroundColor<<gateway>> LightGreen
+  BackgroundColor<<policy>> Pink
+  BackgroundColor<<backend>> LightGray
+  BackgroundColor<<keycloak>> Yellow
+  BorderColor Black
+  ArrowColor Black
+}
+
+skinparam defaultTextAlignment center
+
+title OIDC Portal Architecture\n(Browser Login Flow)
+
+rectangle "Browser\n(User)" as browser <<browser>>
+rectangle "AWS Load Balancer\n+ OpenShift Router" as router <<gateway>>
+rectangle "Gateway\nrhcl-workshop-gw\nListener: oidc-rhcl-workshop.<domain>\n- TLS termination\n- Dedicated hostname" as gateway <<gateway>>
+rectangle "HTTPRoute\noidc-portal\n- Path: /" as httproute <<gateway>>
+rectangle "OIDCPolicy\n- Browser login flow\n- Cookie-based session\n- Redirect to Keycloak" as oidcpolicy <<policy>>
+rectangle "Keycloak\nAuthentication Server\n- OIDC provider\n- Login page\n- Token issuance" as keycloak <<keycloak>>
+rectangle "Backend Service\noidc-portal\n- Pod\n- Protected content" as backend <<backend>>
+
+browser -down-> router : "①Initial request\nGET / (no cookie)"
+router -down-> gateway : "SNI routing"
+gateway -down-> httproute : "Route match"
+httproute -up-> gateway : "②OIDCPolicy check\nNo valid cookie"
+gateway -up-> router : "③302 Redirect\nLocation: Keycloak"
+router -up-> browser : "Redirect to Keycloak"
+
+browser -down-> keycloak : "④GET Keycloak login page"
+keycloak -up-> browser : "Login page"
+browser -down-> keycloak : "⑤POST credentials\nusername/password"
+keycloak -up-> browser : "⑥302 Redirect\nwith authorization code"
+
+browser -down-> router : "⑦Callback request\nGET /callback?code=..."
+router -down-> gateway
+gateway -down-> httproute : "OIDCPolicy\ntoken exchange"
+httproute -down-> keycloak : "⑧Exchange code for token"
+keycloak -up-> httproute : "⑨Return ID token\n+ access token"
+httproute -up-> gateway : "⑩Set cookie\nrhcl_token"
+gateway -up-> router : "302 Redirect\nto original URL"
+router -up-> browser : "Set-Cookie"
+
+browser -down-> router : "⑪Authenticated request\nGET / (with cookie)"
+router -down-> gateway
+gateway -down-> httproute : "OIDCPolicy check\nValid cookie"
+httproute -down-> backend : "⑫Forward\n(authenticated)"
+
+oidcpolicy -right-> httproute : "applies to\n(browser login)"
+
+note right of oidcpolicy
+**OIDC Flow Steps**
+①Unauthenticated → 302 to Keycloak
+②User login → Keycloak validates
+③Keycloak returns authorization code
+④OIDCPolicy exchanges code for tokens
+⑤Set session cookie
+⑥Subsequent requests use cookie
+end note
+
+note right of backend
+**Backend Benefits**
+- No authentication logic
+- Trusts Gateway validation
+- Cookie automatically forwarded
+- Focus on protected content
+end note
+
+note left of browser
+**Key Differences from JWT**
+• JWT: API token (Authorization header)
+• OIDC Portal: Browser login (cookie)
+• JWT: UI controls token acquisition
+• OIDC Portal: Gateway redirects
+end note
+
+@enduml

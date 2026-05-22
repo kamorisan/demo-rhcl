@@ -1,0 +1,68 @@
+@startuml arch-authpolicy-jwt
+!define RECTANGLE class
+
+skinparam component {
+  BackgroundColor<<browser>> LightBlue
+  BackgroundColor<<gateway>> LightGreen
+  BackgroundColor<<policy>> Pink
+  BackgroundColor<<backend>> LightGray
+  BackgroundColor<<keycloak>> Yellow
+  BorderColor Black
+  ArrowColor Black
+}
+
+skinparam defaultTextAlignment center
+
+title AuthPolicy (JWT) Architecture\n(Keycloak JWT Token Validation)
+
+rectangle "Browser\n(UI)" as browser <<browser>>
+rectangle "AWS Load Balancer\n+ OpenShift Router" as router <<gateway>>
+rectangle "Keycloak\nToken Issuer\n- Issues JWT tokens\n- JWKS endpoint" as keycloak <<keycloak>>
+rectangle "Gateway\nrhcl-workshop-gw\n- TLS termination" as gateway <<gateway>>
+rectangle "HTTPRoute\njwt-protected-api\n- Path: /protected" as httproute <<gateway>>
+rectangle "AuthPolicy (Route-level)\n- JWT validation\n- Issuer: Keycloak\n- JWKS signature verification" as authpolicy <<policy>>
+rectangle "Backend Service\nprotected-api\n- Pod\n- No auth logic required" as backend <<backend>>
+
+browser -down-> keycloak : "①Token Request\nPOST /token\n(credentials)"
+keycloak -up-> browser : "②JWT Token\n(ID token + access token)"
+
+browser -down-> router : "③API Request\nGET /protected\nAuthorization: Bearer <JWT>"
+router -down-> gateway : "SNI routing"
+gateway -down-> httproute : "Route match"
+httproute -down-> keycloak : "④JWT validation\nVerify signature with JWKS"
+keycloak -up-> httproute : "⑤Signature valid"
+httproute -down-> backend : "⑥Forward\n(JWT validated)"
+
+authpolicy -right-> httproute : "applies to\n(JWT validation)"
+
+note right of authpolicy
+**JWT Validation Steps**
+①Extract token from Authorization header
+②Verify signature with Keycloak JWKS
+③Check expiration (exp claim)
+④Check issuer (iss claim)
+⑤Check audience (aud claim)
+
+**Results:**
+• Valid token → allow
+• Missing/invalid/expired → 401
+end note
+
+note right of backend
+**Backend Benefits**
+- No authentication logic required
+- Trusts Gateway validation
+- Can optionally extract JWT claims
+  (Gateway forwards token in header)
+- Focus on business logic only
+end note
+
+note left of browser
+**UI Features**
+- Get token from Keycloak
+- Decode JWT (display claims)
+- Call API without token → 401
+- Call API with token → 200
+end note
+
+@enduml

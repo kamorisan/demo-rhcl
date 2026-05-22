@@ -1,0 +1,302 @@
+@startuml authpolicy-jwt-flow
+!define ICONURL https://raw.githubusercontent.com/tupadr3/plantuml-icon-font-sprites/v2.4.0
+!include ICONURL/common.puml
+!include ICONURL/font-awesome-5/user.puml
+!include ICONURL/font-awesome-5/globe.puml
+!include ICONURL/font-awesome-5/server.puml
+!include ICONURL/font-awesome-5/lock.puml
+!include ICONURL/font-awesome-5/shield_alt.puml
+!include ICONURL/font-awesome-5/key.puml
+
+skinparam defaultTextAlignment center
+skinparam componentStyle rectangle
+skinparam backgroundColor white
+skinparam shadowing false
+skinparam nodesep 60
+skinparam ranksep 80
+
+title AuthPolicy (Keycloak JWT) Complete Data Flow\n(DNS → TLS → JWT Token Acquisition → Token Validation → API Access)
+
+actor "Browser\n(UI)" as browser <<$user>>
+cloud "Internet" as internet <<$globe>>
+
+package "AWS" {
+  cloud "Route53\n(Public DNS)" as route53 #Khaki
+
+  component "AWS Load\nBalancer" as awslb #Orange
+
+  package "OpenShift Cluster" {
+    component "OpenShift Router\nIngress Controller\n(SNI passthrough)" as router #LightBlue
+
+    package "cert-manager" {
+      component "ClusterIssuer\n(Let's Encrypt)" as issuer <<$lock>> #LightPink
+      component "Certificate" as cert <<$lock>> #LightPink
+      component "TLS Secret" as secret <<$lock>> #LightPink
+    }
+
+    package "Gateway\n(openshift-ingress)" {
+      component "Gateway\nrhcl-workshop-gw\n(TLS termination)" as gateway #LightGreen
+      component "TLSPolicy" as tlspolicy #Wheat
+    }
+
+    package "HTTPRoute\n(demo)" {
+      component "HTTPRoute\njwt-protected-api" as httproute #LightCyan
+      component "AuthPolicy\njwt-validation" as authpolicy <<$shield_alt>> #Pink
+    }
+
+    component "DNSPolicy" as dnspolicy #Wheat
+
+    package "Keycloak" {
+      component "Keycloak\nToken Issuer" as keycloak <<$key>> #Yellow
+      component "Service\nkeycloak" as keycloak_svc #LightSteelBlue
+    }
+
+    package "Backend\n(Protected API)" {
+      component "Service\nprotected-api" as service #LightSteelBlue
+      component "Pod\nprotected-api" as pod <<$server>> #LightGray
+    }
+  }
+}
+
+' ===== Data Plane: Runtime Request/Response Path (Solid lines) =====
+
+' Step 1: DNS Resolution
+browser -down-> route53 : "①DNS Query\nrhcl-workshop.sandbox2689.opentlc.com"
+route53 -up-> browser : "DNS Response\n→ AWS LB IP"
+
+' Step 2: Token Acquisition
+browser -down-> internet : "②Token Request\nPOST /token\n(client_credentials or login)"
+internet -down-> awslb
+awslb -down-> router
+router -down-> keycloak_svc : "To Keycloak\ntoken endpoint"
+keycloak_svc -down-> keycloak : "Validate credentials"
+keycloak -up-> keycloak_svc : "Generate JWT"
+keycloak_svc -up-> router
+router -up-> awslb
+awslb -up-> internet
+internet -up-> browser : "③JWT Token\n(ID token + access token)"
+
+' Step 3: UI decodes token
+note left of browser
+UI decodes JWT
+- Shows header/payload
+- Displays claims
+  (sub, iss, exp, etc.)
+end note
+
+' Step 4-5: API Request WITHOUT Token
+browser -down-> internet : "④API Request (NO token)\nGET /protected\n(no Authorization header)"
+internet -down-> awslb : "To LB IP:443"
+awslb -down-> router : "SNI routing"
+router -down-> gateway : "⑤TLS passthrough\nvia OpenShift Route\n→ Gateway Service"
+gateway -down-> httproute : "Route match\n/protected"
+httproute -[#red]up-> gateway : "AuthPolicy check\nNo valid JWT → REJECT"
+gateway -up-> router
+router -up-> awslb
+awslb -up-> internet
+internet -up-> browser : "401 Unauthorized\n(missing token)"
+
+' Step 6-7: API Request WITH Token
+browser -down-> internet : "⑥API Request (WITH token)\nGET /protected\nAuthorization: Bearer <JWT>"
+internet -down-> awslb : "To LB IP:443"
+awslb -down-> router : "SNI routing"
+router -down-> gateway : "⑦TLS passthrough\nvia OpenShift Route\n→ Gateway Service"
+gateway -down-> httproute : "Route match\n/protected"
+httproute -[#blue]down-> keycloak_svc : "AuthPolicy check\nValidate JWT signature\nwith Keycloak JWKS"
+keycloak_svc -down-> keycloak : "JWKS endpoint"
+keycloak -up-> keycloak_svc : "Public keys"
+keycloak_svc -[#blue]up-> httproute : "Signature valid"
+httproute -down-> service : "⑧Forward\n(JWT validated)"
+service -down-> pod
+
+' Response Path
+pod -up-> service : "Protected data"
+service -up-> httproute
+httproute -up-> gateway
+gateway -up-> router
+router -up-> awslb
+awslb -up-> internet
+internet -up-> browser : "200 OK\n(protected data)"
+
+' ===== Control Plane: Policy/Management (Dashed lines) =====
+
+' DNS Management
+dnspolicy .down.> route53 : "Manages DNS records\nvia Route53 API"
+dnspolicy .down.> gateway : "Watches Gateway\nhostname/address"
+
+' TLS Management
+tlspolicy .right.> cert : "Requests\ncertificate"
+cert .up.> issuer : "Uses\nissuer"
+issuer .down.> cert : "Issues cert\n(cert-manager\nreconcile)"
+cert .right.> secret : "Creates\nTLS Secret"
+secret .down.> gateway : "certificateRefs\nin listener"
+
+' Policy Application
+tlspolicy .down.> gateway : "Applies to"
+authpolicy .down.> httproute : "Applies to"
+
+' Notes
+note right of route53
+**Route53 Public DNS**
+- Browser queries Route53 for DNS
+- Returns AWS LB IP
+- NOT queried via DNSPolicy
+
+**DNSPolicy (Control Plane)**
+- Manages DNS records via Route53 API
+- Watches Gateway hostname/address
+- Creates/updates DNS records
+end note
+
+note right of awslb
+**AWS Load Balancer**
+- Outside OpenShift Cluster
+- AWS managed infrastructure
+- Routes to OpenShift Router
+end note
+
+note right of router
+**SNI Passthrough**
+- Router does NOT terminate TLS
+- SNI-based routing to Gateway
+- TLS remains encrypted
+- Uses OpenShift Route resource
+- Route generated for Gateway
+  listener hostname
+end note
+
+note right of gateway
+**TLS Termination at Gateway/Envoy**
+- Gateway/Envoy terminates TLS
+- Uses Secret from cert-manager
+- Decrypts HTTPS traffic
+
+**Policy Evaluation**
+①AuthPolicy validates JWT
+②Missing/invalid token → 401
+③Valid token → forward to backend
+end note
+
+note right of authpolicy
+**AuthPolicy (JWT Validation)**
+- Attached to HTTPRoute
+- Validates JWT tokens
+
+**Configuration:**
+- Issuer: Keycloak
+- JWKS endpoint: Keycloak JWKS URL
+- Token location: Authorization header
+  (Bearer token)
+
+**Validation Steps:**
+①Extract token from header
+②Verify signature with Keycloak JWKS
+③Check expiration (exp claim)
+④Check issuer (iss claim)
+⑤Check audience (aud claim)
+
+**Results:**
+- Valid token → allow
+- Missing/invalid/expired → 401
+end note
+
+note right of keycloak
+**Keycloak Token Issuer**
+- Issues JWT tokens
+- Supports multiple flows:
+  • Client credentials (service-to-service)
+  • Password grant (user login)
+  • Authorization code (OAuth2)
+
+**Endpoints:**
+- Token endpoint: /token
+- JWKS endpoint: /protocol/openid-connect/certs
+  (public keys for signature verification)
+
+**JWT Structure:**
+- Header: algorithm, key ID
+- Payload: sub, iss, exp, aud, claims
+- Signature: signed with private key
+end note
+
+note right of httproute
+**HTTPRoute: jwt-protected-api**
+- Path: /protected (or specific paths)
+- AuthPolicy enforces JWT validation
+- No token → 401
+- Invalid token → 401
+- Valid token → forward to backend
+
+**Key Point:**
+- Backend does NOT validate JWT
+- Validation happens at Gateway
+- Backend receives only validated requests
+end note
+
+note right of service
+**Backend: Protected API**
+- No authentication logic required
+- Trusts Gateway validation
+- Can optionally extract JWT claims
+  (Gateway forwards token in header)
+- Focus on business logic only
+
+**Benefits:**
+- No auth code in application
+- Centralized JWT validation
+- Easy to add/change auth rules
+end note
+
+note right of cert
+**cert-manager**
+- Certificate uses ClusterIssuer
+- cert-manager reconciles
+  Certificate resource
+- Creates TLS Secret
+- DNS-01 challenge via Route53
+- Auto renewal
+end note
+
+' Legend
+legend bottom left
+**Flow Types:**
+━━━ Solid line = Data Plane (runtime request/response)
+┄┄┄ Dashed line = Control Plane (policy/management/reconcile)
+━━━ Red line = Rejected request (401)
+━━━ Blue line = JWT validation check
+
+**Response Codes:**
+• 200 = Success (valid JWT, protected data returned)
+• 401 = Unauthorized (missing/invalid/expired JWT)
+
+**Architecture:**
+• AWS Load Balancer: Outside OpenShift Cluster
+• Route53: AWS managed DNS service
+• OpenShift Router: Inside OpenShift Cluster
+• Gateway/HTTPRoute/Keycloak/Backend: Inside OpenShift Cluster
+
+**JWT Flow Steps:**
+① Token Acquisition:
+  - UI requests token from Keycloak
+  - Keycloak validates credentials
+  - Returns JWT (ID token + access token)
+② Token Decode:
+  - UI decodes JWT (base64)
+  - Displays header/payload/claims
+③ API Request WITHOUT Token:
+  - No Authorization header
+  - AuthPolicy rejects → 401
+④ API Request WITH Token:
+  - Authorization: Bearer <JWT>
+  - AuthPolicy validates with Keycloak JWKS
+  - Valid → forward to backend → 200
+  - Invalid → 401
+
+**Key Differences from OIDC Portal:**
+• JWT: API token (Authorization header)
+• OIDC Portal: Browser login (cookie-based session)
+• JWT: UI controls token acquisition
+• OIDC Portal: Gateway redirects to Keycloak
+endlegend
+
+@enduml

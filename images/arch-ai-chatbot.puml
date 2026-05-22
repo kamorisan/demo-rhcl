@@ -1,0 +1,103 @@
+@startuml arch-ai-chatbot
+!define RECTANGLE class
+
+skinparam component {
+  BackgroundColor<<browser>> LightBlue
+  BackgroundColor<<gateway>> LightGreen
+  BackgroundColor<<policy>> Pink
+  BackgroundColor<<backend>> LightGray
+  BackgroundColor<<external>> Orange
+  BackgroundColor<<mcp>> Wheat
+  BorderColor Black
+  ArrowColor Black
+}
+
+skinparam defaultTextAlignment center
+
+title AI Chatbot Architecture\n(Token Budget + MCP Tools + ESPN Data)
+
+rectangle "Browser\n(UI)" as browser <<browser>>
+rectangle "AWS Load Balancer\n+ OpenShift Router" as router <<gateway>>
+
+rectangle "AI Gateway\nrhcl-ai-gw\nListener: ai.<domain>\n- TLS termination\n- TokenRateLimitPolicy (400 tokens / 15s)" as ai_gateway <<gateway>>
+
+rectangle "AI Bot Backend\n- LLM API呼び出し\n- Tool call判定" as ai_bot <<backend>>
+
+rectangle "External LLM API\n(OpenAI-compatible)" as llm_api <<external>>
+
+rectangle "MCP Gateway\nrhcl-mcp-gw\nListener: mcp.<domain>\n- TLS termination\n- AuthPolicy (deny + allow)" as mcp_gateway <<gateway>>
+
+rectangle "MCP Tools\nESPN tool\n- get_nba_scores()\n- get_epl_scores()" as mcp_tools <<mcp>>
+
+rectangle "External API Gateway\nrhcl-external-gw\nListener: external-api.<domain>\n- ESPN Proxy" as external_gateway <<gateway>>
+
+rectangle "External ESPN API\n(Third-party service)" as espn_api <<external>>
+
+browser -down-> router : "①Chat Request\nPOST /chat"
+router -down-> ai_gateway : "SNI: ai.<domain>"
+ai_gateway -down-> ai_bot : "②Forward\n(token budget check)"
+
+ai_bot -down-> llm_api : "③LLM Request\n(prompt + tools)"
+llm_api -up-> ai_bot : "④LLM Response\n(tool_calls or answer)\n+ usage.total_tokens"
+
+ai_bot -down-> router : "⑤Tool Call\n(if needed)"
+router -down-> mcp_gateway : "SNI: mcp.<domain>"
+mcp_gateway -down-> mcp_tools : "⑥Forward\n(auth allowed)"
+
+mcp_tools -down-> router : "⑦ESPN API Request"
+router -down-> external_gateway : "SNI: external-api.<domain>"
+external_gateway -down-> espn_api : "⑧GET ESPN API"
+espn_api -up-> external_gateway : "ESPN data"
+external_gateway -up-> router
+router -up-> mcp_tools
+mcp_tools -up-> mcp_gateway
+mcp_gateway -up-> router
+router -up-> ai_bot : "⑨Tool result"
+
+ai_bot -down-> llm_api : "⑩Second LLM call\n(with tool result)"
+llm_api -up-> ai_bot : "⑪Final answer\n+ usage.total_tokens"
+
+ai_bot -up-> ai_gateway
+ai_gateway -up-> router
+router -up-> browser : "⑫200 OK or 429\n(chat response + usage)"
+
+note right of ai_gateway
+**TokenRateLimitPolicy**
+- Token-based rate limiting
+  (NOT request count)
+- 400 tokens / 15s
+- LLM returns usage.total_tokens
+- Gateway tracks token consumption
+- Exceeded → 429
+end note
+
+note right of mcp_gateway
+**MCP Gateway**
+- Model Context Protocol
+- Standardized tool interface
+- AuthPolicy override:
+  • Gateway deny-all
+  • Route allow for /mcp
+end note
+
+note right of mcp_tools
+**MCP Tools**
+- LLM-callable functions
+- get_nba_scores()
+- get_epl_scores()
+- Calls External API Gateway
+end note
+
+note left of ai_bot
+**Data Flow**
+①Browser → AI Gateway
+②AI Bot → LLM
+③LLM → tool_call
+④AI Bot → MCP Gateway
+⑤MCP Tool → External API
+⑥ESPN data → AI Bot
+⑦AI Bot → LLM (2nd call)
+⑧Final answer → Browser
+end note
+
+@enduml

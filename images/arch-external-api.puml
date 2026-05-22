@@ -1,0 +1,59 @@
+@startuml arch-external-api
+!define RECTANGLE class
+
+skinparam component {
+  BackgroundColor<<browser>> LightBlue
+  BackgroundColor<<gateway>> LightGreen
+  BackgroundColor<<policy>> Pink
+  BackgroundColor<<backend>> LightGray
+  BackgroundColor<<external>> Orange
+  BorderColor Black
+  ArrowColor Black
+}
+
+skinparam defaultTextAlignment center
+
+title External API Architecture\n(ESPN Proxy via Gateway)
+
+rectangle "Browser\n(UI)" as browser <<browser>>
+rectangle "AWS Load Balancer\n+ OpenShift Router" as router <<gateway>>
+rectangle "Gateway\nrhcl-workshop-gw\nListener: external-api.<domain>\n- TLS termination\n- Dedicated hostname" as gateway <<gateway>>
+rectangle "AuthPolicy (Gateway-level)\n- deny-by-default" as gw_auth <<policy>>
+rectangle "HTTPRoute\nexternal-proxy-public\n- Paths: /nba, /epl, /laliga, /nfl, /nhl" as httproute <<gateway>>
+rectangle "AuthPolicy (Route-level)\n- allow (public access)\n- Overrides deny-all" as route_auth <<policy>>
+rectangle "Backend Service\nespn-proxy\n- Pod" as backend <<backend>>
+rectangle "External ESPN API\n(Third-party service)" as espn_api <<external>>
+
+browser -down-> router : "HTTPS Request\nGET /nba"
+router -down-> gateway : "SNI routing\nexternal-api.<domain>"
+gateway -down-> httproute : "Route match\n/nba, /epl, etc."
+httproute -down-> backend : "Forward\n(allowed by route policy)"
+backend -down-> espn_api : "Outbound HTTPS\nGET ESPN API"
+
+gw_auth -right-> gateway : "applies to\n(deny-all)"
+route_auth -right-> httproute : "applies to\n(allow override)"
+
+note right of gateway
+**Dedicated Hostname**
+- external-api.<domain>
+- Separates external data sources
+  from internal APIs
+- Same Gateway policies apply
+end note
+
+note right of route_auth
+**Policy Override Pattern**
+①Gateway deny-all (default protection)
+②Route allow (selective override)
+③Result: Only /nba, /epl, etc. accessible
+end note
+
+note right of backend
+**ESPN Proxy Benefits**
+- Single entry point for external data
+- Gateway policies (rate-limit, traffic)
+- Decouples external API from clients
+- Caching (optional)
+end note
+
+@enduml

@@ -1,0 +1,52 @@
+@startuml arch-policy-playground
+!define RECTANGLE class
+
+skinparam component {
+  BackgroundColor<<browser>> LightBlue
+  BackgroundColor<<gateway>> LightGreen
+  BackgroundColor<<policy>> Pink
+  BackgroundColor<<backend>> LightGray
+  BorderColor Black
+  ArrowColor Black
+}
+
+skinparam defaultTextAlignment center
+
+title Policy Playground Architecture\n(API Keys + Rate Limiting)
+
+rectangle "Browser\n(UI)" as browser <<browser>>
+rectangle "AWS Load Balancer\n+ OpenShift Router" as router <<gateway>>
+rectangle "Gateway\nrhcl-workshop-gw\n- TLS termination\n- Listener: rhcl-workshop.<domain>" as gateway <<gateway>>
+rectangle "AuthPolicy (Gateway-level)\n- deny-by-default\n- Zero-trust baseline" as gw_auth <<policy>>
+rectangle "HTTPRoute\ndemo-api\n- Path: /hello" as httproute <<gateway>>
+rectangle "AuthPolicy (Route-level)\n- API key validation\n- IAMALICE / IAMBOB" as route_auth <<policy>>
+rectangle "RateLimitPolicy\n- Identity-based limits\n- Alice: 5 req/10s\n- Bob: 2 req/10s" as ratelimit <<policy>>
+rectangle "Backend Service\ndemo-api\n- Pod" as backend <<backend>>
+
+browser -down-> router : "HTTPS Request\nGET /hello\nAPIKEY IAMALICE"
+router -down-> gateway : "SNI routing"
+gateway -down-> httproute : "Route match"
+httproute -down-> backend : "Forward\n(if all policies pass)"
+
+gw_auth -right-> gateway : "applies to\n(deny-all)"
+route_auth -right-> httproute : "applies to\n(API key check)"
+ratelimit -right-> httproute : "applies to\n(rate limit check)"
+
+note right of gw_auth
+**Policy Evaluation Order:**
+①Gateway AuthPolicy (deny-all)
+②Route AuthPolicy (API key)
+③RateLimitPolicy (token count)
+④All pass → Forward
+⑤Any fail → 401/403/429
+end note
+
+note right of backend
+**Response Codes:**
+• 200 = Success (valid key, under limit)
+• 401 = Unauthorized (missing/invalid key)
+• 403 = Forbidden (denied by policy)
+• 429 = Too Many Requests (rate limit)
+end note
+
+@enduml

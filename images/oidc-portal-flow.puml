@@ -1,0 +1,294 @@
+@startuml oidc-portal-flow
+!define ICONURL https://raw.githubusercontent.com/tupadr3/plantuml-icon-font-sprites/v2.4.0
+!include ICONURL/common.puml
+!include ICONURL/font-awesome-5/user.puml
+!include ICONURL/font-awesome-5/globe.puml
+!include ICONURL/font-awesome-5/server.puml
+!include ICONURL/font-awesome-5/lock.puml
+!include ICONURL/font-awesome-5/shield_alt.puml
+!include ICONURL/font-awesome-5/key.puml
+
+skinparam defaultTextAlignment center
+skinparam componentStyle rectangle
+skinparam backgroundColor white
+skinparam shadowing false
+skinparam nodesep 60
+skinparam ranksep 80
+
+title OIDC Portal Complete Data Flow\n(DNS → TLS → Browser Login → Protected Content)
+
+actor "Browser" as browser <<$user>>
+cloud "Internet" as internet <<$globe>>
+
+package "AWS" {
+  cloud "Route53\n(Public DNS)" as route53 #Khaki
+
+  component "AWS Load\nBalancer" as awslb #Orange
+
+  package "OpenShift Cluster" {
+    component "OpenShift Router\nIngress Controller\n(SNI passthrough)" as router #LightBlue
+
+    package "cert-manager" {
+      component "ClusterIssuer\n(Let's Encrypt)" as issuer <<$lock>> #LightPink
+      component "Certificate" as cert <<$lock>> #LightPink
+      component "TLS Secret" as secret <<$lock>> #LightPink
+    }
+
+    package "Gateway\n(openshift-ingress)" {
+      component "Gateway\nrhcl-workshop-gw\n(TLS termination)\noidc-rhcl-workshop listener" as gateway #LightGreen
+      component "TLSPolicy" as tlspolicy #Wheat
+    }
+
+    package "HTTPRoute\n(demo)" {
+      component "HTTPRoute\noidc-portal" as httproute #LightCyan
+      component "OIDCPolicy\nbrowser login" as oidcpolicy <<$shield_alt>> #Pink
+    }
+
+    component "DNSPolicy" as dnspolicy #Wheat
+
+    package "Keycloak" {
+      component "Keycloak\nAuthentication Server" as keycloak <<$key>> #Yellow
+      component "Service\nkeycloak" as keycloak_svc #LightSteelBlue
+    }
+
+    package "Backend\n(OIDC Portal)" {
+      component "Service\noidc-portal" as service #LightSteelBlue
+      component "Pod\noidc-portal" as pod <<$server>> #LightGray
+    }
+  }
+}
+
+' ===== Data Plane: Runtime Request/Response Path (Solid lines) =====
+
+' Step 1: DNS Resolution
+browser -down-> route53 : "①DNS Query\noidc-rhcl-workshop.sandbox2689.opentlc.com"
+route53 -up-> browser : "DNS Response\n→ AWS LB IP"
+
+' Step 2-4: HTTPS Request Path (Initial - Unauthenticated)
+browser -down-> internet : "②HTTPS Request (Initial)\nGET / (no cookie)"
+internet -down-> awslb : "To LB IP:443"
+awslb -down-> router : "③SNI routing"
+router -down-> gateway : "④TLS passthrough\nvia OpenShift Route\n→ Gateway Service"
+
+' Step 5: OIDCPolicy check - Unauthenticated
+gateway -down-> httproute : "⑤Route match\n/"
+httproute -down-> gateway : "OIDCPolicy check\nNo valid cookie/token"
+gateway -up-> router : "⑥302 Redirect\nLocation: Keycloak"
+router -up-> awslb
+awslb -up-> internet
+internet -up-> browser : "302 Found\n→ Keycloak login page"
+
+' Step 7-8: Keycloak Login Flow
+browser -down-> internet : "⑦Follow redirect\nGET Keycloak login page"
+internet -down-> awslb
+awslb -down-> router
+router -down-> keycloak_svc : "To Keycloak\n(separate route)"
+keycloak_svc -down-> keycloak
+keycloak -up-> keycloak_svc : "Login page"
+keycloak_svc -up-> router
+router -up-> awslb
+awslb -up-> internet
+internet -up-> browser : "Keycloak login page"
+
+' Step 9-10: User Login
+browser -down-> internet : "⑧POST credentials\nusername/password"
+internet -down-> awslb
+awslb -down-> router
+router -down-> keycloak_svc
+keycloak_svc -down-> keycloak : "Validate credentials"
+keycloak -up-> keycloak_svc : "Generate token"
+keycloak_svc -up-> router
+router -up-> awslb
+awslb -up-> internet
+internet -up-> browser : "⑨302 Redirect\n→ callback URL\n+ authorization code"
+
+' Step 11-12: Callback + Token Exchange
+browser -down-> internet : "⑩Callback request\nGET /callback?code=..."
+internet -down-> awslb
+awslb -down-> router
+router -down-> gateway
+gateway -down-> httproute : "OIDCPolicy\ntoken exchange"
+httproute -down-> keycloak_svc : "Exchange code\nfor token"
+keycloak_svc -down-> keycloak
+keycloak -up-> keycloak_svc : "Return ID token\n+ access token"
+keycloak_svc -up-> httproute
+httproute -up-> gateway : "⑪Set cookie\nwith session"
+gateway -up-> router
+router -up-> awslb
+awslb -up-> internet
+internet -up-> browser : "302 Redirect\n→ original URL\n+ Set-Cookie"
+
+' Step 13-14: Authenticated Request
+browser -down-> internet : "⑫Authenticated request\nGET / (with cookie)"
+internet -down-> awslb
+awslb -down-> router
+router -down-> gateway
+gateway -down-> httproute : "OIDCPolicy check\nValid cookie"
+httproute -down-> service : "⑬Forward\n(authenticated)"
+service -down-> pod
+
+' Response Path
+pod -up-> service : "Protected content"
+service -up-> httproute
+httproute -up-> gateway
+gateway -up-> router
+router -up-> awslb
+awslb -up-> internet
+internet -up-> browser : "200 OK\nProtected content"
+
+' ===== Control Plane: Policy/Management (Dashed lines) =====
+
+' DNS Management
+dnspolicy .down.> route53 : "Manages DNS records\nvia Route53 API"
+dnspolicy .down.> gateway : "Watches Gateway\nhostname/address"
+
+' TLS Management
+tlspolicy .right.> cert : "Requests\ncertificate"
+cert .up.> issuer : "Uses\nissuer"
+issuer .down.> cert : "Issues cert\n(cert-manager\nreconcile)"
+cert .right.> secret : "Creates\nTLS Secret"
+secret .down.> gateway : "certificateRefs\nin listener"
+
+' Policy Application
+tlspolicy .down.> gateway : "Applies to"
+oidcpolicy .down.> httproute : "Applies to"
+
+' Notes
+note right of route53
+**Route53 Public DNS**
+- Browser queries Route53 for DNS
+- Returns AWS LB IP
+- Separate hostname for OIDC Portal:
+  oidc-rhcl-workshop.<domain>
+
+**DNSPolicy (Control Plane)**
+- Manages DNS records via Route53 API
+- Watches Gateway hostname/address
+- Creates/updates DNS records
+end note
+
+note right of awslb
+**AWS Load Balancer**
+- Outside OpenShift Cluster
+- AWS managed infrastructure
+- Routes to OpenShift Router
+end note
+
+note right of router
+**SNI Passthrough**
+- Router does NOT terminate TLS
+- SNI-based routing to Gateway
+- TLS remains encrypted
+- Uses OpenShift Route resource
+- Separate routes for:
+  • OIDC Portal (oidc-rhcl-workshop)
+  • Keycloak (keycloak hostname)
+end note
+
+note right of gateway
+**TLS Termination at Gateway/Envoy**
+- Gateway/Envoy terminates TLS
+- Uses Secret from cert-manager
+- Decrypts HTTPS traffic
+
+**Separate Listener**
+- oidc-rhcl-workshop.<domain>
+- Dedicated hostname for OIDC Portal
+end note
+
+note right of oidcpolicy
+**OIDCPolicy (Browser Login)**
+- Attached to HTTPRoute
+- Handles browser-based OIDC flow:
+  ①Check cookie/token
+  ②If invalid → 302 to Keycloak
+  ③After login → token exchange
+  ④Set session cookie
+  ⑤Subsequent requests use cookie
+
+**Configuration:**
+- OIDC Issuer: Keycloak
+- Client ID/Secret
+- Redirect URI: /callback
+- Cookie-based session
+end note
+
+note right of keycloak
+**Keycloak Authentication Server**
+- OpenID Connect (OIDC) provider
+- Handles user authentication
+- Issues ID tokens + access tokens
+- Validates credentials
+- Manages user sessions
+
+**Flow:**
+- Login page → credentials
+- Validate → generate tokens
+- Return authorization code
+- Exchange code for tokens
+end note
+
+note right of httproute
+**HTTPRoute (OIDC Portal)**
+- Path: / (all paths)
+- OIDCPolicy enforces authentication
+- Unauthenticated → 302 redirect
+- Authenticated → forward to backend
+end note
+
+note right of service
+**Backend (OIDC Portal Application)**
+- Protected content
+- Only accessible with valid cookie
+- No authentication logic in app
+  (handled by OIDCPolicy at Gateway)
+end note
+
+note right of cert
+**cert-manager**
+- Certificate uses ClusterIssuer
+- cert-manager reconciles
+  Certificate resource
+- Creates TLS Secret
+- DNS-01 challenge via Route53
+- Auto renewal
+- SAN includes:
+  • oidc-rhcl-workshop.<domain>
+  • keycloak.<domain> (if applicable)
+end note
+
+' Legend
+legend bottom left
+**Flow Types:**
+━━━ Solid line = Data Plane (runtime request/response)
+┄┄┄ Dashed line = Control Plane (policy/management/reconcile)
+
+**Response Codes:**
+• 302 = Redirect (unauthenticated → Keycloak, post-login → original URL)
+• 200 = Success (authenticated, protected content)
+• 401 = Unauthorized (invalid/expired session)
+
+**Architecture:**
+• AWS Load Balancer: Outside OpenShift Cluster
+• Route53: AWS managed DNS service
+• OpenShift Router: Inside OpenShift Cluster
+• Gateway/HTTPRoute/Keycloak/Backend: Inside OpenShift Cluster
+
+**OIDC Flow Steps:**
+① DNS Query → Response (Route53)
+② Initial request (no cookie) → OIDCPolicy check
+③ 302 Redirect to Keycloak login page
+④ User enters credentials → Keycloak validates
+⑤ Keycloak returns authorization code → redirect to callback
+⑥ OIDCPolicy exchanges code for tokens
+⑦ Set session cookie → redirect to original URL
+⑧ Subsequent requests use cookie → protected content
+
+**Key Points:**
+• Separate hostname: oidc-rhcl-workshop.<domain>
+• Browser login (not API token)
+• Cookie-based session
+• No authentication logic in application
+endlegend
+
+@enduml

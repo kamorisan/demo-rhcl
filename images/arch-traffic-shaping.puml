@@ -1,0 +1,60 @@
+@startuml arch-traffic-shaping
+!define RECTANGLE class
+
+skinparam component {
+  BackgroundColor<<browser>> LightBlue
+  BackgroundColor<<gateway>> LightGreen
+  BackgroundColor<<backend>> LightGray
+  BorderColor Black
+  ArrowColor Black
+}
+
+skinparam defaultTextAlignment center
+
+title Traffic Shaping Architecture\n(A/B Testing + Canary Deployment)
+
+rectangle "Browser\n(UI)" as browser <<browser>>
+rectangle "AWS Load Balancer\n+ OpenShift Router" as router <<gateway>>
+rectangle "Gateway\nrhcl-workshop-gw\n- TLS termination\n- Listener: rhcl-workshop.<domain>" as gateway <<gateway>>
+rectangle "HTTPRoute: /ab\n- Weighted backend routing\n- 80% v1 / 20% v2" as httproute_ab <<gateway>>
+rectangle "HTTPRoute: /canary\n- Weighted backend routing\n- 90% v1 / 10% v2" as httproute_canary <<gateway>>
+rectangle "HTTPRoute: /canary + header\n- Header: x-rhcl-canary: always\n- 100% v2 (forced)" as httproute_forced <<gateway>>
+rectangle "Backend Service\nab-canary-v1\n- Pod (version 1)" as backend_v1 <<backend>>
+rectangle "Backend Service\nab-canary-v2\n- Pod (version 2)" as backend_v2 <<backend>>
+
+browser -down-> router : "HTTPS Request\nGET /ab or /canary"
+router -down-> gateway : "SNI routing"
+gateway -down-> httproute_ab : "Route match: /ab"
+gateway -down-> httproute_canary : "Route match: /canary\n(no header)"
+gateway -down-> httproute_forced : "Route match: /canary\n(with header)"
+
+httproute_ab -down-> backend_v1 : "80% weight"
+httproute_ab -down-> backend_v2 : "20% weight"
+
+httproute_canary -down-> backend_v1 : "90% weight"
+httproute_canary -down-> backend_v2 : "10% weight"
+
+httproute_forced -down-> backend_v2 : "100% weight\n(forced to v2)"
+
+note right of httproute_ab
+**A/B Testing**
+- Random distribution: 80/20
+- Use case: Compare two versions
+  with unequal traffic split
+end note
+
+note right of httproute_canary
+**Canary Deployment**
+- Progressive rollout: 90/10
+- Use case: Gradual rollout of new
+  version with minimal risk
+end note
+
+note right of httproute_forced
+**Canary Opt-in**
+- Header-based forced routing
+- Use case: Internal testers always
+  get canary version for validation
+end note
+
+@enduml

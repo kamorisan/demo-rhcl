@@ -1,12 +1,11 @@
-@startuml policy-playground-flow
+@startuml traffic-shaping-flow
 !define ICONURL https://raw.githubusercontent.com/tupadr3/plantuml-icon-font-sprites/v2.4.0
 !include ICONURL/common.puml
 !include ICONURL/font-awesome-5/user.puml
 !include ICONURL/font-awesome-5/globe.puml
 !include ICONURL/font-awesome-5/server.puml
-!include ICONURL/font-awesome-5/shield_alt.puml
-!include ICONURL/font-awesome-5/tachometer_alt.puml
 !include ICONURL/font-awesome-5/lock.puml
+!include ICONURL/font-awesome-5/random.puml
 
 skinparam defaultTextAlignment center
 skinparam componentStyle rectangle
@@ -15,7 +14,7 @@ skinparam shadowing false
 skinparam nodesep 60
 skinparam ranksep 80
 
-title Policy Playground Complete Data Flow\n(DNS → TLS → API Keys → Rate Limiting)
+title Traffic Shaping Complete Data Flow\n(DNS → TLS → Weighted Backend Routing → A/B + Canary)
 
 actor "Browser" as browser <<$user>>
 cloud "Internet" as internet <<$globe>>
@@ -37,20 +36,24 @@ package "AWS" {
     package "Gateway\n(openshift-ingress)" {
       component "Gateway\nrhcl-workshop-gw\n(TLS termination)" as gateway #LightGreen
       component "TLSPolicy" as tlspolicy #Wheat
-      component "AuthPolicy\nrhcl-gw-auth\n(default deny)" as gw_auth <<$shield_alt>> #Pink
     }
 
     package "HTTPRoute\n(demo)" {
-      component "HTTPRoute\ndemo-api" as httproute #LightCyan
-      component "AuthPolicy\napi-key\n(route-specific)" as route_auth <<$shield_alt>> #Pink
-      component "RateLimitPolicy\nidentity-based" as ratelimit <<$tachometer_alt>> #Yellow
+      component "HTTPRoute\ndemo-ab\n(/ab)" as httproute_ab <<$random>> #LightCyan
+      component "HTTPRoute\ndemo-canary\n(/canary)" as httproute_canary <<$random>> #LightCyan
+      component "HTTPRoute\ndemo-canary-forced\n(/canary + header)" as httproute_forced <<$random>> #LightCyan
     }
 
     component "DNSPolicy" as dnspolicy #Wheat
 
-    package "Backend\n(demo)" {
-      component "Service\ndemo-api" as service #LightSteelBlue
-      component "Pod\ndemo-api" as pod <<$server>> #LightGray
+    package "Backend v1\n(demo)" {
+      component "Service\ndemo-api-v1" as service_v1 #LightSteelBlue
+      component "Pod\ndemo-api-v1" as pod_v1 <<$server>> #LightGray
+    }
+
+    package "Backend v2\n(demo)" {
+      component "Service\ndemo-api-v2" as service_v2 #LightSteelBlue
+      component "Pod\ndemo-api-v2" as pod_v2 <<$server>> #LightGray
     }
   }
 }
@@ -62,22 +65,46 @@ browser -down-> route53 : "①DNS Query\nrhcl-workshop.sandbox2689.opentlc.com"
 route53 -up-> browser : "DNS Response\n→ AWS LB IP"
 
 ' Step 2-6: HTTPS Request Path
-browser -down-> internet : "②HTTPS Request\nGET /hello\nAPIKEY IAMALICE"
+browser -down-> internet : "②HTTPS Request\nGET /ab or /canary"
 internet -down-> awslb : "To LB IP:443"
 awslb -down-> router : "③SNI routing"
 router -down-> gateway : "④TLS passthrough\nvia OpenShift Route\n→ Gateway Service"
-gateway -down-> httproute : "⑤Route match\n/hello"
-httproute -down-> service : "⑥Forward"
-service -down-> pod
+
+' Step 5: Route matching
+gateway -down-> httproute_ab : "⑤Route match\n/ab"
+gateway -down-> httproute_canary : "⑤Route match\n/canary\n(no header)"
+gateway -down-> httproute_forced : "⑤Route match\n/canary\n(header: x-rhcl-canary)"
+
+' Step 6a: A/B split (80/20)
+httproute_ab -down-> service_v1 : "⑥Forward\n80% weight"
+httproute_ab -down-> service_v2 : "⑥Forward\n20% weight"
+
+' Step 6b: Canary split (90/10)
+httproute_canary -down-> service_v1 : "⑥Forward\n90% weight"
+httproute_canary -down-> service_v2 : "⑥Forward\n10% weight"
+
+' Step 6c: Canary forced (100% v2)
+httproute_forced -down-> service_v2 : "⑥Forward\n100% weight\n(forced to v2)"
+
+' Service to Pod
+service_v1 -down-> pod_v1
+service_v2 -down-> pod_v2
 
 ' Response Path
-pod -up-> service : "Response"
-service -up-> httproute
-httproute -up-> gateway
+pod_v1 -up-> service_v1 : "Response\n(v1 content)"
+pod_v2 -up-> service_v2 : "Response\n(v2 content)"
+service_v1 -up-> httproute_ab
+service_v1 -up-> httproute_canary
+service_v2 -up-> httproute_ab
+service_v2 -up-> httproute_canary
+service_v2 -up-> httproute_forced
+httproute_ab -up-> gateway
+httproute_canary -up-> gateway
+httproute_forced -up-> gateway
 gateway -up-> router
 router -up-> awslb
 awslb -up-> internet
-internet -up-> browser : "200/401/403/429"
+internet -up-> browser : "200 OK\n(v1 or v2 response)"
 
 ' ===== Control Plane: Policy/Management (Dashed lines) =====
 
@@ -94,9 +121,6 @@ secret .down.> gateway : "certificateRefs\nin listener"
 
 ' Policy Application
 tlspolicy .down.> gateway : "Applies to"
-gw_auth .down.> gateway : "Applies to"
-route_auth .down.> httproute : "Applies to"
-ratelimit .down.> httproute : "Applies to"
 
 ' Notes
 note right of route53
@@ -134,39 +158,57 @@ note right of gateway
 - Uses Secret from cert-manager
 - Decrypts HTTPS traffic
 
-**Policy Evaluation (in order)**
-①Gateway AuthPolicy (default deny)
-②Route AuthPolicy (API key)
-③RateLimitPolicy (identity-based)
-④All pass → Backend forward
-⑤Any fail → Error response
+**No Authentication/Rate Limiting**
+- This demo focuses on traffic shaping
+- No AuthPolicy or RateLimitPolicy
+- All requests are allowed
 end note
 
-note right of gw_auth
-**Gateway-level Policy**
-- Default protection
-- deny-all by default
-- Applies to all HTTPRoutes
-- Can be overridden by
-  route-specific policies
+note right of httproute_ab
+**A/B Testing (Random Split)**
+- Path: /ab
+- Backend weights:
+  • v1: 80%
+  • v2: 20%
+- Random distribution per request
+- Use case: Compare two versions
+  with unequal traffic split
 end note
 
-note right of route_auth
-**Route-level Policy**
-- Route-specific authentication
-- API Key validation:
-  - IAMALICE → alice
-  - IAMBOB → bob
-- Missing/invalid key → 401
-- Authenticated but denied → 403
+note right of httproute_canary
+**Canary Rollout (Progressive Delivery)**
+- Path: /canary
+- No header match
+- Backend weights:
+  • v1: 90% (stable)
+  • v2: 10% (canary)
+- Use case: Gradual rollout of new version
+  with minimal risk
 end note
 
-note right of ratelimit
-**Rate Limit**
-- Counter: auth.identity.userid
-- Alice: 5 req/10s
-- Bob: 2 req/10s
-- Limit exceeded → 429
+note right of httproute_forced
+**Canary Opt-in (Forced Routing)**
+- Path: /canary
+- Header match: x-rhcl-canary: always
+- Backend weights:
+  • v2: 100%
+- Use case: Internal testers always get
+  canary version for validation
+end note
+
+note right of service_v1
+**Backend v1 (Stable Version)**
+- Receives majority of traffic
+- Known stable behavior
+- Production-ready code
+end note
+
+note right of service_v2
+**Backend v2 (New Version)**
+- Receives minority of traffic
+- Being validated in production
+- Can be promoted to stable
+  after validation
 end note
 
 note right of cert
@@ -186,10 +228,8 @@ legend bottom left
 ┄┄┄ Dashed line = Control Plane (policy/management/reconcile)
 
 **Response Codes:**
-• 200 = Success (valid key, under limit)
-• 401 = Unauthorized (missing/invalid API key)
-• 403 = Forbidden (authenticated but denied)
-• 429 = Too Many Requests (rate limit exceeded)
+• 200 = Success (v1 or v2 response)
+• 404 = Not Found (invalid path)
 
 **Architecture:**
 • AWS Load Balancer: Outside OpenShift Cluster
@@ -197,13 +237,18 @@ legend bottom left
 • OpenShift Router: Inside OpenShift Cluster
 • Gateway/HTTPRoute/Backend: Inside OpenShift Cluster
 
+**Traffic Shaping:**
+• A/B (/ab): 80% v1, 20% v2
+• Canary (/canary): 90% v1, 10% v2
+• Canary forced (/canary + header): 100% v2
+
 **Steps:**
 ① DNS Query → Response (Route53)
 ② HTTPS Request
 ③ SNI routing (AWS LB → Router)
 ④ TLS passthrough (Router → Gateway via OpenShift Route)
-⑤ Route matching (Gateway → HTTPRoute)
-⑥ Forward to Backend
+⑤ Route matching (Gateway → HTTPRoute based on path/header)
+⑥ Forward to Backend (weighted distribution)
 endlegend
 
 @enduml
