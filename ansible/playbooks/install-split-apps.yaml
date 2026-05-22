@@ -208,11 +208,6 @@
       register: app2_result
       changed_when: "'configured' in (app2_result.stdout | lower) or 'created' in (app2_result.stdout | lower)"
 
-    - name: Manually sync Application 2
-      ansible.builtin.command: oc patch application rhcl-app-2-platform-crs -n openshift-gitops --type merge -p '{"operation":{"initiatedBy":{"username":"ansible"},"sync":{}}}'
-      register: app2_sync
-      changed_when: true
-
     - name: Wait for Application 2 to be Synced
       ansible.builtin.command: oc get application rhcl-app-2-platform-crs -n openshift-gitops -o jsonpath='{.status.sync.status}'
       register: app2_sync_status
@@ -352,6 +347,9 @@
             server: https://kubernetes.default.svc
             namespace: openshift-ingress
           syncPolicy:
+            automated:
+              prune: true
+              selfHeal: true
             syncOptions:
               - CreateNamespace=true
               - RespectIgnoreDifferences=true
@@ -366,11 +364,6 @@
         executable: /bin/bash
       register: app3_result
       changed_when: "'configured' in (app3_result.stdout | lower) or 'created' in (app3_result.stdout | lower)"
-
-    - name: Manually sync Application 3
-      ansible.builtin.command: oc patch application rhcl-app-3-gateways -n openshift-gitops --type merge -p '{"operation":{"initiatedBy":{"username":"ansible"},"sync":{}}}'
-      register: app3_sync
-      changed_when: true
 
     - name: Wait for Application 3 to be Synced
       ansible.builtin.command: oc get application rhcl-app-3-gateways -n openshift-gitops -o jsonpath='{.status.sync.status}'
@@ -444,6 +437,9 @@
             server: https://kubernetes.default.svc
             namespace: demo
           syncPolicy:
+            automated:
+              prune: true
+              selfHeal: true
             syncOptions:
               - CreateNamespace=true
               - RespectIgnoreDifferences=true
@@ -458,11 +454,6 @@
         executable: /bin/bash
       register: app4_result
       changed_when: "'configured' in (app4_result.stdout | lower) or 'created' in (app4_result.stdout | lower)"
-
-    - name: Manually sync Application 4
-      ansible.builtin.command: oc patch application rhcl-app-4-demo-apps -n openshift-gitops --type merge -p '{"operation":{"initiatedBy":{"username":"ansible"},"sync":{}}}'
-      register: app4_sync
-      changed_when: true
 
     - name: Wait for Application 4 to be Synced
       ansible.builtin.command: oc get application rhcl-app-4-demo-apps -n openshift-gitops -o jsonpath='{.status.sync.status}'
@@ -536,6 +527,9 @@
             server: https://kubernetes.default.svc
             namespace: monitoring
           syncPolicy:
+            automated:
+              prune: true
+              selfHeal: true
             syncOptions:
               - CreateNamespace=true
               - RespectIgnoreDifferences=true
@@ -563,11 +557,6 @@
         executable: /bin/bash
       register: app5_observability_result
       changed_when: "'configured' in (app5_observability_result.stdout | lower) or 'created' in (app5_observability_result.stdout | lower)"
-
-    - name: Manually sync Application 5
-      ansible.builtin.command: oc patch application rhcl-app-5-core-observability -n openshift-gitops --type merge -p '{"operation":{"initiatedBy":{"username":"ansible"},"sync":{}}}'
-      register: app5_observability_sync_trigger
-      changed_when: true
 
     - name: Wait for Application 5 to be Synced
       ansible.builtin.command: oc get application rhcl-app-5-core-observability -n openshift-gitops -o jsonpath='{.status.sync.status}'
@@ -939,6 +928,9 @@
             server: https://kubernetes.default.svc
             namespace: demo
           syncPolicy:
+            automated:
+              prune: true
+              selfHeal: true
             syncOptions:
               - CreateNamespace=true
               - RespectIgnoreDifferences=true
@@ -953,11 +945,6 @@
         executable: /bin/bash
       register: app6_result
       changed_when: "'configured' in (app6_result.stdout | lower) or 'created' in (app6_result.stdout | lower)"
-
-    - name: Manually sync Application 6
-      ansible.builtin.command: oc patch application rhcl-app-6-routes-policies -n openshift-gitops --type merge -p '{"operation":{"initiatedBy":{"username":"ansible"},"sync":{}}}'
-      register: app6_sync
-      changed_when: true
 
     - name: Wait for Application 6 to be Synced
       ansible.builtin.command: oc get application rhcl-app-6-routes-policies -n openshift-gitops -o jsonpath='{.status.sync.status}'
