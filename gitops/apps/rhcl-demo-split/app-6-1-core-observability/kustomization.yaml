@@ -1,0 +1,7 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# Core Observability - Grafana only (distributed tracing removed)
+resources:
+  - resources/05-observability-and-grafana.yaml
+  - resources/06-grafana-dashboard-configmaps.yaml

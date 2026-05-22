@@ -1,0 +1,165 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: rhcl-grafana
+  namespace: monitoring
+  annotations:
+    argocd.argoproj.io/sync-wave: "44"
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: rhcl-grafana-cluster-monitoring-view
+  annotations:
+    argocd.argoproj.io/sync-wave: "44"
+subjects:
+  - kind: ServiceAccount
+    name: rhcl-grafana
+    namespace: monitoring
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-monitoring-view
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: rhcl-grafana-thanos-token
+  namespace: openshift-gitops
+  annotations:
+    argocd.argoproj.io/hook: PostSync
+    argocd.argoproj.io/hook-delete-policy: HookSucceeded,HookFailed
+    argocd.argoproj.io/sync-wave: "45"
+spec:
+  backoffLimit: 1
+  template:
+    spec:
+      serviceAccountName: rhcl-observability-bootstrap
+      restartPolicy: Never
+      containers:
+        - name: oc
+          image: registry.redhat.io/openshift4/ose-cli:latest
+          command: ["/bin/bash","-lc"]
+          args:
+            - |
+              set -euo pipefail
+              TOKEN="$(oc -n monitoring create token rhcl-grafana --duration=168h)"
+              URL="$(oc -n openshift-monitoring get route thanos-querier -o jsonpath='https://{.status.ingress[].host}' 2>/dev/null || true)"
+              if [ -z "${URL:-}" ]; then
+                URL="https://thanos-querier.openshift-monitoring.svc:9091"
+              fi
+              oc -n monitoring create secret generic rhcl-grafana-thanos \
+                --from-literal=PROMETHEUS_TOKEN="$TOKEN" \
+                --from-literal=THANOS_URL="$URL" \
+                --dry-run=client -o yaml | oc apply -f -
+              echo "OK: grafana datasource secret updated"
+---
+apiVersion: grafana.integreatly.org/v1beta1
+kind: Grafana
+metadata:
+  name: rhcl-grafana
+  namespace: monitoring
+  labels:
+    app: rhcl-grafana
+  annotations:
+    argocd.argoproj.io/sync-wave: "50"
+spec:
+  config:
+    auth:
+      disable_login_form: "true"
+    auth.anonymous:
+      enabled: "true"
+      org_role: Viewer
+    log:
+      mode: console
+---
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaDatasource
+metadata:
+  name: rhcl-thanos
+  namespace: monitoring
+  labels:
+    app: rhcl-grafana
+  annotations:
+    argocd.argoproj.io/sync-wave: "51"
+spec:
+  instanceSelector:
+    matchLabels:
+      app: rhcl-grafana
+  valuesFrom:
+    - targetPath: "url"
+      valueFrom:
+        secretKeyRef:
+          name: rhcl-grafana-thanos
+          key: THANOS_URL
+    - targetPath: "secureJsonData.httpHeaderValue1"
+      valueFrom:
+        secretKeyRef:
+          name: rhcl-grafana-thanos
+          key: PROMETHEUS_TOKEN
+  datasource:
+    name: rhcl-thanos
+    type: prometheus
+    access: proxy
+    isDefault: true
+    url: "${THANOS_URL}"
+    jsonData:
+      tlsSkipVerify: true
+      httpHeaderName1: "Authorization"
+    secureJsonData:
+      httpHeaderValue1: "Bearer ${PROMETHEUS_TOKEN}"
+---
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaDashboard
+metadata:
+  name: rhcl-workshop-app-developer
+  namespace: monitoring
+  annotations:
+    argocd.argoproj.io/sync-wave: "52"
+spec:
+  instanceSelector:
+    matchLabels:
+      app: rhcl-grafana
+  resyncPeriod: 30s
+  uid: rhcl-app-dev
+  folder: RHCL Workshop
+  configMapRef:
+    name: rhcl-workshop-app-developer
+    key: app_developer.json
+---
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaDashboard
+metadata:
+  name: rhcl-workshop-platform-engineer
+  namespace: monitoring
+  annotations:
+    argocd.argoproj.io/sync-wave: "52"
+spec:
+  instanceSelector:
+    matchLabels:
+      app: rhcl-grafana
+  resyncPeriod: 30s
+  uid: rhcl-platform
+  folder: RHCL Workshop
+  configMapRef:
+    name: rhcl-workshop-platform-engineer
+    key: platform_engineer.json
+---
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaDashboard
+metadata:
+  name: rhcl-workshop-business-user
+  namespace: monitoring
+  annotations:
+    argocd.argoproj.io/sync-wave: "52"
+spec:
+  instanceSelector:
+    matchLabels:
+      app: rhcl-grafana
+  resyncPeriod: 30s
+  uid: rhcl-business
+  folder: RHCL Workshop
+  configMapRef:
+    name: rhcl-workshop-business-user
+    key: business_user.json
+

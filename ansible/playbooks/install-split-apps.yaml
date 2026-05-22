@@ -72,6 +72,54 @@
       register: aws_dnspolicy_secret
       changed_when: "'configured' in (aws_dnspolicy_secret.stdout | lower) or 'created' in (aws_dnspolicy_secret.stdout | lower)"
 
+    - name: Apply Application 2-2 (Kuadrant Observability)
+      ansible.builtin.shell: |
+        set -euo pipefail
+        oc apply -f - <<'EOF'
+        apiVersion: argoproj.io/v1alpha1
+        kind: Application
+        metadata:
+          name: rhcl-app-2-2-kuadrant-observability
+          namespace: openshift-gitops
+          annotations:
+            argocd.argoproj.io/sync-wave: "2"
+          finalizers:
+            - resources-finalizer.argocd.argoproj.io
+        spec:
+          project: default
+          source:
+            repoURL: https://github.com/Kuadrant/kuadrant-operator
+            targetRevision: v1.3.0
+            path: config/install/configure/observability
+          destination:
+            server: https://kubernetes.default.svc
+          syncPolicy:
+            automated:
+              prune: true
+              selfHeal: true
+            syncOptions:
+              - CreateNamespace=true
+              - RespectIgnoreDifferences=true
+            retry:
+              limit: 10
+              backoff:
+                duration: 30s
+                factor: 2
+                maxDuration: 10m
+        EOF
+      args:
+        executable: /bin/bash
+      register: app2_2_result
+      changed_when: "'configured' in (app2_2_result.stdout | lower) or 'created' in (app2_2_result.stdout | lower)"
+
+    - name: Wait for Application 2-2 to be Synced
+      ansible.builtin.command: oc get application rhcl-app-2-2-kuadrant-observability -n openshift-gitops -o jsonpath='{.status.sync.status}'
+      register: app2_2_sync
+      until: app2_2_sync.stdout == "Synced"
+      retries: 60
+      delay: 10
+      changed_when: false
+
     - name: Apply Application 1 (operators) - no patches needed
       ansible.builtin.shell: |
         set -euo pipefail
@@ -410,6 +458,119 @@
       when: (openai_api_key | default('') | trim != '')
       register: openai_secret
       changed_when: "'configured' in (openai_secret.stdout | lower) or 'created' in (openai_secret.stdout | lower)"
+
+    - name: Apply Application 6-1 (Core Observability - Grafana)
+      ansible.builtin.shell: |
+        set -euo pipefail
+        oc apply -f - <<'EOF'
+        apiVersion: argoproj.io/v1alpha1
+        kind: Application
+        metadata:
+          name: rhcl-app-6-1-core-observability
+          namespace: openshift-gitops
+          annotations:
+            argocd.argoproj.io/sync-wave: "6"
+          finalizers:
+            - resources-finalizer.argocd.argoproj.io
+        spec:
+          project: default
+          source:
+            repoURL: https://github.com/kamorisan/demo-rhcl.git
+            targetRevision: {{ git_branch }}
+            path: gitops/apps/rhcl-demo-split/app-6-1-core-observability
+          destination:
+            server: https://kubernetes.default.svc
+            namespace: rhcl-observability
+          syncPolicy:
+            syncOptions:
+              - CreateNamespace=true
+              - RespectIgnoreDifferences=true
+            retry:
+              limit: 10
+              backoff:
+                duration: 30s
+                factor: 2
+                maxDuration: 10m
+          ignoreDifferences:
+            - group: grafana.integreatly.org
+              kind: Grafana
+              jqPathExpressions:
+                - .status
+            - group: grafana.integreatly.org
+              kind: GrafanaDatasource
+              jqPathExpressions:
+                - .status
+            - group: grafana.integreatly.org
+              kind: GrafanaDashboard
+              jqPathExpressions:
+                - .status
+        EOF
+      args:
+        executable: /bin/bash
+      register: app6_1_result
+      changed_when: "'configured' in (app6_1_result.stdout | lower) or 'created' in (app6_1_result.stdout | lower)"
+
+    - name: Manually sync Application 6-1
+      ansible.builtin.command: oc patch application rhcl-app-6-1-core-observability -n openshift-gitops --type merge -p '{"operation":{"initiatedBy":{"username":"ansible"},"sync":{}}}'
+      register: app6_1_sync_trigger
+      changed_when: true
+
+    - name: Wait for Application 6-1 to be Synced
+      ansible.builtin.command: oc get application rhcl-app-6-1-core-observability -n openshift-gitops -o jsonpath='{.status.sync.status}'
+      register: app6_1_sync
+      until: app6_1_sync.stdout == "Synced"
+      retries: 60
+      delay: 10
+      changed_when: false
+
+    - name: Apply Application 6-3 (Kuadrant Dashboards)
+      ansible.builtin.shell: |
+        set -euo pipefail
+        oc apply -f - <<'EOF'
+        apiVersion: argoproj.io/v1alpha1
+        kind: Application
+        metadata:
+          name: rhcl-app-6-3-kuadrant-dashboards
+          namespace: openshift-gitops
+          annotations:
+            argocd.argoproj.io/sync-wave: "6"
+          finalizers:
+            - resources-finalizer.argocd.argoproj.io
+        spec:
+          project: default
+          source:
+            repoURL: https://github.com/Kuadrant/kuadrant-operator
+            targetRevision: v1.3.0
+            path: examples/dashboards
+          destination:
+            server: https://kubernetes.default.svc
+            namespace: monitoring
+          syncPolicy:
+            automated:
+              prune: true
+              selfHeal: true
+            syncOptions:
+              - CreateNamespace=true
+              - RespectIgnoreDifferences=true
+            retry:
+              limit: 10
+              backoff:
+                duration: 30s
+                factor: 2
+                maxDuration: 10m
+        EOF
+      args:
+        executable: /bin/bash
+      register: app6_3_result
+      changed_when: "'configured' in (app6_3_result.stdout | lower) or 'created' in (app6_3_result.stdout | lower)"
+
+    - name: Wait for Application 6-3 to be Synced
+      ansible.builtin.command: oc get application rhcl-app-6-3-kuadrant-dashboards -n openshift-gitops -o jsonpath='{.status.sync.status}'
+      register: app6_3_sync
+      until: app6_3_sync.stdout == "Synced"
+      retries: 60
+      delay: 10
+      changed_when: false
 
     - name: Apply Application 5 (routes-policies) - Phase 1
       ansible.builtin.shell: |
