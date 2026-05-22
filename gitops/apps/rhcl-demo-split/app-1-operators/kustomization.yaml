@@ -12,5 +12,6 @@ resources:
   - resources/08-mcp-gateway-operator.yaml
   - resources/09-rhbk-operator.yaml
   - resources/10-console-banner.yaml
-  # 11-opentelemetry-operator.yaml - REMOVED: distributed tracing not used
-  # 12-grafana-operator.yaml - REMOVED: installed by App2-2 (Kuadrant Observability)
+  - resources/11-console-plugin-patch.yaml
+  # 12-opentelemetry-operator.yaml - REMOVED: distributed tracing not used
+  # 13-grafana-operator.yaml - REMOVED: installed by App2-2 (Kuadrant Observability)

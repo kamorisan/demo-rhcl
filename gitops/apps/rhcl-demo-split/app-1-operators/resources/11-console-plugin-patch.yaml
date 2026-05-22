@@ -1,0 +1,82 @@
+# PostSync hook to enable Kuadrant Console Plugin
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: console-plugin-patcher
+  namespace: openshift-gitops
+  annotations:
+    argocd.argoproj.io/hook: PostSync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+    argocd.argoproj.io/sync-wave: "10"
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: console-plugin-patcher
+  annotations:
+    argocd.argoproj.io/hook: PostSync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+    argocd.argoproj.io/sync-wave: "10"
+rules:
+  - apiGroups: ["operator.openshift.io"]
+    resources: ["consoles"]
+    verbs: ["get", "list", "patch", "update"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: console-plugin-patcher
+  annotations:
+    argocd.argoproj.io/hook: PostSync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+    argocd.argoproj.io/sync-wave: "10"
+subjects:
+  - kind: ServiceAccount
+    name: console-plugin-patcher
+    namespace: openshift-gitops
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: console-plugin-patcher
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: enable-kuadrant-console-plugin
+  namespace: openshift-gitops
+  annotations:
+    argocd.argoproj.io/hook: PostSync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+    argocd.argoproj.io/sync-wave: "10"
+spec:
+  backoffLimit: 3
+  template:
+    spec:
+      serviceAccountName: console-plugin-patcher
+      restartPolicy: Never
+      containers:
+        - name: patch-console
+          image: registry.redhat.io/openshift4/ose-cli:latest
+          command: ["/bin/bash", "-c"]
+          args:
+            - |
+              set -euo pipefail
+
+              echo "Checking current Console plugin configuration..."
+              CURRENT_PLUGINS=$(oc get console cluster -o jsonpath='{.spec.plugins}' 2>/dev/null || echo "[]")
+              echo "Current plugins: $CURRENT_PLUGINS"
+
+              # Check if kuadrant-console-plugin is already enabled
+              if echo "$CURRENT_PLUGINS" | grep -q "kuadrant-console-plugin"; then
+                echo "kuadrant-console-plugin is already enabled"
+                exit 0
+              fi
+
+              echo "Enabling kuadrant-console-plugin..."
+              oc patch console cluster --type merge -p '{"spec":{"plugins":["kuadrant-console-plugin"]}}'
+
+              echo "Verifying plugin was added..."
+              oc get console cluster -o jsonpath='{.spec.plugins}'
+              echo ""
+              echo "Successfully enabled kuadrant-console-plugin"
