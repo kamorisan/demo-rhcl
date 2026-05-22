@@ -4,7 +4,7 @@ kind: Kustomization
 resources:
   - resources/01-namespaces.yaml
   - resources/02-servicemesh-operator.yaml
-  - resources/03-cluster-observability-operator.yaml
+  # 03-cluster-observability-operator.yaml - REMOVED: distributed tracing not used
   - resources/04-rbac.yaml
   - resources/05-istio-cr.yaml
   - resources/06-rhcl-operator.yaml
@@ -12,5 +12,5 @@ resources:
   - resources/08-mcp-gateway-operator.yaml
   - resources/09-rhbk-operator.yaml
   - resources/10-console-banner.yaml
-  - resources/11-opentelemetry-operator.yaml
-  - resources/12-grafana-operator.yaml
+  # 11-opentelemetry-operator.yaml - REMOVED: distributed tracing not used
+  # 12-grafana-operator.yaml - REMOVED: installed by App2-2 (Kuadrant Observability)
