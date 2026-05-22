@@ -120,6 +120,31 @@
       delay: 10
       changed_when: false
 
+    - name: Cleanup existing Operator CSVs (if any exist from previous deployments)
+      ansible.builtin.shell: |
+        set -euo pipefail
+        echo "Checking for existing Operator CSVs..."
+
+        # Delete CSVs from all namespaces that match our operators
+        for csv_pattern in "servicemeshoperator3" "grafana-operator" "cluster-observability-operator" "opentelemetry-operator" "rhbk-operator" "mcp-gateway-operator" "kuadrant-operator"; do
+          echo "Searching for CSVs matching: $csv_pattern"
+          oc get csv --all-namespaces -o json 2>/dev/null | \
+            jq -r ".items[] | select(.metadata.name | contains(\"$csv_pattern\")) | \"\(.metadata.namespace) \(.metadata.name)\"" | \
+            while read ns csv_name; do
+              if [ -n "$ns" ] && [ -n "$csv_name" ]; then
+                echo "  Deleting CSV $csv_name from namespace $ns"
+                oc delete csv "$csv_name" -n "$ns" --ignore-not-found=true --timeout=30s || true
+              fi
+            done
+        done
+
+        echo "CSV cleanup completed"
+      args:
+        executable: /bin/bash
+      register: csv_cleanup
+      changed_when: csv_cleanup.stdout | regex_search('Deleting CSV')
+      failed_when: false
+
     - name: Apply Application 1 (operators) - no patches needed
       ansible.builtin.shell: |
         set -euo pipefail
