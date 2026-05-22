@@ -402,6 +402,24 @@
             namespace: rhcl-ai-bot
             jqPathExpressions:
             - .spec.template.spec.containers[].image
+          - group: ""
+            kind: ConfigMap
+            name: rhcl-ui
+            namespace: demo
+            jqPathExpressions:
+            - .data
+          - group: ""
+            kind: ConfigMap
+            name: rhcl-oidc-ui
+            namespace: rhcl-oidc-portal
+            jqPathExpressions:
+            - .data
+          - group: ""
+            kind: ConfigMap
+            name: oidc-callback
+            namespace: rhcl-oidc-portal
+            jqPathExpressions:
+            - .data
           source:
             repoURL: https://github.com/kamorisan/demo-rhcl.git
             targetRevision: {{ git_branch }}
@@ -555,55 +573,6 @@
       ansible.builtin.command: oc get application rhcl-app-6-1-core-observability -n openshift-gitops -o jsonpath='{.status.sync.status}'
       register: app6_1_sync
       until: app6_1_sync.stdout == "Synced"
-      retries: 60
-      delay: 10
-      changed_when: false
-
-    - name: Apply Application 6-3 (Kuadrant Dashboards)
-      ansible.builtin.shell: |
-        set -euo pipefail
-        oc apply -f - <<'EOF'
-        apiVersion: argoproj.io/v1alpha1
-        kind: Application
-        metadata:
-          name: rhcl-app-6-3-kuadrant-dashboards
-          namespace: openshift-gitops
-          annotations:
-            argocd.argoproj.io/sync-wave: "6"
-          finalizers:
-            - resources-finalizer.argocd.argoproj.io
-        spec:
-          project: default
-          source:
-            repoURL: https://github.com/Kuadrant/kuadrant-operator
-            targetRevision: v1.3.0
-            path: examples/dashboards
-          destination:
-            server: https://kubernetes.default.svc
-            namespace: monitoring
-          syncPolicy:
-            automated:
-              prune: true
-              selfHeal: true
-            syncOptions:
-              - CreateNamespace=true
-              - RespectIgnoreDifferences=true
-            retry:
-              limit: 10
-              backoff:
-                duration: 30s
-                factor: 2
-                maxDuration: 10m
-        EOF
-      args:
-        executable: /bin/bash
-      register: app6_3_result
-      changed_when: "'configured' in (app6_3_result.stdout | lower) or 'created' in (app6_3_result.stdout | lower)"
-
-    - name: Wait for Application 6-3 to be Synced
-      ansible.builtin.command: oc get application rhcl-app-6-3-kuadrant-dashboards -n openshift-gitops -o jsonpath='{.status.sync.status}'
-      register: app6_3_sync
-      until: app6_3_sync.stdout == "Synced"
       retries: 60
       delay: 10
       changed_when: false

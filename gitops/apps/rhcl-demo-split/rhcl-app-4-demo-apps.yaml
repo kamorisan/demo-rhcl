@@ -11,7 +11,7 @@ spec:
   project: default
   source:
     repoURL: https://github.com/kamorisan/demo-rhcl.git
-    targetRevision: feature/apps345-espn-tools-verified
+    targetRevision: feature/observability-implementation
     path: gitops/apps/rhcl-demo-split/app-4-demo-apps
     kustomize:
       patches:
