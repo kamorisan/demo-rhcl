@@ -95,9 +95,49 @@ spec:
             # ESPN is consumed via the Gateway-published external API hostname.
             - name: RHCL_AI_ESPN_BASE_URL
               value: https://external-api.REPLACE_ME_EXTERNAL_BASE_DOMAIN
-            # Tool calls go through the dedicated MCP Gateway hostname.
+            # ===================================================================
+            # MCP Gateway Connection Configuration
+            # ===================================================================
+            # RHCL 1.3.3 Tech Preview Known Limitation Workaround:
+            #
+            # Using internal service address instead of external route to avoid
+            # known issues in RHCL 1.3.3:
+            # - Issue #917: Hairpin request URL scheme mismatch (fixed in RHCL 1.4)
+            # - Issue #725: Multi-listener ext_proc filter limitation (still open)
+            #
+            # External route pattern (mcp.DOMAIN) causes tools/call to fail with:
+            #   "Kuadrant MCP Broker doesn't forward tool calls"
+            #
+            # This is because ext_proc filter is only applied to the listener
+            # specified in MCPGatewayExtension.spec.targetRef.sectionName.
+            # External route requests may bypass the router and go directly to
+            # the broker, which intentionally does not forward tools/call.
+            #
+            # Solution for RHCL 1.3.3:
+            # - Use internal service address (http://mcp-gateway.mcp-system.svc...)
+            # - This ensures requests go through the router with ext_proc filter
+            # - Provides full MCP functionality including tools/call
+            #
+            # For production HTTPS in RHCL 1.3.3:
+            # - Recommended pattern: TLS termination at external LB/Route
+            # - Keep Gateway listener on HTTP
+            # - Avoids ext_proc and hairpin issues
+            #
+            # RHCL 1.4 (expected June 11, 2026):
+            # - Issue #917 fix included (PR #942)
+            # - Full HTTPS listener support in progress
+            # - Can switch back to external route pattern after upgrade
+            #
+            # Reference:
+            # - https://github.com/Kuadrant/mcp-gateway/issues/917
+            # - https://github.com/Kuadrant/mcp-gateway/issues/725
+            # - https://github.com/Kuadrant/mcp-gateway/pull/942
+            # ===================================================================
             - name: RHCL_AI_MCP_BASE_URL
-              value: https://mcp.REPLACE_ME_EXTERNAL_BASE_DOMAIN
+              # For RHCL 1.3.3 demo: internal service address (see comment above)
+              value: http://mcp-gateway.mcp-system.svc.cluster.local:8080
+              # For RHCL 1.4+: can use external route (after Issue #917 fix)
+              # value: https://mcp.REPLACE_ME_EXTERNAL_BASE_DOMAIN
             - name: RHCL_AI_MCP_PATH
               value: /mcp
             - name: RHCL_AI_MCP_TOOL_SCOREBOARD
