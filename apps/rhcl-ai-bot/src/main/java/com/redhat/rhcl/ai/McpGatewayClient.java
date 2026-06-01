@@ -114,7 +114,8 @@ public class McpGatewayClient {
     }
     // MCP requires a notifications/initialized after initialize.
     // Some gateways invalidate sessions if this is missing.
-    notifyInitialized(sid);
+    // TEMPORARY: Commenting out to test if this causes SSE response issue
+    // notifyInitialized(sid);
     return sid;
   }
 
