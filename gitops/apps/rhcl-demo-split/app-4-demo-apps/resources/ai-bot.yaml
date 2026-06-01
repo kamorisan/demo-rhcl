@@ -114,8 +114,9 @@ spec:
             # the broker, which intentionally does not forward tools/call.
             #
             # Solution for RHCL 1.3.3:
-            # - Use internal service address (http://mcp-gateway.mcp-system.svc...)
-            # - This ensures requests go through the router with ext_proc filter
+            # - Use Gateway privateHost address (http://rhcl-mcp-gw-istio...)
+            # - NOT the direct Service address (mcp-gateway.mcp-system)
+            # - This ensures requests go through Gateway with ext_proc filter
             # - Provides full MCP functionality including tools/call
             #
             # For production HTTPS in RHCL 1.3.3:
@@ -134,8 +135,8 @@ spec:
             # - https://github.com/Kuadrant/mcp-gateway/pull/942
             # ===================================================================
             - name: RHCL_AI_MCP_BASE_URL
-              # For RHCL 1.3.3 demo: internal service address (see comment above)
-              value: http://mcp-gateway.mcp-system.svc.cluster.local:8080
+              # For RHCL 1.3.3 demo: Gateway internal address (privateHost) (see comment above)
+              value: http://rhcl-mcp-gw-istio.openshift-ingress.svc.cluster.local:80
               # For RHCL 1.4+: can use external route (after Issue #917 fix)
               # value: https://mcp.REPLACE_ME_EXTERNAL_BASE_DOMAIN
             - name: RHCL_AI_MCP_PATH
