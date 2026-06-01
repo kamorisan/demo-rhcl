@@ -17,12 +17,6 @@ spec:
         - path:
             type: PathPrefix
             value: /
-      filters:
-        - type: RequestHeaderModifier
-          requestHeaderModifier:
-            set:
-              - name: Accept
-                value: "application/json"
       backendRefs:
         - name: rhcl-ai-bot
           namespace: rhcl-ai-bot
