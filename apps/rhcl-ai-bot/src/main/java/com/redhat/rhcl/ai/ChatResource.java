@@ -55,7 +55,11 @@ public class ChatResource {
             ObjectNode args = json.obj();
             if (dates != null && !dates.isBlank()) args.put("dates", dates);
             String toolName = extractToolName(userText);
-            if (toolName.isBlank()) toolName = mcp.scoreboardToolName();
+            if (toolName.isBlank()) {
+              toolName = mcp.scoreboardToolName();
+            } else if (!toolName.endsWith("_scoreboard")) {
+              toolName = toolName + "_scoreboard";
+            }
             String txt = mcp.callToolText(toolName, args);
             sb = json.readTree(txt);
             toolNote = "tool=" + toolName + " via=mcp-gateway league=" + league.label;
