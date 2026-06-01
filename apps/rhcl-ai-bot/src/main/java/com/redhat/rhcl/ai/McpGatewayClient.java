@@ -172,7 +172,10 @@ public class McpGatewayClient {
       b.header("mcp-session-id", sessionId);
     }
     HttpRequest req = b.POST(HttpRequest.BodyPublishers.ofString(json.write(body))).build();
-    return http.send(req, HttpResponse.BodyHandlers.ofString());
+    System.out.println("MCP Request: " + uri + " method=" + body.path("method").asText());
+    HttpResponse<String> response = http.send(req, HttpResponse.BodyHandlers.ofString());
+    System.out.println("MCP Response: status=" + response.statusCode() + " contentType=" + response.headers().firstValue("content-type").orElse("none") + " bodyLength=" + response.body().length() + " bodyPreview=" + response.body().substring(0, Math.min(200, response.body().length())));
+    return response;
   }
 
   private static String stripTrailingSlash(String s) {
