@@ -60,6 +60,7 @@ public class ChatResource {
             } else if (!toolName.endsWith("_scoreboard")) {
               toolName = toolName + "_scoreboard";
             }
+            System.out.println("ChatResource: Calling MCP tool=" + toolName + " args=" + args);
             String txt = mcp.callToolText(toolName, args);
             sb = json.readTree(txt);
             toolNote = "tool=" + toolName + " via=mcp-gateway league=" + league.label;
