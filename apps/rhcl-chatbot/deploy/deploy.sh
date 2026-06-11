@@ -80,18 +80,28 @@ build_image() {
     echo ""
 
     # BuildConfigが存在するかチェック
+    if oc get bc $APP_NAME -n $NAMESPACE &> /dev/null; then
+        # 既存のBuildConfigの種類を確認
+        BUILD_TYPE=$(oc get bc $APP_NAME -n $NAMESPACE -o jsonpath='{.spec.source.type}')
+        if [ "$BUILD_TYPE" = "Binary" ]; then
+            echo -e "${YELLOW}Existing BuildConfig is Binary type, recreating as Git...${NC}"
+            oc delete bc $APP_NAME -n $NAMESPACE
+            sleep 2
+        fi
+    fi
+
+    # BuildConfigが存在しない、または削除された場合は新規作成
     if ! oc get bc $APP_NAME -n $NAMESPACE &> /dev/null; then
         echo -e "${GREEN}Creating BuildConfig from Git...${NC}"
-        oc new-build $GIT_URL \
+
+        # Git URL with branch
+        GIT_URL_WITH_BRANCH="${GIT_URL}#${GIT_BRANCH}"
+
+        oc new-build $GIT_URL_WITH_BRANCH \
             --name $APP_NAME \
             --context-dir=$GIT_CONTEXT_DIR \
-            --strategy docker \
+            --strategy=docker \
             -n $NAMESPACE
-
-        # Git branchを設定
-        if [ "$GIT_BRANCH" != "main" ] && [ "$GIT_BRANCH" != "master" ]; then
-            oc patch bc/$APP_NAME -n $NAMESPACE -p "{\"spec\":{\"source\":{\"git\":{\"ref\":\"$GIT_BRANCH\"}}}}"
-        fi
     else
         echo -e "${YELLOW}BuildConfig already exists, updating source...${NC}"
         oc patch bc/$APP_NAME -n $NAMESPACE -p "{\"spec\":{\"source\":{\"git\":{\"uri\":\"$GIT_URL\",\"ref\":\"$GIT_BRANCH\"}}}}"
