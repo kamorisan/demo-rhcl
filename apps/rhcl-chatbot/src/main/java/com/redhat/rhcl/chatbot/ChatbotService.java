@@ -349,7 +349,25 @@ public class ChatbotService {
             return startOfYear.format(fmt) + "-" + endOfYear.format(fmt);
         }
 
-        // Pattern 2: Specific date (e.g., "6月11日", "June 11") - Must check BEFORE month pattern
+        // Pattern 2a: Date range (e.g., "6月5日-6月7日", "6月5日から6月7日", "June 5-7", "June 5 to 7")
+        // Same month range: "6月5日-6月7日" or "6月5日-7日"
+        Pattern dateRangePattern1 = Pattern.compile("(\\d+)月(\\d+)日[‐－-〜~から]+(\\d+)月?(\\d+)日");
+        var dateRangeMatcher1 = dateRangePattern1.matcher(normalizedMessage);
+        if (dateRangeMatcher1.find()) {
+            int startMonth = Integer.parseInt(dateRangeMatcher1.group(1));
+            int startDay = Integer.parseInt(dateRangeMatcher1.group(2));
+            // Group 3 might be empty if "6月5日-7日" format
+            String endMonthStr = dateRangeMatcher1.group(3);
+            int endMonth = endMonthStr.isEmpty() ? startMonth : Integer.parseInt(endMonthStr);
+            int endDay = Integer.parseInt(dateRangeMatcher1.group(4));
+
+            int year = (startMonth > today.getMonthValue()) ? today.getYear() - 1 : today.getYear();
+            LocalDate startDate = LocalDate.of(year, startMonth, startDay);
+            LocalDate endDate = LocalDate.of(year, endMonth, endDay);
+            return startDate.format(fmt) + "-" + endDate.format(fmt);
+        }
+
+        // Pattern 2b: Specific date (e.g., "6月11日", "June 11") - Must check AFTER range pattern
         Pattern specificDatePattern = Pattern.compile("(\\d+)月(\\d+)日");
         var specificDateMatcher = specificDatePattern.matcher(normalizedMessage);
         if (specificDateMatcher.find()) {
