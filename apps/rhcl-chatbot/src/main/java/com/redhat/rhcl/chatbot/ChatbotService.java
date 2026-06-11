@@ -351,7 +351,8 @@ public class ChatbotService {
 
         // Pattern 2a: Date range (e.g., "6月5日-6月7日", "6月5日-7日")
         // Format: "N月M日-N月K日" or "N月M日-K日"
-        Pattern dateRangePattern = Pattern.compile("(\\d+)月(\\d+)日[‐－-〜~]((?:\\d+)月)?(\\d+)日");
+        // Note: hyphen (-) must be last in character class or escaped
+        Pattern dateRangePattern = Pattern.compile("(\\d+)月(\\d+)日[‐－〜~-]((?:\\d+)月)?(\\d+)日");
         var dateRangeMatcher = dateRangePattern.matcher(normalizedMessage);
         if (dateRangeMatcher.find()) {
             int startMonth = Integer.parseInt(dateRangeMatcher.group(1));
