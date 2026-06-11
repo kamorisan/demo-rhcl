@@ -349,7 +349,18 @@ public class ChatbotService {
             return startOfYear.format(fmt) + "-" + endOfYear.format(fmt);
         }
 
-        // Pattern 2: Specific month (e.g., "3月の", "in March")
+        // Pattern 2: Specific date (e.g., "6月11日", "June 11") - Must check BEFORE month pattern
+        Pattern specificDatePattern = Pattern.compile("(\\d+)月(\\d+)日");
+        var specificDateMatcher = specificDatePattern.matcher(normalizedMessage);
+        if (specificDateMatcher.find()) {
+            int month = Integer.parseInt(specificDateMatcher.group(1));
+            int day = Integer.parseInt(specificDateMatcher.group(2));
+            int year = (month > today.getMonthValue()) ? today.getYear() - 1 : today.getYear();
+            LocalDate date = LocalDate.of(year, month, day);
+            return date.format(fmt) + "-" + date.format(fmt);
+        }
+
+        // Pattern 3: Specific month (e.g., "3月の", "in March")
         Pattern specificMonthPattern = Pattern.compile("(\\d+)月の?(?!以降)");
         var specificMonthMatcher = specificMonthPattern.matcher(normalizedMessage);
         if (specificMonthMatcher.find()) {
@@ -370,7 +381,7 @@ public class ChatbotService {
             return startOfMonth.format(fmt) + "-" + endOfMonth.format(fmt);
         }
 
-        // Pattern 3: "Since month" (e.g., "5月以降", "since May")
+        // Pattern 4: "Since month" (e.g., "5月以降", "since May")
         Pattern sinceMonthPattern = Pattern.compile("(\\d+)月以降");
         var sinceMonthMatcher = sinceMonthPattern.matcher(normalizedMessage);
         if (sinceMonthMatcher.find()) {
@@ -385,17 +396,6 @@ public class ChatbotService {
             int month = getMonthNumber(monthName);
             LocalDate startOfMonth = LocalDate.of(today.getYear(), month, 1);
             return startOfMonth.format(fmt) + "-" + today.format(fmt);
-        }
-
-        // Pattern 4: Specific date (e.g., "6月11日", "June 11")
-        Pattern specificDatePattern = Pattern.compile("(\\d+)月(\\d+)日");
-        var specificDateMatcher = specificDatePattern.matcher(normalizedMessage);
-        if (specificDateMatcher.find()) {
-            int month = Integer.parseInt(specificDateMatcher.group(1));
-            int day = Integer.parseInt(specificDateMatcher.group(2));
-            int year = (month > today.getMonthValue()) ? today.getYear() - 1 : today.getYear();
-            LocalDate date = LocalDate.of(year, month, day);
-            return date.format(fmt) + "-" + date.format(fmt);
         }
 
         int daysBefore;
