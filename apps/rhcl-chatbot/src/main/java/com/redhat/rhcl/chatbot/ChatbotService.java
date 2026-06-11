@@ -349,17 +349,22 @@ public class ChatbotService {
             return startOfYear.format(fmt) + "-" + endOfYear.format(fmt);
         }
 
-        // Pattern 2a: Date range (e.g., "6月5日-6月7日", "6月5日から6月7日", "June 5-7", "June 5 to 7")
-        // Same month range: "6月5日-6月7日" or "6月5日-7日"
-        Pattern dateRangePattern1 = Pattern.compile("(\\d+)月(\\d+)日[‐－-〜~から]+(\\d+)月?(\\d+)日");
-        var dateRangeMatcher1 = dateRangePattern1.matcher(normalizedMessage);
-        if (dateRangeMatcher1.find()) {
-            int startMonth = Integer.parseInt(dateRangeMatcher1.group(1));
-            int startDay = Integer.parseInt(dateRangeMatcher1.group(2));
-            // Group 3 might be empty if "6月5日-7日" format
-            String endMonthStr = dateRangeMatcher1.group(3);
-            int endMonth = endMonthStr.isEmpty() ? startMonth : Integer.parseInt(endMonthStr);
-            int endDay = Integer.parseInt(dateRangeMatcher1.group(4));
+        // Pattern 2a: Date range (e.g., "6月5日-6月7日", "6月5日-7日")
+        // Format: "N月M日-N月K日" or "N月M日-K日"
+        Pattern dateRangePattern = Pattern.compile("(\\d+)月(\\d+)日[‐－-〜~]((?:\\d+)月)?(\\d+)日");
+        var dateRangeMatcher = dateRangePattern.matcher(normalizedMessage);
+        if (dateRangeMatcher.find()) {
+            int startMonth = Integer.parseInt(dateRangeMatcher.group(1));
+            int startDay = Integer.parseInt(dateRangeMatcher.group(2));
+            String endMonthWithSuffix = dateRangeMatcher.group(3); // "6月" or null
+            int endMonth;
+            if (endMonthWithSuffix != null && !endMonthWithSuffix.isEmpty()) {
+                // Extract number from "6月"
+                endMonth = Integer.parseInt(endMonthWithSuffix.replaceAll("[^0-9]", ""));
+            } else {
+                endMonth = startMonth; // Same month
+            }
+            int endDay = Integer.parseInt(dateRangeMatcher.group(4));
 
             int year = (startMonth > today.getMonthValue()) ? today.getYear() - 1 : today.getYear();
             LocalDate startDate = LocalDate.of(year, startMonth, startDay);
